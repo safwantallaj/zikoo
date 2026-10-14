@@ -1,0 +1,12 @@
+{
+  "background_color": "#ffffff",
+  "dir": "ltr",
+  "display": "standalone",
+  "name": "المحاسب الذكي",
+  "orientation": "any",
+  "scope": "/",
+  "short_name": "المحاسب",
+  "start_url": "/",
+  "theme_color": "#ffffff",
+  "description": "تطبيق إدارة القيود المحاسبية وكشوف الحسابات"
+}

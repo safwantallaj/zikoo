@@ -429,7 +429,6 @@
 
 <div class="app-container">
   
-  <!-- تم إلغاء الزر العلوي الزائد للاكتفاء بالزر المريح في الأسفل -->
   <header>
     <div class="brand">
       <div class="brand-icon"><i class="fa-solid fa-calculator"></i></div>
@@ -437,7 +436,7 @@
     </div>
     <div class="user-pill">
       <i class="fa-solid fa-circle-check" style="color: var(--success);"></i>
-      <span>متصل محلياً وسحابياً</span>
+      <span id="sync-status-indicator">متصل سحابياً</span>
     </div>
   </header>
 
@@ -472,7 +471,6 @@
         <span id="accounts-count-badge" style="font-size: 11px; color: var(--primary); font-weight: 600;"></span>
       </div>
 
-      <!-- الزر السفلي المعتمد -->
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
         <button class="btn btn-primary" onclick="switchTab('tab-entry')">
           <i class="fa-solid fa-plus-circle"></i> تسجيل قيد
@@ -490,7 +488,7 @@
       
       <div class="form-group">
         <label>تاريخ القيد</label>
-        <input type="date" id="entry-date" value="2026-10-13">
+        <input type="date" id="entry-date">
       </div>
 
       <div class="form-group">
@@ -552,11 +550,11 @@
       <div class="no-print" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
         <div class="form-group">
           <label>من تاريخ</label>
-          <input type="date" id="date-from" value="2026-10-01">
+          <input type="date" id="date-from">
         </div>
         <div class="form-group">
           <label>إلى تاريخ</label>
-          <input type="date" id="date-to" value="2026-10-13">
+          <input type="date" id="date-to">
         </div>
       </div>
 
@@ -597,16 +595,16 @@
       
       <div class="sync-card">
         <div style="font-weight: 700; color: var(--primary-dark); margin-bottom: 4px;">
-          <i class="fa-solid fa-user-shield"></i> مالك الدفاتر الأساسي
+          <i class="fa-solid fa-user-shield"></i> دفتر الحسابات المستقل
         </div>
-        <p style="color: var(--text-muted); font-size: 12px;">
-          البيانات تحفظ محلياً على جهازك ومزامنة مع حساب Google Drive الخاص بك.
+        <p style="color: var(--text-muted); font-size: 12px;" id="sheet-status-info">
+          جهازك مربوط بدفتر حسابات سحابي خاص ومستقل على Google Sheets.
         </p>
       </div>
 
       <div class="form-group">
         <label>إيميل المحاسب / الشريك</label>
-        <input type="email" placeholder="accountant@gmail.com">
+        <input type="email" id="share-email" placeholder="accountant@gmail.com">
       </div>
 
       <div class="form-group">
@@ -617,7 +615,7 @@
         </select>
       </div>
 
-      <button class="btn btn-primary" onclick="alert('تم إرسال دعوة المشاركة للملف بنجاح!')">
+      <button class="btn btn-primary" onclick="showToast('تم إرسال دعوة المشاركة للملف بنجاح')">
         <i class="fa-solid fa-user-plus"></i> إرسال دعوة مشاركة
       </button>
 
@@ -687,6 +685,52 @@
 </div>
 
 <script>
+  // رابط خادم Google Apps Script المعتمد
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwFaGAUNK_kvEyCauTIer6NijuUDw2dPR002c-6eX9X7EbRnknptd-IdZeKE5XjQr93/exec";
+
+  // دالة الإشعار الداخلي (بديل alert لمنع ظهور رسائل المتصفح والروابط)
+  function showToast(message, isError = false) {
+    let toast = document.getElementById("appToast");
+    if (!toast) {
+      toast = document.createElement("div");
+      toast.id = "appToast";
+      toast.style.cssText = "position:fixed; bottom:25px; left:50%; transform:translateX(-50%); background:#0f172a; color:#ffffff; padding:12px 24px; border-radius:30px; font-family:'Cairo',sans-serif; font-size:13px; font-weight:700; box-shadow:0 8px 25px rgba(0,0,0,0.3); z-index:999999; transition:all 0.3s ease; opacity:0; pointer-events:none; text-align:center; min-width:240px;";
+      document.body.appendChild(toast);
+    }
+    toast.style.background = isError ? "#ef4444" : "#10b981";
+    toast.textContent = message;
+    toast.style.opacity = "1";
+    toast.style.transform = "translateX(-50%) translateY(0)";
+
+    setTimeout(() => {
+      toast.style.opacity = "0";
+      toast.style.transform = "translateX(-50%) translateY(10px)";
+    }, 3200);
+  }
+
+  // فحص واستنساخ شيت المحاسب الذكي لأول مرة لكل جهاز
+  async function initUserSpreadsheet() {
+    let sheetId = localStorage.getItem("user_sheet_id");
+    if (!sheetId) {
+      showToast("جارٍ تجهيز دفتر حساباتك المستقل...");
+      try {
+        let res = await fetch(SCRIPT_URL, {
+          method: "POST",
+          body: JSON.stringify({ action: "INITIALIZE_USER_SHEET", userName: "المستخدم" })
+        });
+        let data = await res.json();
+        if (data.status === "success") {
+          localStorage.setItem("user_sheet_id", data.spreadsheetId);
+          showToast("تم ربط وتجهيز نسختك السحابية بنجاح");
+          const info = document.getElementById("sheet-status-info");
+          if (info) info.innerText = "دفترك السحابي جاهز ومربوط بنجاح.";
+        }
+      } catch (e) {
+        console.error("فشل الاتصال السحابي الأولي:", e);
+      }
+    }
+  }
+
   // شجرة الحسابات الافتراضية
   const defaultAccounts = [
     { code: "1111", name: "الصندوق الرئيسي (الخزينة)", cat: "النقدية والبنوك", base: "cash", nature: "مدين" },
@@ -713,17 +757,9 @@
     { code: "5205", name: "مصاريف وعمولات بنكية", cat: "المشتريات والمصروفات", base: "expense", nature: "مدين" }
   ];
 
-  // القيود الافتراضية
-  const defaultEntries = [
-    { date: "2026-10-05", accountCode: "1111", desc: "سداد فاتورة مبيعات نقدية", debit: 12000, credit: 0 },
-    { date: "2026-10-05", accountCode: "4101", desc: "إيراد مبيعات نقدية", debit: 0, credit: 12000 },
-    { date: "2026-10-10", accountCode: "2101", desc: "دفعة للمورد (شركة النور)", debit: 4500, credit: 0 },
-    { date: "2026-10-10", accountCode: "1111", desc: "دفعة للمورد (شركة النور)", debit: 0, credit: 4500 }
-  ];
-
   // استرجاع البيانات المحفوظة محلياً أو استخدام الافتراضية
   let chartOfAccounts = JSON.parse(localStorage.getItem('smart_accounts')) || defaultAccounts;
-  let ledgerEntries = JSON.parse(localStorage.getItem('smart_entries')) || defaultEntries;
+  let ledgerEntries = JSON.parse(localStorage.getItem('smart_entries')) || [];
 
   function persistData() {
     localStorage.setItem('smart_accounts', JSON.stringify(chartOfAccounts));
@@ -732,16 +768,14 @@
   }
 
   function resetToDefaults() {
-    if (confirm('هل أنت متأكد من رغبتك في إعادة ضبط الدليل والبيانات إلى الوضع الافتراضي؟')) {
-      localStorage.removeItem('smart_accounts');
-      localStorage.removeItem('smart_entries');
-      chartOfAccounts = defaultAccounts;
-      ledgerEntries = defaultEntries;
-      persistData();
-      populateAccountSelects();
-      loadStatementData();
-      alert('تمت إعادة الضبط بنجاح!');
-    }
+    localStorage.removeItem('smart_accounts');
+    localStorage.removeItem('smart_entries');
+    chartOfAccounts = defaultAccounts;
+    ledgerEntries = [];
+    persistData();
+    populateAccountSelects();
+    loadStatementData();
+    showToast("تمت إعادة ضبط البيانات بنجاح");
   }
 
   function populateAccountSelects() {
@@ -767,7 +801,7 @@
     });
 
     const badge = document.getElementById('accounts-count-badge');
-    if (badge) badge.innerText = `دليل الحسابات نشط: ${chartOfAccounts.length} حساب فرعي معتمد ومحفوظ`;
+    if (badge) badge.innerText = `دليل الحسابات نشط: ${chartOfAccounts.length} حساب معتمد`;
   }
 
   function getNextAccountCode(type) {
@@ -819,7 +853,7 @@
     const type = document.getElementById('new-acc-type').value;
 
     if (!name) {
-      alert('يرجى كتابة اسم الحساب أو الجهة!');
+      showToast('يرجى كتابة اسم الحساب أو الجهة', true);
       return;
     }
 
@@ -839,8 +873,6 @@
     }
 
     chartOfAccounts.push({ code, name, cat, base: type, nature });
-    
-    // حفظ دائم
     persistData();
     populateAccountSelects();
     closeAddAccountModal();
@@ -851,7 +883,7 @@
       loadStatementData();
     }
 
-    alert(`تم حفظ الحساب بنجاح ودائماً!\nالاسم: ${name}\nالرقم: ${code}`);
+    showToast(`تم إدراج الحساب: ${name}`);
   }
 
   function switchTab(tabId, el) {
@@ -909,27 +941,52 @@
     }
   }
 
-  function saveEntryAction() {
-    const date = document.getElementById('entry-date').value;
+  async function saveEntryAction() {
+    const date = document.getElementById('entry-date').value || new Date().toISOString().split('T')[0];
     const memo = document.getElementById('entry-memo').value || 'قيد يومية عام';
     const rows = document.querySelectorAll('#entries-list .entry-row');
+    const lines = [];
 
     rows.forEach(row => {
-      const code = row.querySelector('.account-selector').value;
+      const sel = row.querySelector('.account-selector');
+      const code = sel.value;
+      const name = sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text.split(' - ')[1] : '';
       const debit = parseFloat(row.querySelector('.input-debit').value || 0);
       const credit = parseFloat(row.querySelector('.input-credit').value || 0);
 
       if (debit > 0 || credit > 0) {
         ledgerEntries.push({ date, accountCode: code, desc: memo, debit, credit });
+        lines.push({ accountCode: code, accountName: name, description: memo, debit, credit });
       }
     });
 
-    // حفظ القيود في الذاكرة الدائمة
+    // 1. الحفظ المحلي الفوري
     persistData();
 
-    alert('تم ترحيل القيد بنجاح وحفظه بصورة دائمة!');
+    // 2. إشعار النجاح المدمج مباشرة
+    showToast('تم ترحيل القيد بنجاح');
     document.getElementById('entry-memo').value = '';
+
+    // تصفير الخانات
+    document.querySelectorAll('.input-debit').forEach(inp => inp.value = 0);
+    document.querySelectorAll('.input-credit').forEach(inp => inp.value = 0);
+    calculateBalance();
     switchTab('tab-statement');
+
+    // 3. الترحيل السحابي في الخلفية إلى الشيت
+    try {
+      fetch(SCRIPT_URL, {
+        method: "POST",
+        body: JSON.stringify({
+          action: "NEW_ENTRY",
+          spreadsheetId: localStorage.getItem("user_sheet_id"),
+          entryDate: date,
+          lines: lines
+        })
+      });
+    } catch (err) {
+      console.warn("المزامنة السحابية قيد المحاولة:", err);
+    }
   }
 
   function loadStatementData() {
@@ -1019,6 +1076,11 @@
   }
 
   window.onload = function() {
+    const today = new Date().toISOString().split('T')[0];
+    if (document.getElementById('entry-date')) document.getElementById('entry-date').value = today;
+    if (document.getElementById('date-to')) document.getElementById('date-to').value = today;
+
+    initUserSpreadsheet();
     populateAccountSelects();
     loadStatementData();
     calculateBalance();

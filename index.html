@@ -289,7 +289,7 @@
       font-size: 13px;
     }
 
-    .invoice-card {
+    .invoice-card, .settings-card {
       background: white;
       border: 1px solid var(--border);
       border-radius: 14px;
@@ -378,6 +378,32 @@
 
     .btn-inv-tag:active { background: #dbeafe; }
 
+    /* فريق العمل داخل الإعدادات */
+    .team-member-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+    }
+
+    .team-member-item:last-child {
+      border-bottom: none;
+    }
+
+    .role-badge {
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+      background: #e2e8f0;
+      color: #334155;
+    }
+
+    .role-badge.admin { background: #fef3c7; color: #b45309; }
+    .role-badge.accountant { background: #eff6ff; color: #1d4ed8; }
+
     nav {
       position: fixed;
       bottom: 0;
@@ -398,7 +424,7 @@
       align-items: center;
       gap: 3px;
       color: var(--text-muted);
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 600;
       cursor: pointer;
       flex: 1;
@@ -406,7 +432,7 @@
       transition: color 0.2s;
     }
 
-    .nav-item i { font-size: 18px; }
+    .nav-item i { font-size: 17px; }
     .nav-item.active { color: var(--primary); }
 
     .modal-overlay {
@@ -485,7 +511,6 @@
       color: var(--primary-dark);
     }
 
-    /* واجهة الكاميرا الحية المباشرة */
     #live-camera-modal {
       display: none;
       position: fixed;
@@ -549,9 +574,7 @@
       transition: transform 0.1s;
     }
 
-    .btn-capture-shutter:active {
-      transform: scale(0.92);
-    }
+    .btn-capture-shutter:active { transform: scale(0.92); }
 
     .btn-camera-close {
       background: rgba(0,0,0,0.6);
@@ -643,7 +666,6 @@
         <h3 style="font-size: 18px;">إصدار فاتورة ذكية</h3>
       </div>
 
-      <!-- زر الكاميرا ومسح الفاتورة الذكي -->
       <button class="btn btn-scan" onclick="startLiveCamera()">
         <i class="fa-solid fa-camera"></i> تشغيل الكاميرا ومسح الفاتورة الذكي (AI Vision)
       </button>
@@ -802,8 +824,78 @@
       </table>
     </div>
 
+    <!-- Tab 5: Settings & Workspace Setup (صفحة الإعدادات وفريق العمل) -->
+    <div id="tab-settings" class="tab-content">
+      <h3 style="margin-bottom: 14px; font-size: 18px;"><i class="fa-solid fa-sliders" style="color: var(--primary);"></i> إعدادات النظام وفريق العمل</h3>
+
+      <!-- بطاقة صاحب النسخة والحساب السحابي -->
+      <div class="settings-card">
+        <div style="font-weight: 700; font-size: 14px; margin-bottom: 10px; color: var(--primary); display: flex; align-items: center; gap: 6px;">
+          <i class="fa-solid fa-user-shield"></i> بيانات مالك النسخة والربط
+        </div>
+        <div class="form-group">
+          <label>البريد الإلكتروني للمالك / المشتري</label>
+          <input type="email" id="set-owner-email" placeholder="owner@gmail.com">
+        </div>
+        <div class="form-group">
+          <label>معرّف دفتر الحسابات (Google Sheet ID)</label>
+          <input type="text" id="set-sheet-id" placeholder="معرّف الشيت المربوط...">
+        </div>
+        <button class="btn btn-secondary" style="padding: 9px;" onclick="saveOwnerSettings()">
+          <i class="fa-solid fa-floppy-disk"></i> حفظ بيانات الربط
+        </button>
+      </div>
+
+      <!-- بطاقة فريق العمل والصلاحيات -->
+      <div class="settings-card">
+        <div style="font-weight: 700; font-size: 14px; margin-bottom: 6px; color: var(--primary); display: flex; align-items: center; gap: 6px;">
+          <i class="fa-solid fa-users-gear"></i> إدارة فريق العمل والصلاحيات
+        </div>
+        <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 12px;">امنح صلاحيات الوصول لأعضاء فريقك المحاسبي عبر بريدهم الإلكتروني.</p>
+
+        <div style="background: var(--bg); border-radius: 12px; padding: 10px; margin-bottom: 12px;">
+          <div class="form-group">
+            <label style="font-size: 11px;">بريد عضو الفريق</label>
+            <input type="email" id="new-member-email" placeholder="teammate@gmail.com">
+          </div>
+          <div class="form-group">
+            <label style="font-size: 11px;">الصلاحية الممنوحة</label>
+            <select id="new-member-role">
+              <option value="admin">مدير نظام (كامل الصلاحيات)</option>
+              <option value="accountant">محاسب (تسجيل قيود وفواتير)</option>
+              <option value="cashier">كاشير (فواتير مبيعات فقط)</option>
+              <option value="viewer">مشاهد (اطلاع وكشوف حسابات فقط)</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" style="padding: 9px; font-size: 13px;" onclick="addTeamMember()">
+            <i class="fa-solid fa-user-plus"></i> إضافة العضو إلى الفريق
+          </button>
+        </div>
+
+        <label style="font-size: 12px; margin-bottom: 6px;">أعضاء الفريق الحاليين:</label>
+        <div id="team-members-list" style="border: 1px solid var(--border); border-radius: 10px; background: white;">
+          <!-- قائمة الأعضاء -->
+        </div>
+      </div>
+
+      <!-- بطاقة الإعدادات العامة -->
+      <div class="settings-card">
+        <div style="font-weight: 700; font-size: 14px; margin-bottom: 10px; color: var(--primary); display: flex; align-items: center; gap: 6px;">
+          <i class="fa-solid fa-gear"></i> التفضيلات العامة
+        </div>
+        <button class="btn btn-outline" style="border-style: solid; margin-bottom: 8px;" onclick="openCurrencyModal()">
+          <i class="fa-solid fa-coins"></i> تغيير العملة الرئيسية المعتمدة (<span class="curr-symbol">ر.س</span>)
+        </button>
+        <button class="btn btn-outline" style="border-style: solid; color: var(--danger); border-color: var(--danger);" onclick="resetLocalDataConfirm()">
+          <i class="fa-solid fa-trash-can"></i> إعادة تهيئة البيانات المحلية للتطبيق
+        </button>
+      </div>
+
+    </div>
+
   </main>
 
+  <!-- شريط التنقل السفلي المطور ليشمل 5 شاشات -->
   <nav>
     <div class="nav-item active" onclick="switchTab('tab-home', this)">
       <i class="fa-solid fa-house"></i>
@@ -820,6 +912,10 @@
     <div class="nav-item" onclick="switchTab('tab-statement', this)">
       <i class="fa-solid fa-receipt"></i>
       <span>كشف حساب</span>
+    </div>
+    <div class="nav-item" onclick="switchTab('tab-settings', this)">
+      <i class="fa-solid fa-sliders"></i>
+      <span>الإعدادات</span>
     </div>
   </nav>
 
@@ -972,9 +1068,75 @@
     }
   }
 
+  // إدارة إعدادات الفريق والمالك
+  let teamMembers = JSON.parse(localStorage.getItem('smart_team')) || [
+    { email: localStorage.getItem('user_owner_email') || 'owner@ledger.com', role: 'admin' }
+  ];
+
+  function renderTeamList() {
+    const container = document.getElementById('team-members-list');
+    if (!container) return;
+    if (teamMembers.length === 0) {
+      container.innerHTML = '<div style="padding:12px; font-size:12px; color:#64748b; text-align:center;">لا يوجد أعضاء مضافين بعد</div>';
+      return;
+    }
+    let html = '';
+    teamMembers.forEach((m, idx) => {
+      let roleTitle = 'مدير نظام';
+      let roleClass = 'admin';
+      if (m.role === 'accountant') { roleTitle = 'محاسب'; roleClass = 'accountant'; }
+      if (m.role === 'cashier') { roleTitle = 'كاشير'; roleClass = ''; }
+      if (m.role === 'viewer') { roleTitle = 'مشاهد'; roleClass = ''; }
+
+      html += `
+        <div class="team-member-item">
+          <div>
+            <div style="font-weight:700;">${m.email}</div>
+            <span class="role-badge ${roleClass}">${roleTitle}</span>
+          </div>
+          ${idx > 0 ? `<button onclick="removeTeamMember(${idx})" style="border:none; background:none; color:var(--danger); cursor:pointer;"><i class="fa-solid fa-trash"></i></button>` : '<span style="font-size:11px; color:#94a3b8;">المالك</span>'}
+        </div>
+      `;
+    });
+    container.innerHTML = html;
+  }
+
+  function addTeamMember() {
+    const email = document.getElementById('new-member-email').value.trim();
+    const role = document.getElementById('new-member-role').value;
+    if (!email || !email.includes('@')) return showToast('يرجى إدخال بريد إلكتروني صحيح', true);
+
+    teamMembers.push({ email, role });
+    localStorage.setItem('smart_team', JSON.stringify(teamMembers));
+    document.getElementById('new-member-email').value = '';
+    renderTeamList();
+    showToast('تمت إضافة عضو الفريق بنجاح');
+  }
+
+  function removeTeamMember(idx) {
+    teamMembers.splice(idx, 1);
+    localStorage.setItem('smart_team', JSON.stringify(teamMembers));
+    renderTeamList();
+    showToast('تم حذف العضو من الفريق');
+  }
+
+  function saveOwnerSettings() {
+    const email = document.getElementById('set-owner-email').value.trim();
+    const sheetId = document.getElementById('set-sheet-id').value.trim();
+    if (email) localStorage.setItem('user_owner_email', email);
+    if (sheetId) localStorage.setItem('user_sheet_id', sheetId);
+    showToast('تم حفظ بيانات الربط السحابي والمالك بنجاح');
+  }
+
+  function resetLocalDataConfirm() {
+    if (confirm('هل أنت متأكد من مسح البيانات المحلية من الهاتف؟ (بيانات Google Sheet ستظل محفوظة)')) {
+      localStorage.clear();
+      location.reload();
+    }
+  }
+
   let videoStream = null;
 
-  // تشغيل الكاميرا الحية المباشرة مع فك حظر التشغيل التلقائي
   async function startLiveCamera() {
     const modal = document.getElementById('live-camera-modal');
     const video = document.getElementById('camera-video-stream');
@@ -997,15 +1159,13 @@
       video.muted = true;
       modal.style.display = 'flex';
 
-      // تشغيل الفيديو برمجياً لتجاوز حظر WebView
       await video.play().catch(e => {
-        console.warn("Autoplay retry on user action:", e);
+        console.warn("Autoplay retry:", e);
       });
 
     } catch (err) {
       console.error(err);
-      showToast('تعذر فتح بث الكاميرا، سيتم فتح كاميرا النظام بدلاً منها', true);
-      // خيار احتياطي يفتح كاميرا النظام فوراً
+      showToast('سيتم فتح كاميرا النظام لالتقاط الفاتورة', true);
       const fallbackInput = document.createElement('input');
       fallbackInput.type = 'file';
       fallbackInput.accept = 'image/*';
@@ -1023,7 +1183,6 @@
     document.getElementById('live-camera-modal').style.display = 'none';
   }
 
-  // التقاط الصورة الحية وإرسالها إلى AI Vision
   async function captureLiveInvoice() {
     const video = document.getElementById('camera-video-stream');
     const canvas = document.createElement('canvas');
@@ -1038,7 +1197,6 @@
     analyzeInvoiceWithAI(base64Data);
   }
 
-  // معالجة الصورة في حال استخدام كاميرا النظام أو الأستوديو
   function handleSystemPhoto(input) {
     if (!input.files || !input.files[0]) return;
     const file = input.files[0];
@@ -1053,7 +1211,6 @@
     input.value = '';
   }
 
-  // تحليل الفاتورة عبر الذكاء الاصطناعي
   async function analyzeInvoiceWithAI(base64Image) {
     const loading = document.getElementById('ocr-loading-overlay');
     loading.style.display = 'flex';
@@ -1104,13 +1261,13 @@
         }
 
         calculateInvoiceTotals();
-        showToast(`تم تحليل الفاتورة بالذكاء الاصطناعي بدقة`);
+        showToast(`تم مسح الفاتورة، يمكنك مراجعة الأصناف والأسعار`);
       } else {
         throw new Error(res.message || "تعذر التحليل");
       }
     } catch (err) {
       console.warn("AI Fallback:", err);
-      showToast('تمت قراءة الفاتورة، يرجى مراجعة وتأكيد المبالغ');
+      showToast('تم استلام الفاتورة، يرجى كتابة الأصناف والمبالغ');
       addInvoiceItemRow();
     } finally {
       loading.style.display = 'none';
@@ -1147,6 +1304,13 @@
       el.classList.add('active');
     }
     if (tabId === 'tab-statement') loadStatementData();
+    if (tabId === 'tab-settings') {
+      renderTeamList();
+      const own = document.getElementById('set-owner-email');
+      const sht = document.getElementById('set-sheet-id');
+      if (own) own.value = localStorage.getItem('user_owner_email') || '';
+      if (sht) sht.value = localStorage.getItem('user_sheet_id') || '';
+    }
   }
 
   function populateAccountSelects() {
@@ -1588,6 +1752,7 @@
     populateAccountSelects();
     addInvoiceItemRow();
     updateDashboardStats();
+    renderTeamList();
   };
 </script>
 </body>

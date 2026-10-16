@@ -345,13 +345,23 @@
       border-bottom: 1px solid var(--border);
     }
 
-    .statement-table tr.clickable-row {
+    .btn-inv-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 5px;
+      padding: 4px 8px;
+      background: #eff6ff;
+      color: #2563eb;
+      border: 1px solid #bfdbfe;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
       cursor: pointer;
-      transition: background 0.15s ease-in-out;
     }
 
-    .statement-table tr.clickable-row:hover {
-      background-color: #f1f5f9;
+    .btn-inv-tag:active {
+      background: #dbeafe;
     }
 
     nav {
@@ -385,39 +395,38 @@
     .nav-item i { font-size: 18px; }
     .nav-item.active { color: var(--primary); }
 
-    .modal {
+    /* النافذة المنبثقة - محسنة لتظهر فوق كل العناصر دائماً */
+    .modal-overlay {
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(15, 23, 42, 0.65);
-      z-index: 99999;
+      background: rgba(15, 23, 42, 0.7);
+      z-index: 2147483647;
       align-items: flex-end;
       justify-content: center;
       backdrop-filter: blur(4px);
     }
 
-    .modal.open { display: flex; }
-    .modal-content {
+    .modal-overlay.open {
+      display: flex !important;
+    }
+
+    .modal-panel {
       background: white;
       width: 100%;
       max-width: 480px;
       border-radius: 20px 20px 0 0;
-      padding: 24px;
-      max-height: 88vh;
+      padding: 22px;
+      max-height: 85vh;
       overflow-y: auto;
-      animation: slideUp 0.25s ease-out;
-    }
-
-    @keyframes slideUp {
-      from { transform: translateY(100%); }
-      to { transform: translateY(0); }
+      box-shadow: 0 -10px 40px rgba(0,0,0,0.2);
     }
 
     .digital-invoice {
       border: 1px solid var(--border);
       border-radius: 12px;
       padding: 16px;
-      background: #fafafa;
+      background: #f8fafc;
       margin-top: 10px;
     }
 
@@ -529,7 +538,6 @@
         </div>
       </div>
 
-      <!-- خيار الضريبة -->
       <div class="tax-switch-box">
         <label class="switch-label">
           <i class="fa-solid fa-percent" style="font-size: 16px;"></i>
@@ -543,7 +551,6 @@
         </div>
       </div>
 
-      <!-- بنود الفاتورة -->
       <label>بنود وأصناف الفاتورة</label>
       <div id="invoice-items-list"></div>
 
@@ -551,7 +558,6 @@
         <i class="fa-solid fa-plus"></i> إضافة صنف / بند آخر
       </button>
 
-      <!-- ملخص الفاتورة -->
       <div class="invoice-summary-box">
         <div class="summary-row">
           <span>المجموع قبل الضريبة:</span>
@@ -636,7 +642,6 @@
         <span id="active-acc-label">الحساب: -</span>
         <span>الرصيد: <strong id="final-balance" style="color: var(--primary);">0.00</strong></span>
       </div>
-      <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 6px;">💡 اضغط على أي سطر فاتورة لعرض تفاصيلها بالكامل</p>
       <table class="statement-table">
         <thead>
           <tr>
@@ -653,7 +658,6 @@
 
   </main>
 
-  <!-- شريط التنقل السفلي -->
   <nav>
     <div class="nav-item active" onclick="switchTab('tab-home', this)">
       <i class="fa-solid fa-house"></i>
@@ -675,12 +679,12 @@
 
 </div>
 
-<!-- Modal 1: إضافة حساب / عميل / مورد -->
-<div class="modal" id="modal-add-account">
-  <div class="modal-content">
+<!-- نافذة إضافة حساب جديد -->
+<div class="modal-overlay" id="modal-add-account">
+  <div class="modal-panel">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
       <h3 style="font-size: 16px;">إضافة حساب أو جهة جديدة</h3>
-      <button style="border:none; background:none; font-size:20px; cursor:pointer;" onclick="closeAddAccountModal()">×</button>
+      <button style="border:none; background:none; font-size:22px; cursor:pointer;" onclick="closeAddAccountModal()">×</button>
     </div>
     <div class="form-group">
       <label>النوع</label>
@@ -700,12 +704,12 @@
   </div>
 </div>
 
-<!-- Modal 2: عرض الفاتورة الرقمية التفصيلية -->
-<div class="modal" id="modal-view-invoice">
-  <div class="modal-content">
+<!-- نافذة عرض الفاتورة المنبثقة التفصيلية المحدثة بالكامل -->
+<div class="modal-overlay" id="modal-view-invoice">
+  <div class="modal-panel">
     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 10px;">
-      <h3 style="font-size: 16px; color: var(--primary);"><i class="fa-solid fa-file-invoice"></i> تفاصيل الفاتورة</h3>
-      <button style="border:none; background:none; font-size:22px; cursor:pointer;" onclick="closeViewInvoiceModal()">×</button>
+      <h3 style="font-size: 16px; color: var(--primary);"><i class="fa-solid fa-file-invoice"></i> تفاصيل الفاتورة الرسمية</h3>
+      <button style="border:none; background:none; font-size:24px; cursor:pointer; color:#64748b;" onclick="closeViewInvoiceModal()">×</button>
     </div>
 
     <div id="digital-invoice-body"></div>
@@ -729,7 +733,7 @@
     if (!toast) {
       toast = document.createElement("div");
       toast.id = "appToast";
-      toast.style.cssText = "position:fixed; bottom:25px; left:50%; transform:translateX(-50%); background:#0f172a; color:#fff; padding:12px 24px; border-radius:30px; font-family:'Cairo',sans-serif; font-size:13px; font-weight:700; box-shadow:0 8px 25px rgba(0,0,0,0.3); z-index:999999; transition:all 0.3s ease; opacity:0; pointer-events:none; text-align:center; min-width:240px;";
+      toast.style.cssText = "position:fixed; bottom:25px; left:50%; transform:translateX(-50%); background:#0f172a; color:#fff; padding:12px 24px; border-radius:30px; font-family:'Cairo',sans-serif; font-size:13px; font-weight:700; box-shadow:0 8px 25px rgba(0,0,0,0.3); z-index:2147483647; transition:all 0.3s ease; opacity:0; pointer-events:none; text-align:center; min-width:240px;";
       document.body.appendChild(toast);
     }
     toast.style.background = isError ? "#ef4444" : "#10b981";
@@ -813,7 +817,7 @@
       <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 8px;">
         <div>
           <label style="font-size:11px;">اسم الصنف</label>
-          <input type="text" class="inv-item-name" placeholder="الصنف أو البضاعة" value="بضاعة">
+          <input type="text" class="inv-item-name" placeholder="الصنف أو البضاعة" value="بضاعة تجارية">
         </div>
         <div>
           <label style="font-size:11px;">الكمية</label>
@@ -923,7 +927,7 @@
       items: items
     };
 
-    showToast('تم حفظ الفاتورة وتحديث كشف الحساب بنجاح');
+    showToast('تم ترحيل الفاتورة وتحديث كشف الحساب بنجاح');
     document.getElementById('invoice-items-list').innerHTML = '';
     addInvoiceItemRow();
 
@@ -943,32 +947,32 @@
     }
   }
 
-  // دالة عرض تفاصيل الفاتورة المحصنة
-  window.openInvoiceDetails = function(invId, entryIndex) {
+  // الدالة العالمية لعرض الفاتورة
+  window.openInvoicePopup = function(invId, entryIndex) {
     let inv = smartInvoices.find(x => x.id === invId);
-    const container = document.getElementById('digital-invoice-body');
 
-    // دعم احتياطي إذا كانت الفاتورة مسجلة قبل هذا التحديث أو تم مسح ذاكرة smart_invoices
+    // إذا لم تكن الفاتورة مخزنة في smartInvoices (سجلت سابقاً)، ننشئ تفاصيلها من القيد
     if (!inv && entryIndex !== undefined && ledgerEntries[entryIndex]) {
       const e = ledgerEntries[entryIndex];
       const acc = chartOfAccounts.find(a => a.code === e.accountCode) || { name: 'حساب مسجل' };
+      const amount = Number(e.debit || e.credit || 0);
       inv = {
-        id: invId || "INV-GEN",
+        id: invId || "INV-RECORD",
         date: e.date,
         type: e.desc.includes('مبيعات') ? 'sales' : 'purchase',
         partyCode: e.accountCode,
         partyName: acc.name,
         payMethod: e.desc.includes('آجل') ? 'credit' : 'cash',
-        taxRate: 15,
-        subtotal: (e.debit || e.credit || 0),
+        taxRate: 0,
+        subtotal: amount,
         taxAmount: 0,
-        grandTotal: (e.debit || e.credit || 0),
-        items: [{ itemName: e.desc, qty: 1, unitPrice: (e.debit || e.credit || 0) }]
+        grandTotal: amount,
+        items: [{ itemName: e.desc, qty: 1, unitPrice: amount }]
       };
     }
 
     if (!inv) {
-      showToast('لا توجد تفاصيل إضافية لهذا السطر');
+      showToast('لا توجد تفاصيل لهذه الفاتورة', true);
       return;
     }
 
@@ -980,17 +984,17 @@
           <td><strong>${it.itemName}</strong></td>
           <td style="text-align:center;">${it.qty}</td>
           <td style="text-align:left;">${Number(it.unitPrice).toFixed(2)}</td>
-          <td style="text-align:left; font-weight:700;">${(it.qty * it.unitPrice).toFixed(2)}</td>
+          <td style="text-align:left; font-weight:700;">${(Number(it.qty) * Number(it.unitPrice)).toFixed(2)}</td>
         </tr>
       `;
     });
 
-    container.innerHTML = `
+    const bodyHtml = `
       <div class="digital-invoice">
         <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px dashed #cbd5e1; padding-bottom:8px; margin-bottom:10px;">
           <div>
             <div style="font-weight:800; font-size:15px; color:#0f172a;">${inv.type === 'sales' ? 'فاتورة مبيعات' : 'فاتورة مشتريات'}</div>
-            <div style="font-size:12px; color:var(--text-muted);">${inv.id}</div>
+            <div style="font-size:12px; color:var(--text-muted); font-weight:700;">${inv.id}</div>
           </div>
           <div style="text-align:left;">
             <div style="font-size:12px; font-weight:700;">التاريخ: ${inv.date}</div>
@@ -1027,13 +1031,14 @@
             <span>${Number(inv.taxAmount || 0).toFixed(2)} ر.س</span>
           </div>
           <div style="display:flex; justify-content:space-between; font-size:15px; font-weight:800; color:var(--primary); border-top:1px solid #cbd5e1; padding-top:6px; margin-top:6px;">
-            <span>الصافي الإجمالي المستحق:</span>
+            <span>الصافي الإجمالي:</span>
             <span>${Number(inv.grandTotal).toFixed(2)} ر.س</span>
           </div>
         </div>
       </div>
     `;
 
+    document.getElementById('digital-invoice-body').innerHTML = bodyHtml;
     document.getElementById('modal-view-invoice').classList.add('open');
   };
 
@@ -1073,22 +1078,14 @@
       bal += acc.nature === "مدين" ? (item.debit - item.credit) : (item.credit - item.debit);
       
       const isInvoice = !!item.invoiceId || (item.desc && item.desc.includes('فاتورة'));
-      const invoiceIdVal = item.invoiceId || (item.desc && item.desc.includes('#') ? item.desc.split('#')[1].trim() : 'INV-OLD');
+      const invoiceIdVal = item.invoiceId || (item.desc && item.desc.includes('#') ? item.desc.split('#')[1].trim() : 'INV-PREV');
       
       const tr = document.createElement('tr');
-      if (isInvoice) {
-        tr.className = 'clickable-row';
-        tr.title = 'اضغط لعرض تفاصيل الفاتورة';
-        tr.addEventListener('click', function() {
-          openInvoiceDetails(invoiceIdVal, originalIdx);
-        });
-      }
-
       tr.innerHTML = `
         <td>${item.date.substring(5)}</td>
         <td>
-          ${item.desc}
-          ${isInvoice ? `<span style="font-size:11px; color:var(--primary); font-weight:700; display:block; margin-top:2px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> عرض الفاتورة</span>` : ''}
+          <div>${item.desc}</div>
+          ${isInvoice ? `<button type="button" class="btn-inv-tag" onclick="openInvoicePopup('${invoiceIdVal}',${originalIdx})"><i class="fa-solid fa-file-invoice"></i> عرض الفاتورة</button>` : ''}
         </td>
         <td style="${item.debit > 0 ? 'color: var(--success); font-weight:700;' : ''}">${item.debit > 0 ? item.debit.toLocaleString() : '-'}</td>
         <td style="${item.credit > 0 ? 'color: var(--danger); font-weight:700;' : ''}">${item.credit > 0 ? item.credit.toLocaleString() : '-'}</td>
@@ -1099,7 +1096,6 @@
     document.getElementById('final-balance').innerText = bal.toLocaleString(undefined, {minimumFractionDigits: 2});
   }
 
-  // اليومية العامة العادية
   function addEntryRow() {
     const list = document.getElementById('entries-list');
     const div = document.createElement('div');

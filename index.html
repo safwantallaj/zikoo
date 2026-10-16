@@ -378,7 +378,6 @@
 
     .btn-inv-tag:active { background: #dbeafe; }
 
-    /* فريق العمل داخل الإعدادات */
     .team-member-item {
       display: flex;
       align-items: center;
@@ -824,7 +823,7 @@
       </table>
     </div>
 
-    <!-- Tab 5: Settings & Workspace Setup (صفحة الإعدادات وفريق العمل) -->
+    <!-- Tab 5: Settings & Workspace Setup -->
     <div id="tab-settings" class="tab-content">
       <h3 style="margin-bottom: 14px; font-size: 18px;"><i class="fa-solid fa-sliders" style="color: var(--primary);"></i> إعدادات النظام وفريق العمل</h3>
 
@@ -895,7 +894,7 @@
 
   </main>
 
-  <!-- شريط التنقل السفلي المطور ليشمل 5 شاشات -->
+  <!-- شريط التنقل السفلي -->
   <nav>
     <div class="nav-item active" onclick="switchTab('tab-home', this)">
       <i class="fa-solid fa-house"></i>
@@ -1183,20 +1182,31 @@
     document.getElementById('live-camera-modal').style.display = 'none';
   }
 
+  // التقاط مباشر من الكاميرا مع تحجيم خفيف لمنع التعليق
   async function captureLiveInvoice() {
     const video = document.getElementById('camera-video-stream');
     const canvas = document.createElement('canvas');
-    canvas.width = video.videoWidth || 1280;
-    canvas.height = video.videoHeight || 720;
+    
+    let w = video.videoWidth || 1280;
+    let h = video.videoHeight || 720;
+    const maxDim = 1280;
+    if (w > maxDim || h > maxDim) {
+      if (w > h) { h = Math.round((h * maxDim) / w); w = maxDim; }
+      else { w = Math.round((w * maxDim) / h); h = maxDim; }
+    }
+
+    canvas.width = w;
+    canvas.height = h;
     const ctx = canvas.getContext('2d');
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    ctx.drawImage(video, 0, 0, w, h);
     
     stopLiveCamera();
 
-    const base64Data = canvas.toDataURL('image/jpeg', 0.85).split(',')[1];
+    const base64Data = canvas.toDataURL('image/jpeg', 0.75).split(',')[1];
     analyzeInvoiceWithAI(base64Data);
   }
 
+  // معالجة صور النظام مع ضغط ذكي فوري يمنع بطء أو تعليق الإرسال
   function handleSystemPhoto(input) {
     if (!input.files || !input.files[0]) return;
     const file = input.files[0];
@@ -1204,14 +1214,37 @@
 
     const reader = new FileReader();
     reader.onload = function(e) {
-      const base64Data = e.target.result.split(',')[1];
-      analyzeInvoiceWithAI(base64Data);
+      const img = new Image();
+      img.onload = function() {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+
+        const maxDim = 1280;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height && width > maxDim) {
+          height = Math.round((height * maxDim) / width);
+          width = maxDim;
+        } else if (height > maxDim) {
+          width = Math.round((width * maxDim) / height);
+          height = maxDim;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const base64Data = canvas.toDataURL('image/jpeg', 0.75).split(',')[1];
+        analyzeInvoiceWithAI(base64Data);
+      };
+      img.src = e.target.result;
     };
     reader.readAsDataURL(file);
     input.value = '';
   }
 
-  // تحليل الفاتورة مع إظهار رسالة الخطأ الصريحة بدلاً من إخفائها
+  // تحليل الفاتورة عبر الذكاء الاصطناعي مع إظهار النتيجة فوراً
   async function analyzeInvoiceWithAI(base64Image) {
     const loading = document.getElementById('ocr-loading-overlay');
     loading.style.display = 'flex';
@@ -1265,18 +1298,17 @@
         calculateInvoiceTotals();
         showToast(`تم مسح الفاتورة وتعبئة البيانات بنجاح ✅`);
       } else {
-        // إظهار نص الخطأ الحقيقي القادم من السيرفر
         throw new Error(res.message || "فشل التحليل من المصدر");
       }
     } catch (err) {
       console.error("AI Error:", err);
-      // تنبيه بالخطأ الفعلي لنعرف أين المشكلة بالمليمتر
       showToast('خطأ: ' + (err.message || 'فشل الاتصال بالذكاء الاصطناعي'), true);
       addInvoiceItemRow();
     } finally {
       loading.style.display = 'none';
     }
   }
+
   const defaultAccounts = [
     { code: "1111", name: "الصندوق الرئيسي (الخزينة)", cat: "النقدية والبنوك", base: "cash", nature: "مدين" },
     { code: "1113", name: "الحساب البنكي الجاري", cat: "النقدية والبنوك", base: "bank", nature: "مدين" },

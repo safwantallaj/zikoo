@@ -345,6 +345,15 @@
       border-bottom: 1px solid var(--border);
     }
 
+    .statement-table tr.clickable-row {
+      cursor: pointer;
+      transition: background 0.15s ease-in-out;
+    }
+
+    .statement-table tr.clickable-row:hover {
+      background-color: #f1f5f9;
+    }
+
     nav {
       position: fixed;
       bottom: 0;
@@ -380,7 +389,7 @@
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(15, 23, 42, 0.5);
+      background: rgba(15, 23, 42, 0.55);
       z-index: 100;
       align-items: flex-end;
       justify-content: center;
@@ -394,12 +403,41 @@
       max-width: 480px;
       border-radius: 20px 20px 0 0;
       padding: 24px;
+      max-height: 88vh;
+      overflow-y: auto;
       animation: slideUp 0.25s ease-out;
     }
 
     @keyframes slideUp {
       from { transform: translateY(100%); }
       to { transform: translateY(0); }
+    }
+
+    /* كرت الفاتورة المنبثقة التفصيلية */
+    .digital-invoice {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      background: #fafafa;
+      margin-top: 10px;
+    }
+
+    .digital-inv-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0;
+      font-size: 12px;
+    }
+
+    .digital-inv-table th {
+      background: #e2e8f0;
+      padding: 6px 8px;
+      text-align: right;
+    }
+
+    .digital-inv-table td {
+      padding: 6px 8px;
+      border-bottom: 1px solid #e2e8f0;
     }
   </style>
 </head>
@@ -599,6 +637,7 @@
         <span id="active-acc-label">الحساب: -</span>
         <span>الرصيد: <strong id="final-balance" style="color: var(--primary);">0.00</strong></span>
       </div>
+      <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 6px;">💡 اضغط على أي سطر فاتورة لعرض تفاصيلها بالكامل</p>
       <table class="statement-table">
         <thead>
           <tr>
@@ -637,12 +676,12 @@
 
 </div>
 
-<!-- Modal: إضافة حساب / عميل / مورد -->
+<!-- Modal 1: إضافة حساب / عميل / مورد -->
 <div class="modal" id="modal-add-account">
   <div class="modal-content">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
       <h3 style="font-size: 16px;">إضافة حساب أو جهة جديدة</h3>
-      <button style="border:none; background:none; font-size:20px;" onclick="closeAddAccountModal()">×</button>
+      <button style="border:none; background:none; font-size:20px; cursor:pointer;" onclick="closeAddAccountModal()">×</button>
     </div>
     <div class="form-group">
       <label>النوع</label>
@@ -662,10 +701,32 @@
   </div>
 </div>
 
+<!-- Modal 2: عرض الفاتورة الرقمية التفصيلية بضغطة زر -->
+<div class="modal" id="modal-view-invoice">
+  <div class="modal-content">
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 10px;">
+      <h3 style="font-size: 16px; color: var(--primary);"><i class="fa-solid fa-file-invoice"></i> تفاصيل الفاتورة</h3>
+      <button style="border:none; background:none; font-size:22px; cursor:pointer;" onclick="closeViewInvoiceModal()">×</button>
+    </div>
+
+    <div id="digital-invoice-body">
+      <!-- محتوى الفاتورة يُبنى ديناميكياً هنا -->
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px;">
+      <button class="btn btn-primary" onclick="window.print()">
+        <i class="fa-solid fa-print"></i> طباعة / PDF
+      </button>
+      <button class="btn btn-secondary" onclick="closeViewInvoiceModal()">
+        إغلاق
+      </button>
+    </div>
+  </div>
+</div>
+
 <script>
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwFaGAUNK_kvEyCauTIer6NijuUDw2dPR002c-6eX9X7EbRnknptd-IdZeKE5XjQr93/exec";
 
-  // دالة الإشعار الذكية بدون alert لمنع رسائل المتصفح المزعجة
   function showToast(message, isError = false) {
     let toast = document.getElementById("appToast");
     if (!toast) {
@@ -684,7 +745,6 @@
     }, 3200);
   }
 
-  // دليل الحسابات الافتراضي
   const defaultAccounts = [
     { code: "1111", name: "الصندوق الرئيسي (الخزينة)", cat: "النقدية والبنوك", base: "cash", nature: "مدين" },
     { code: "1113", name: "الحساب البنكي الجاري", cat: "النقدية والبنوك", base: "bank", nature: "مدين" },
@@ -698,10 +758,12 @@
 
   let chartOfAccounts = JSON.parse(localStorage.getItem('smart_accounts')) || defaultAccounts;
   let ledgerEntries = JSON.parse(localStorage.getItem('smart_entries')) || [];
+  let smartInvoices = JSON.parse(localStorage.getItem('smart_invoices')) || [];
 
   function persistData() {
     localStorage.setItem('smart_accounts', JSON.stringify(chartOfAccounts));
     localStorage.setItem('smart_entries', JSON.stringify(ledgerEntries));
+    localStorage.setItem('smart_invoices', JSON.stringify(smartInvoices));
     updateDashboardStats();
   }
 
@@ -788,7 +850,7 @@
     document.getElementById('inv-sum-grand').innerText = grandTotal.toFixed(2) + ' ر.س';
   }
 
-  // ترحيل الفاتورة للسيرفر والشيت وإدراجها فوراً في كشف الحساب
+  // ترحيل الفاتورة وحفظها مع معرّفها التفصيلي
   async function submitInvoiceAction() {
     const items = [];
     document.querySelectorAll('.inv-item-row').forEach(row => {
@@ -796,7 +858,7 @@
       const qty = parseFloat(row.querySelector('.inv-item-qty').value) || 0;
       const price = parseFloat(row.querySelector('.inv-item-price').value) || 0;
       if (qty > 0 && price > 0) {
-        items.push({ itemName: name, qty: qty, unitPrice: price, costPrice: price * 0.7 });
+        items.push({ itemName: name, qty: qty, unitPrice: price, costPrice: price * 0.7, total: qty * price });
       }
     });
 
@@ -813,31 +875,49 @@
     const taxRate = parseFloat(document.getElementById('inv-tax-mode').value) || 0;
     const date = document.getElementById('inv-date').value || new Date().toISOString().split('T')[0];
 
-    // حساب الإجماليات
+    // توليد رقم فاتورة محلي موحد
+    const invId = "INV-" + (type === 'sales' ? 'SAL-' : 'PUR-') + Math.floor(100 + Math.random() * 900);
+
     let subtotal = 0;
     items.forEach(it => subtotal += (it.qty * it.unitPrice));
     const taxAmount = subtotal * (taxRate / 100);
     const grandTotal = subtotal + taxAmount;
 
-    // 1. تسجيل القيد في ذاكرة الحسابات ليظهر فوراً في كشف الحساب واللوحة الرئيسية
-    const memo = (type === 'sales' ? 'فاتورة مبيعات ' : 'فاتورة مشتريات ') + (payMethod === 'credit' ? '(آجل)' : '(نقدي)');
+    // 1. تخزين كائن الفاتورة بكامل بنوده
+    const fullInvoice = {
+      id: invId,
+      date: date,
+      type: type,
+      partyCode: partyCode,
+      partyName: partyName,
+      payMethod: payMethod,
+      taxRate: taxRate,
+      subtotal: subtotal,
+      taxAmount: taxAmount,
+      grandTotal: grandTotal,
+      items: items
+    };
+    smartInvoices.push(fullInvoice);
+
+    // 2. تسجيل أطراف القيد وربطه بمعرّف الفاتورة (invoiceId)
+    const memo = (type === 'sales' ? 'فاتورة مبيعات ' : 'فاتورة مشتريات ') + (payMethod === 'credit' ? '(آجل)' : '(نقدي)') + ' #' + invId;
     if (type === 'sales') {
-      ledgerEntries.push({ date, accountCode: partyCode, desc: memo, debit: grandTotal, credit: 0 });
-      ledgerEntries.push({ date, accountCode: "4101", desc: memo, debit: 0, credit: subtotal });
+      ledgerEntries.push({ date, accountCode: partyCode, desc: memo, debit: grandTotal, credit: 0, invoiceId: invId });
+      ledgerEntries.push({ date, accountCode: "4101", desc: memo, debit: 0, credit: subtotal, invoiceId: invId });
       if (taxAmount > 0) {
-        ledgerEntries.push({ date, accountCode: "2103", desc: "ضريبة القيمة المضافة المستحقة", debit: 0, credit: taxAmount });
+        ledgerEntries.push({ date, accountCode: "2103", desc: "ضريبة القيمة المضافة", debit: 0, credit: taxAmount, invoiceId: invId });
       }
     } else {
-      ledgerEntries.push({ date, accountCode: "1131", desc: memo, debit: subtotal, credit: 0 });
+      ledgerEntries.push({ date, accountCode: "1131", desc: memo, debit: subtotal, credit: 0, invoiceId: invId });
       if (taxAmount > 0) {
-        ledgerEntries.push({ date, accountCode: "2103", desc: "ضريبة مدخلات مشتريات", debit: taxAmount, credit: 0 });
+        ledgerEntries.push({ date, accountCode: "2103", desc: "ضريبة مدخلات مشتريات", debit: taxAmount, credit: 0, invoiceId: invId });
       }
-      ledgerEntries.push({ date, accountCode: partyCode, desc: memo, debit: 0, credit: grandTotal });
+      ledgerEntries.push({ date, accountCode: partyCode, desc: memo, debit: 0, credit: grandTotal, invoiceId: invId });
     }
 
     persistData();
 
-    // 2. إرسال الفاتورة سحابياً إلى Google Sheets لتحديث المستودع وسجل الفواتير
+    // 3. المزامنة السحابية
     const payload = {
       action: "CREATE_INVOICE",
       spreadsheetId: localStorage.getItem("user_sheet_id"),
@@ -851,7 +931,7 @@
       items: items
     };
 
-    showToast('تم حفظ الفاتورة وتحديث كشف الحساب والمستودع بنجاح');
+    showToast('تم حفظ الفاتورة وتحديث كشف الحساب بنجاح');
     document.getElementById('invoice-items-list').innerHTML = '';
     addInvoiceItemRow();
 
@@ -864,12 +944,138 @@
       console.warn("المزامنة السحابية قيد المعالجة:", e);
     }
 
-    // الانتقال لكشف حساب المورد أو العميل فوراً لمعاينة الرصيد
+    // الانتقال المباشر لكشف حساب العميل أو المورد
     const stmtSel = document.getElementById('statement-account-selector');
     if (stmtSel) {
       stmtSel.value = partyCode;
       switchTab('tab-statement');
     }
+  }
+
+  // عرض تفاصيل الفاتورة عند النقر
+  function openInvoiceDetails(invoiceId) {
+    const inv = smartInvoices.find(x => x.id === invoiceId);
+    const container = document.getElementById('digital-invoice-body');
+    if (!inv) {
+      showToast('لا توجد تفاصيل إضافية لهذا السطر');
+      return;
+    }
+
+    let itemsRows = '';
+    inv.items.forEach((it, idx) => {
+      itemsRows += `
+        <tr>
+          <td>${idx + 1}</td>
+          <td><strong>${it.itemName}</strong></td>
+          <td style="text-align:center;">${it.qty}</td>
+          <td style="text-align:left;">${it.unitPrice.toFixed(2)}</td>
+          <td style="text-align:left; font-weight:700;">${(it.qty * it.unitPrice).toFixed(2)}</td>
+        </tr>
+      `;
+    });
+
+    container.innerHTML = `
+      <div class="digital-invoice">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px dashed #cbd5e1; padding-bottom:8px; margin-bottom:10px;">
+          <div>
+            <div style="font-weight:800; font-size:15px; color:#0f172a;">${inv.type === 'sales' ? 'فاتورة مبيعات' : 'فاتورة مشتريات'}</div>
+            <div style="font-size:12px; color:var(--text-muted);">${inv.id}</div>
+          </div>
+          <div style="text-align:left;">
+            <div style="font-size:12px; font-weight:700;">التاريخ: ${inv.date}</div>
+            <div style="font-size:11px; color:var(--primary); font-weight:700;">${inv.payMethod === 'credit' ? 'الدفع: آجل (على الحساب)' : 'الدفع: نقداً'}</div>
+          </div>
+        </div>
+
+        <div style="font-size:13px; margin-bottom:10px;">
+          الطرف: <strong>${inv.partyName}</strong> (${inv.partyCode})
+        </div>
+
+        <table class="digital-inv-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>الصنف</th>
+              <th style="text-align:center;">الكمية</th>
+              <th style="text-align:left;">السعر</th>
+              <th style="text-align:left;">الإجمالي</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${itemsRows}
+          </tbody>
+        </table>
+
+        <div style="border-top:1px dashed #cbd5e1; padding-top:8px; font-size:13px;">
+          <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+            <span>المجموع قبل الضريبة:</span>
+            <span>${inv.subtotal.toFixed(2)} ر.س</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+            <span>ضريبة القيمة المضافة (${inv.taxRate}%):</span>
+            <span>${inv.taxAmount.toFixed(2)} ر.س</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:15px; font-weight:800; color:var(--primary); border-top:1px solid #cbd5e1; padding-top:6px; margin-top:6px;">
+            <span>الصافي الإجمالي المستحق:</span>
+            <span>${inv.grandTotal.toFixed(2)} ر.س</span>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.getElementById('modal-view-invoice').classList.add('open');
+  }
+
+  function closeViewInvoiceModal() {
+    document.getElementById('modal-view-invoice').classList.remove('open');
+  }
+
+  function loadStatementData() {
+    const sel = document.getElementById('statement-account-selector');
+    if (!sel || !sel.value) return;
+    const code = sel.value;
+    const acc = chartOfAccounts.find(a => a.code === code) || { name: sel.options[sel.selectedIndex].text, nature: "مدين" };
+    const dateFrom = document.getElementById('date-from').value;
+    const dateTo = document.getElementById('date-to').value;
+
+    document.getElementById('active-acc-label').innerHTML = `الحساب: <strong>${code} - ${acc.name}</strong>`;
+    const tbody = document.getElementById('statement-rows');
+    tbody.innerHTML = '';
+
+    const filtered = ledgerEntries.filter(e => {
+      return String(e.accountCode) === String(code) && (!dateFrom || e.date >= dateFrom) && (!dateTo || e.date <= dateTo);
+    });
+
+    if (filtered.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:20px; color:#64748b;">لا توجد حركات مسجلة لهذا الحساب</td></tr>`;
+      document.getElementById('final-balance').innerText = '0.00';
+      return;
+    }
+
+    let bal = 0;
+    filtered.forEach(item => {
+      bal += acc.nature === "مدين" ? (item.debit - item.credit) : (item.credit - item.debit);
+      const isInvoice = !!item.invoiceId;
+      const tr = document.createElement('tr');
+      if (isInvoice) {
+        tr.className = 'clickable-row';
+        tr.title = 'اضغط لعرض تفاصيل الفاتورة';
+        tr.onclick = () => openInvoiceDetails(item.invoiceId);
+      }
+
+      tr.innerHTML = `
+        <td>${item.date.substring(5)}</td>
+        <td>
+          ${item.desc}
+          ${isInvoice ? `<span style="font-size:11px; color:var(--primary); display:block;"><i class="fa-solid fa-arrow-up-right-from-square"></i> عرض الفاتورة</span>` : ''}
+        </td>
+        <td style="${item.debit > 0 ? 'color: var(--success); font-weight:700;' : ''}">${item.debit > 0 ? item.debit.toLocaleString() : '-'}</td>
+        <td style="${item.credit > 0 ? 'color: var(--danger); font-weight:700;' : ''}">${item.credit > 0 ? item.credit.toLocaleString() : '-'}</td>
+        <td style="font-weight:700;">${bal.toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+    document.getElementById('final-balance').innerText = bal.toLocaleString(undefined, {minimumFractionDigits: 2});
   }
 
   // اليومية العامة العادية
@@ -952,44 +1158,6 @@
     document.getElementById('dash-cash').innerText = Math.max(0, cash).toLocaleString(undefined, {minimumFractionDigits: 2});
     document.getElementById('dash-customers').innerText = Math.max(0, cust).toLocaleString(undefined, {minimumFractionDigits: 2});
     document.getElementById('dash-vendors').innerText = Math.max(0, vend).toLocaleString(undefined, {minimumFractionDigits: 2});
-  }
-
-  function loadStatementData() {
-    const sel = document.getElementById('statement-account-selector');
-    if (!sel || !sel.value) return;
-    const code = sel.value;
-    const acc = chartOfAccounts.find(a => a.code === code) || { name: sel.options[sel.selectedIndex].text, nature: "مدين" };
-    const dateFrom = document.getElementById('date-from').value;
-    const dateTo = document.getElementById('date-to').value;
-
-    document.getElementById('active-acc-label').innerHTML = `الحساب: <strong>${code} - ${acc.name}</strong>`;
-    const tbody = document.getElementById('statement-rows');
-    tbody.innerHTML = '';
-
-    const filtered = ledgerEntries.filter(e => {
-      return String(e.accountCode) === String(code) && (!dateFrom || e.date >= dateFrom) && (!dateTo || e.date <= dateTo);
-    });
-
-    if (filtered.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:20px; color:#64748b;">لا توجد حركات مسجلة لهذا الحساب</td></tr>`;
-      document.getElementById('final-balance').innerText = '0.00';
-      return;
-    }
-
-    let bal = 0;
-    filtered.forEach(item => {
-      bal += acc.nature === "مدين" ? (item.debit - item.credit) : (item.credit - item.debit);
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${item.date.substring(5)}</td>
-        <td>${item.desc}</td>
-        <td style="${item.debit > 0 ? 'color: var(--success); font-weight:700;' : ''}">${item.debit > 0 ? item.debit.toLocaleString() : '-'}</td>
-        <td style="${item.credit > 0 ? 'color: var(--danger); font-weight:700;' : ''}">${item.credit > 0 ? item.credit.toLocaleString() : '-'}</td>
-        <td style="font-weight:700;">${bal.toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
-      `;
-      tbody.appendChild(tr);
-    });
-    document.getElementById('final-balance').innerText = bal.toLocaleString(undefined, {minimumFractionDigits: 2});
   }
 
   function openAddAccountModal() { document.getElementById('modal-add-account').classList.add('open'); }

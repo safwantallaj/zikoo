@@ -1,972 +1,443 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>المحاسب الذكي | Smart Ledger</title>
-  <link rel="manifest" href="manifest.json">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
-  <style>
-    :root {
-      --primary: #2563eb;
-      --primary-dark: #1d4ed8;
-      --primary-light: #eff6ff;
-      --success: #10b981;
-      --success-light: #ecfdf5;
-      --danger: #ef4444;
-      --danger-light: #fef2f2;
-      --warning: #f59e0b;
-      --bg: #f8fafc;
-      --card: #ffffff;
-      --text: #0f172a;
-      --text-muted: #64748b;
-      --border: #e2e8f0;
-      --radius: 16px;
+/**
+ * النظام المحاسبي والمستودعات المتكامل - المحاسب الذكي
+ * 1. استنساخ الشيت وتأسيس بنية المستودعات والفواتير
+ * 2. ترحيل القيود اليومية العادية والتحقق من التوازن
+ * 3. إصدار فواتير المبيعات والمشتريات (مع أو بدون ضريبة) وتحديث المخزون آلياً
+ * 4. كشوفات الحساب وتقارير الأرصدة
+ */
+
+// معرّف القالب الرئيسي المعتمد
+var MASTER_TEMPLATE_ID = "1gMNVzaZ99peq2NjlaCjX-izimQn1zkphUdw80l6NT40";
+
+// =============================================================
+// 1. القائمة العلوية داخل Google Sheets
+// =============================================================
+function onOpen() {
+  SpreadsheetApp.getUi()
+    .createMenu('النظام المحاسبي')
+    .addItem('⚙️ تأسيس أوراق المستودع والفواتير', 'setupInventoryAndInvoices')
+    .addSeparator()
+    .addItem('➕ إضافة قيد جديد', 'showNewEntryDialog')
+    .addItem('✏️ تعديل قيد', 'showEditEntryDialog')
+    .addItem('📄 كشف حساب', 'showAccountStatementDialog')
+    .addToUi();
+}
+
+// =============================================================
+// 2. دالة تأسيس أوراق المستودع والفواتير تلقائياً بضغطة زر
+// =============================================================
+function setupInventoryAndInvoices() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+
+  // 1. ورقة المخزن والأصناف
+  var itemsSheet = ss.getSheetByName('المخزن والأصناف');
+  if (!itemsSheet) {
+    itemsSheet = ss.insertSheet('المخزن والأصناف');
+    itemsSheet.setRightToLeft(true);
+    itemsSheet.appendRow([
+      'كود الصنف', 'اسم الصنف', 'الوحدة', 'الباركود', 
+      'سعر الشراء (التكلفة)', 'سعر البيع', 'الكمية الافتتاحية', 
+      'الوارد', 'المنصرف', 'الرصيد الحالي', 'حد الطلب'
+    ]);
+    var headerRange = itemsSheet.getRange(1, 1, 1, 11);
+    headerRange.setBackground('#0f172a').setFontColor('#ffffff').setFontWeight('bold');
+  }
+
+  // 2. ورقة سجل الفواتير
+  var invoicesSheet = ss.getSheetByName('سجل الفواتير');
+  if (!invoicesSheet) {
+    invoicesSheet = ss.insertSheet('سجل الفواتير');
+    invoicesSheet.setRightToLeft(true);
+    invoicesSheet.appendRow([
+      'رقم الفاتورة', 'التاريخ', 'النوع (مبيعات/مشتريات)', 'الطرف الآخر (عميل/مورد)', 
+      'طريقة الدفع', 'الإجمالي قبل الضريبة', 'تطبيق الضريبة؟', 'نسبة الضريبة %', 
+      'قيمة الضريبة', 'الصافي النهائي', 'رقم القيد المحاسبي', 'ملاحظات'
+    ]);
+    var invHeader = invoicesSheet.getRange(1, 1, 1, 12);
+    invHeader.setBackground('#1e293b').setFontColor('#ffffff').setFontWeight('bold');
+  }
+
+  // 3. ورقة تفاصيل الفواتير (البنود)
+  var invDetailsSheet = ss.getSheetByName('تفاصيل الفواتير');
+  if (!invDetailsSheet) {
+    invDetailsSheet = ss.insertSheet('تفاصيل الفواتير');
+    invDetailsSheet.setRightToLeft(true);
+    invDetailsSheet.appendRow([
+      'رقم الفاتورة', 'كود الصنف', 'اسم الصنف', 'الكمية', 
+      'سعر الوحدة', 'خاضع للضريبة؟', 'قيمة البند', 'قيمة الضريبة', 'الإجمالي'
+    ]);
+    var detHeader = invDetailsSheet.getRange(1, 1, 1, 9);
+    detHeader.setBackground('#334155').setFontColor('#ffffff').setFontWeight('bold');
+  }
+
+  SpreadsheetApp.getUi().alert('✅ تم تأسيس أوراق المستودع والفواتير بنجاح وتنسيقها بشكل كامل!');
+}
+
+// =============================================================
+// 3. دوال الترقيم والمساعدة
+// =============================================================
+function getNextEntryNumber(sheet) {
+  var lastRow = sheet.getLastRow();
+  var maxNo = 1000;
+  if (lastRow > 1) {
+    var values = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+    for (var i = 0; i < values.length; i++) {
+      var val = Number(values[i][0]);
+      if (!isNaN(val) && val > maxNo) {
+        maxNo = val;
+      }
     }
+  }
+  return maxNo + 1;
+}
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Cairo', sans-serif;
-      -webkit-tap-highlight-color: transparent;
+function getNextInvoiceNumber(sheet, prefix) {
+  var lastRow = sheet.getLastRow();
+  var maxNo = 100;
+  if (lastRow > 1) {
+    var values = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+    for (var i = 0; i < values.length; i++) {
+      var str = String(values[i][0]).replace(/\D/g, "");
+      var val = Number(str);
+      if (!isNaN(val) && val > maxNo) {
+        maxNo = val;
+      }
     }
+  }
+  return (prefix || "INV-") + (maxNo + 1);
+}
 
-    body {
-      background-color: var(--bg);
-      color: var(--text);
-      display: flex;
-      justify-content: center;
-      min-height: 100vh;
-    }
+// =============================================================
+// 4. نقطة استقبال الاتصال (GET)
+// =============================================================
+function doGet(e) {
+  return ContentService.createTextOutput(JSON.stringify({
+    status: "success",
+    message: "Google Apps Script Backend is Ready with Inventory & Tax support."
+  })).setMimeType(ContentService.MimeType.JSON);
+}
 
-    .app-container {
-      width: 100%;
-      max-width: 480px;
-      min-height: 100vh;
-      background: var(--card);
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      box-shadow: 0 0 40px rgba(0,0,0,0.06);
-    }
+// =============================================================
+// 5. نقطة استقبال العمليات من الهاتف السحابي (POST)
+// =============================================================
+function doPost(e) {
+  try {
+    var rawText = e.postData.contents;
+    rawText = rawText.replace(/```json/g, "").replace(/```/g, "").trim();
+    var data = JSON.parse(rawText);
+    var action = data.action;
 
-    header {
-      padding: 16px 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-bottom: 1px solid var(--border);
-      position: sticky;
-      top: 0;
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(10px);
-      z-index: 50;
-    }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .brand-icon {
-      width: 38px;
-      height: 38px;
-      background: linear-gradient(135deg, var(--primary), #3b82f6);
-      color: white;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-    }
-
-    .brand-title {
-      font-size: 18px;
-      font-weight: 700;
-    }
-
-    .user-pill {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      background: var(--primary-light);
-      padding: 6px 12px;
-      border-radius: 20px;
-      font-size: 12px;
-      color: var(--primary-dark);
-      font-weight: 600;
-    }
-
-    main {
-      flex: 1;
-      padding: 20px;
-      padding-bottom: 95px;
-      overflow-y: auto;
-    }
-
-    .tab-content {
-      display: none;
-      animation: fadeIn 0.2s ease-in-out;
-    }
-
-    .tab-content.active {
-      display: block;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(4px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .hero-balance {
-      background: linear-gradient(135deg, #1e293b, #0f172a);
-      color: white;
-      padding: 22px;
-      border-radius: var(--radius);
-      margin-bottom: 18px;
-    }
-
-    .hero-title {
-      font-size: 13px;
-      color: #94a3b8;
-      margin-bottom: 6px;
-    }
-
-    .hero-value {
-      font-size: 28px;
-      font-weight: 800;
-    }
-
-    .stat-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-bottom: 18px;
-    }
-
-    .stat-card {
-      background: var(--bg);
-      padding: 14px;
-      border-radius: 14px;
-      border: 1px solid var(--border);
-    }
-
-    .stat-label {
-      font-size: 11px;
-      color: var(--text-muted);
-      margin-bottom: 4px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .stat-val {
-      font-size: 16px;
-      font-weight: 700;
-    }
-
-    .form-group {
-      margin-bottom: 14px;
-    }
-
-    label {
-      display: block;
-      font-size: 13px;
-      font-weight: 600;
-      margin-bottom: 6px;
-      color: var(--text);
-    }
-
-    input, select, textarea {
-      width: 100%;
-      padding: 11px 13px;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      font-size: 13px;
-      background: white;
-      color: var(--text);
-      outline: none;
-      transition: border 0.2s;
-    }
-
-    input:focus, select:focus, textarea:focus {
-      border-color: var(--primary);
-    }
-
-    .entry-row, .inv-item-row {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 12px;
-      margin-bottom: 12px;
-      position: relative;
-    }
-
-    .btn-remove-row {
-      position: absolute;
-      top: -8px;
-      left: -8px;
-      background: var(--danger);
-      color: white;
-      border: none;
-      width: 22px;
-      height: 22px;
-      border-radius: 50%;
-      font-size: 11px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .balance-box {
-      background: #f1f5f9;
-      padding: 14px;
-      border-radius: 12px;
-      margin: 16px 0;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 13px;
-      font-weight: 700;
-    }
-
-    .status-badge {
-      padding: 4px 10px;
-      border-radius: 20px;
-      font-size: 12px;
-    }
-
-    .status-badge.balanced { background: var(--success-light); color: var(--success); }
-    .status-badge.unbalanced { background: var(--danger-light); color: var(--danger); }
-
-    .btn {
-      width: 100%;
-      padding: 13px;
-      border: none;
-      border-radius: 12px;
-      font-size: 14px;
-      font-weight: 700;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      transition: background 0.2s, transform 0.1s;
-    }
-
-    .btn:active { transform: scale(0.98); }
-    .btn-primary { background: var(--primary); color: white; }
-    .btn-secondary { background: #334155; color: white; }
-    .btn-outline {
-      background: transparent;
-      border: 1px dashed var(--primary);
-      color: var(--primary);
-      margin-bottom: 14px;
-      padding: 10px;
-      font-size: 13px;
-    }
-
-    /* كروت وحاويات الفاتورة الذكية */
-    .invoice-card {
-      background: white;
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 14px;
-      margin-bottom: 14px;
-    }
-
-    .tax-switch-box {
-      background: var(--primary-light);
-      border: 1px solid rgba(37, 99, 235, 0.2);
-      border-radius: 12px;
-      padding: 12px;
-      margin-bottom: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .switch-label {
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--primary-dark);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .invoice-summary-box {
-      background: #0f172a;
-      color: white;
-      padding: 16px;
-      border-radius: 14px;
-      margin: 16px 0;
-    }
-
-    .summary-row {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 8px;
-      font-size: 13px;
-    }
-
-    .summary-row.total {
-      border-top: 1px solid #334155;
-      padding-top: 10px;
-      margin-top: 10px;
-      font-size: 17px;
-      font-weight: 800;
-      color: #38bdf8;
-    }
-
-    .statement-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 14px;
-      font-size: 13px;
-    }
-
-    .statement-table th {
-      background: #f1f5f9;
-      padding: 10px;
-      text-align: right;
-      color: var(--text-muted);
-      font-weight: 600;
-    }
-
-    .statement-table td {
-      padding: 12px 10px;
-      border-bottom: 1px solid var(--border);
-    }
-
-    nav {
-      position: fixed;
-      bottom: 0;
-      width: 100%;
-      max-width: 480px;
-      height: 68px;
-      background: white;
-      border-top: 1px solid var(--border);
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      z-index: 50;
-    }
-
-    .nav-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 3px;
-      color: var(--text-muted);
-      font-size: 11px;
-      font-weight: 600;
-      cursor: pointer;
-      flex: 1;
-      padding: 6px 0;
-      transition: color 0.2s;
-    }
-
-    .nav-item i { font-size: 18px; }
-    .nav-item.active { color: var(--primary); }
-
-    .modal {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(15, 23, 42, 0.5);
-      z-index: 100;
-      align-items: flex-end;
-      justify-content: center;
-      backdrop-filter: blur(4px);
-    }
-
-    .modal.open { display: flex; }
-    .modal-content {
-      background: white;
-      width: 100%;
-      max-width: 480px;
-      border-radius: 20px 20px 0 0;
-      padding: 24px;
-      animation: slideUp 0.25s ease-out;
-    }
-
-    @keyframes slideUp {
-      from { transform: translateY(100%); }
-      to { transform: translateY(0); }
-    }
-  </style>
-</head>
-<body>
-
-<div class="app-container">
-  
-  <header>
-    <div class="brand">
-      <div class="brand-icon"><i class="fa-solid fa-calculator"></i></div>
-      <div class="brand-title">المحاسب الذكي</div>
-    </div>
-    <div class="user-pill">
-      <i class="fa-solid fa-circle-check" style="color: var(--success);"></i>
-      <span>متصل سحابياً</span>
-    </div>
-  </header>
-
-  <main>
-    
-    <!-- Tab 1: Dashboard -->
-    <div id="tab-home" class="tab-content active">
-      <div class="hero-balance">
-        <div class="hero-title">السيولة النقدية المتاحة (خزائن وبنوك)</div>
-        <div class="hero-value"><span id="dash-cash">0.00</span> <span style="font-size: 15px; font-weight: normal;">ر.س</span></div>
-      </div>
-
-      <div class="stat-row">
-        <div class="stat-card">
-          <div class="stat-label"><i class="fa-solid fa-users" style="color: var(--primary);"></i> ديون عند العملاء</div>
-          <div class="stat-val" id="dash-customers" style="color: var(--primary);">0.00</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label"><i class="fa-solid fa-truck" style="color: var(--danger);"></i> ديون للموردين</div>
-          <div class="stat-val" id="dash-vendors" style="color: var(--danger);">0.00</div>
-        </div>
-      </div>
-
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px;">
-        <button class="btn btn-primary" onclick="switchTab('tab-invoice')">
-          <i class="fa-solid fa-file-invoice-dollar"></i> إصدار فاتورة
-        </button>
-        <button class="btn btn-secondary" onclick="switchTab('tab-entry')">
-          <i class="fa-solid fa-plus-circle"></i> تسجيل قيد
-        </button>
-      </div>
-
-      <button class="btn btn-outline" style="border-style: solid;" onclick="openAddAccountModal()">
-        <i class="fa-solid fa-folder-plus"></i> إضافة حساب / عميل / مورد جديد
-      </button>
-    </div>
-
-    <!-- Tab 2: Smart Invoices (الفواتير والمستودع) -->
-    <div id="tab-invoice" class="tab-content">
-      <h3 style="margin-bottom: 14px; font-size: 18px;">إصدار فاتورة ذكية</h3>
-
-      <div class="invoice-card">
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
-          <div>
-            <label>نوع الفاتورة</label>
-            <select id="inv-type" onchange="handleInvoiceTypeChange()">
-              <option value="sales">فاتورة مبيعات</option>
-              <option value="purchase">فاتورة مشتريات</option>
-            </select>
-          </div>
-          <div>
-            <label>طريقة الدفع</label>
-            <select id="inv-payment-method">
-              <option value="cash">نقداً (الصندوق)</option>
-              <option value="bank">شبكة / تحويل بنكي</option>
-              <option value="credit">آجل (على الحساب)</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label id="inv-party-label">العميل / المستلم</label>
-          <select id="inv-party-select" class="account-selector"></select>
-        </div>
-
-        <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 10px;">
-          <div class="form-group">
-            <label>تاريخ الفاتورة</label>
-            <input type="date" id="inv-date">
-          </div>
-          <div class="form-group">
-            <label>رقم مرجعي / يدوي</label>
-            <input type="text" id="inv-ref" placeholder="تلقائي">
-          </div>
-        </div>
-      </div>
-
-      <!-- خيار الضريبة الديناميكي -->
-      <div class="tax-switch-box">
-        <label class="switch-label">
-          <i class="fa-solid fa-percent" style="font-size: 16px;"></i>
-          تطبيق ضريبة القيمة المضافة
-        </label>
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <select id="inv-tax-mode" style="width: auto; padding: 6px 10px; font-size: 12px; font-weight: 700;" onchange="calculateInvoiceTotals()">
-            <option value="15">مع ضريبة (15%)</option>
-            <option value="0">بدون ضريبة (0% معفى)</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- قائمة بنود وأصناف الفاتورة -->
-      <label>بنود وأصناف الفاتورة</label>
-      <div id="invoice-items-list">
-        <!-- تضاف الصفوف هنا ديناميكياً -->
-      </div>
-
-      <button class="btn btn-outline" onclick="addInvoiceItemRow()">
-        <i class="fa-solid fa-plus"></i> إضافة صنف / بند آخر
-      </button>
-
-      <!-- كرت الملخص التلقائي -->
-      <div class="invoice-summary-box">
-        <div class="summary-row">
-          <span>المجموع قبل الضريبة:</span>
-          <span id="inv-sum-subtotal">0.00 ر.س</span>
-        </div>
-        <div class="summary-row">
-          <span>قيمة الضريبة:</span>
-          <span id="inv-sum-tax">0.00 ر.س</span>
-        </div>
-        <div class="summary-row total">
-          <span>الصافي الإجمالي:</span>
-          <span id="inv-sum-grand">0.00 ر.س</span>
-        </div>
-      </div>
-
-      <button class="btn btn-primary" onclick="submitInvoiceAction()">
-        <i class="fa-solid fa-check-double"></i> حفظ الفاتورة وتحديث المستودع والقيود
-      </button>
-    </div>
-
-    <!-- Tab 3: Add Journal Entry -->
-    <div id="tab-entry" class="tab-content">
-      <h3 style="margin-bottom: 14px; font-size: 18px;">تسجيل قيد يومية عام</h3>
+    // أ) استنساخ الشيت للمستخدم الجديد
+    if (action === "INITIALIZE_USER_SHEET") {
+      var masterFile = DriveApp.getFileById(MASTER_TEMPLATE_ID);
+      var userFileName = "المحاسب الذكي - دفتر القيود والمستودع (" + (data.userName || "المستخدم") + ")";
+      var newFile = masterFile.makeCopy(userFileName);
+      var newSS = SpreadsheetApp.openById(newFile.getId());
       
-      <div class="form-group">
-        <label>تاريخ القيد</label>
-        <input type="date" id="entry-date">
-      </div>
+      // التأكد من وجود أوراق المستودع والفواتير في النسخة المستنسخة
+      ensureInventorySheetsExist(newSS);
 
-      <div class="form-group">
-        <label>البيان / الشرح</label>
-        <input type="text" id="entry-memo" placeholder="شرح القيد المحاسبي...">
-      </div>
-
-      <label>أطراف القيد</label>
-      <div id="entries-list">
-        <div class="entry-row">
-          <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 8px;">
-            <select class="account-selector"></select>
-            <input type="number" placeholder="مدين" class="input-debit" value="0" oninput="calculateBalance()">
-            <input type="number" placeholder="دائن" class="input-credit" value="0" oninput="calculateBalance()">
-          </div>
-        </div>
-        <div class="entry-row">
-          <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 8px;">
-            <select class="account-selector"></select>
-            <input type="number" placeholder="مدين" class="input-debit" value="0" oninput="calculateBalance()">
-            <input type="number" placeholder="دائن" class="input-credit" value="0" oninput="calculateBalance()">
-          </div>
-        </div>
-      </div>
-
-      <button class="btn btn-outline" onclick="addEntryRow()">
-        <i class="fa-solid fa-plus"></i> إضافة طرف آخر للقيد
-      </button>
-
-      <div class="balance-box">
-        <div>
-          <div>المدين: <span id="total-debit" style="color: var(--primary);">0.00</span></div>
-          <div>الدائن: <span id="total-credit" style="color: var(--primary);">0.00</span></div>
-        </div>
-        <div id="balance-status" class="status-badge unbalanced">أدخل أطراف القيد</div>
-      </div>
-
-      <button class="btn btn-primary" id="btn-save-entry" onclick="saveEntryAction()" disabled style="opacity: 0.5;">
-        <i class="fa-solid fa-check"></i> حفظ وترحيل القيد
-      </button>
-    </div>
-
-    <!-- Tab 4: Statement & Ledger -->
-    <div id="tab-statement" class="tab-content">
-      <h3 style="margin-bottom: 14px; font-size: 18px;">كشف الحساب</h3>
-      <div class="form-group">
-        <label>اختر الحساب</label>
-        <select id="statement-account-selector" class="account-selector" onchange="loadStatementData()"></select>
-      </div>
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
-        <input type="date" id="date-from">
-        <input type="date" id="date-to">
-      </div>
-      <div style="background: var(--bg); padding: 10px 14px; border-radius: 8px; margin-bottom: 10px; font-size: 13px; display: flex; justify-content: space-between;">
-        <span id="active-acc-label">الحساب: -</span>
-        <span>الرصيد: <strong id="final-balance" style="color: var(--primary);">0.00</strong></span>
-      </div>
-      <table class="statement-table">
-        <thead><tr><th>التاريخ</th><th>البيان</th><th>مدين</th><th>دائن</th><th>الرصيد</th></tr></thead>
-        <tbody id="statement-rows"></tbody>
-      </table>
-    </div>
-
-  </main>
-
-  <!-- شريط التنقل السفلي المطور -->
-  <nav>
-    <div class="nav-item active" onclick="switchTab('tab-home', this)">
-      <i class="fa-solid fa-house"></i>
-      <span>الرئيسية</span>
-    </div>
-    <div class="nav-item" onclick="switchTab('tab-invoice', this)">
-      <i class="fa-solid fa-file-invoice-dollar"></i>
-      <span>الفواتير</span>
-    </div>
-    <div class="nav-item" onclick="switchTab('tab-entry', this)">
-      <i class="fa-solid fa-plus-circle"></i>
-      <span>قيد يومية</span>
-    </div>
-    <div class="nav-item" onclick="switchTab('tab-statement', this)">
-      <i class="fa-solid fa-receipt"></i>
-      <span>كشف حساب</span>
-    </div>
-  </nav>
-
-</div>
-
-<!-- Modal: إضافة حساب / عميل / مورد -->
-<div class="modal" id="modal-add-account">
-  <div class="modal-content">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-      <h3 style="font-size: 16px;">إضافة حساب أو جهة جديدة</h3>
-      <button style="border:none; background:none; font-size:20px;" onclick="closeAddAccountModal()">×</button>
-    </div>
-    <div class="form-group">
-      <label>النوع</label>
-      <select id="new-acc-type">
-        <option value="customer">عميل (زبون)</option>
-        <option value="vendor">مورد (ذمم دائنة)</option>
-        <option value="cash">صندوق / خزينة</option>
-        <option value="bank">حساب بنكي</option>
-        <option value="expense">مصروف تشغيلي</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label>الاسم</label>
-      <input type="text" id="new-acc-name" placeholder="مثال: شركة الأفق، عميل نقدي...">
-    </div>
-    <button class="btn btn-primary" onclick="confirmAddAccount()">حفظ وإدراج الحساب</button>
-  </div>
-</div>
-
-<script>
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwFaGAUNK_kvEyCauTIer6NijuUDw2dPR002c-6eX9X7EbRnknptd-IdZeKE5XjQr93/exec";
-
-  // دالة الإشعار الذكية بدون alert
-  function showToast(message, isError = false) {
-    let toast = document.getElementById("appToast");
-    if (!toast) {
-      toast = document.createElement("div");
-      toast.id = "appToast";
-      toast.style.cssText = "position:fixed; bottom:25px; left:50%; transform:translateX(-50%); background:#0f172a; color:#fff; padding:12px 24px; border-radius:30px; font-family:'Cairo',sans-serif; font-size:13px; font-weight:700; box-shadow:0 8px 25px rgba(0,0,0,0.3); z-index:999999; transition:all 0.3s ease; opacity:0; pointer-events:none; text-align:center; min-width:240px;";
-      document.body.appendChild(toast);
+      return ContentService.createTextOutput(JSON.stringify({
+        status: "success",
+        spreadsheetId: newFile.getId(),
+        spreadsheetUrl: newFile.getUrl(),
+        message: "تم تجهيز دفتر حساباتك ومستودعك بنجاح"
+      })).setMimeType(ContentService.MimeType.JSON);
     }
-    toast.style.background = isError ? "#ef4444" : "#10b981";
-    toast.textContent = message;
-    toast.style.opacity = "1";
-    toast.style.transform = "translateX(-50%) translateY(0)";
-    setTimeout(() => {
-      toast.style.opacity = "0";
-      toast.style.transform = "translateX(-50%) translateY(10px)";
-    }, 3200);
-  }
 
-  // الأصناف المخزنية الافتراضية
-  const defaultInventory = [
-    { code: "ITM-101", name: "صنف بضاعة تجريبي أ", unit: "حبة", costPrice: 40, salePrice: 65, stock: 100 },
-    { code: "ITM-102", name: "صنف بضاعة تجريبي ب", unit: "كرتون", costPrice: 120, salePrice: 180, stock: 50 }
-  ];
+    // فتح شيت المستخدم المطلوب
+    var ss = data.spreadsheetId ? SpreadsheetApp.openById(data.spreadsheetId) : SpreadsheetApp.getActiveSpreadsheet();
 
-  const defaultAccounts = [
-    { code: "1111", name: "الصندوق الرئيسي (الخزينة)", cat: "النقدية والبنوك", base: "cash", nature: "مدين" },
-    { code: "1113", name: "الحساب البنكي الجاري", cat: "النقدية والبنوك", base: "bank", nature: "مدين" },
-    { code: "1121", name: "عميل تجاري عام", cat: "العملاء والمدينون", base: "customer", nature: "مدين" },
-    { code: "2101", name: "مورد تجاري عام", cat: "الموردون والالتزامات", base: "vendor", nature: "دائن" },
-    { code: "4101", name: "إيراد مبيعات المنتجات", cat: "الإيرادات والمبيعات", base: "revenue", nature: "دائن" },
-    { code: "5101", name: "تكلفة المشتريات / بضاعة", cat: "المشتريات والمصروفات", base: "expense", nature: "مدين" }
-  ];
+    // ب) ترحيل قيد يومية عادي
+    if (action === "NEW_ENTRY") {
+      var sheet = ss.getSheetByName("اليومية العامة") || ss.getSheets()[0];
+      var lines = data.lines;
 
-  let chartOfAccounts = JSON.parse(localStorage.getItem('smart_accounts')) || defaultAccounts;
-  let ledgerEntries = JSON.parse(localStorage.getItem('smart_entries')) || [];
-  let inventoryItems = JSON.parse(localStorage.getItem('smart_inventory')) || defaultInventory;
-
-  function persistData() {
-    localStorage.setItem('smart_accounts', JSON.stringify(chartOfAccounts));
-    localStorage.setItem('smart_entries', JSON.stringify(ledgerEntries));
-    localStorage.setItem('smart_inventory', JSON.stringify(inventoryItems));
-    updateDashboardStats();
-  }
-
-  function switchTab(tabId, el) {
-    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-    document.getElementById(tabId).classList.add('active');
-    if (el) {
-      document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-      el.classList.add('active');
-    }
-    if (tabId === 'tab-statement') loadStatementData();
-  }
-
-  // ملء القوائم المنسدلة
-  function populateAccountSelects() {
-    let accHtml = '';
-    chartOfAccounts.forEach(a => {
-      accHtml += `<option value="${a.code}">${a.code} - ${a.name}</option>`;
-    });
-    document.querySelectorAll('.account-selector').forEach(sel => {
-      const cur = sel.value;
-      sel.innerHTML = accHtml;
-      if (cur) sel.value = cur;
-    });
-    handleInvoiceTypeChange();
-  }
-
-  function handleInvoiceTypeChange() {
-    const type = document.getElementById('inv-type').value;
-    const partySel = document.getElementById('inv-party-select');
-    const partyLabel = document.getElementById('inv-party-label');
-    const payMethod = document.getElementById('inv-payment-method').value;
-
-    if (type === 'sales') {
-      partyLabel.innerText = payMethod === 'credit' ? 'العميل (ذمم مدينة)' : 'حساب الإيداع / الخزينة';
-      let options = chartOfAccounts.filter(a => payMethod === 'credit' ? a.base === 'customer' : (a.base === 'cash' || a.base === 'bank'));
-      partySel.innerHTML = options.map(a => `<option value="${a.code}">${a.code} - ${a.name}</option>`).join('');
-    } else {
-      partyLabel.innerText = payMethod === 'credit' ? 'المورد (ذمم دائنة)' : 'حساب الدفع / الخزينة';
-      let options = chartOfAccounts.filter(a => payMethod === 'credit' ? a.base === 'vendor' : (a.base === 'cash' || a.base === 'bank'));
-      partySel.innerHTML = options.map(a => `<option value="${a.code}">${a.code} - ${a.name}</option>`).join('');
-    }
-  }
-
-  document.getElementById('inv-payment-method').addEventListener('change', handleInvoiceTypeChange);
-
-  // إدارة بنود الفاتورة وحساب الضريبة
-  function addInvoiceItemRow() {
-    const container = document.getElementById('invoice-items-list');
-    const div = document.createElement('div');
-    div.className = 'inv-item-row';
-    div.innerHTML = `
-      <button class="btn-remove-row" onclick="this.parentElement.remove(); calculateInvoiceTotals();">×</button>
-      <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 8px; margin-bottom: 8px;">
-        <div>
-          <label style="font-size:11px;">اسم الصنف</label>
-          <input type="text" class="inv-item-name" placeholder="الصنف أو الخدمة" value="بضاعة">
-        </div>
-        <div>
-          <label style="font-size:11px;">الكمية</label>
-          <input type="number" class="inv-item-qty" value="1" min="1" oninput="calculateInvoiceTotals()">
-        </div>
-        <div>
-          <label style="font-size:11px;">سعر الوحدة</label>
-          <input type="number" class="inv-item-price" value="100" min="0" oninput="calculateInvoiceTotals()">
-        </div>
-      </div>
-    `;
-    container.appendChild(div);
-    calculateInvoiceTotals();
-  }
-
-  function calculateInvoiceTotals() {
-    let subtotal = 0;
-    const taxRate = parseFloat(document.getElementById('inv-tax-mode').value) || 0;
-
-    document.querySelectorAll('.inv-item-row').forEach(row => {
-      const q = parseFloat(row.querySelector('.inv-item-qty').value) || 0;
-      const p = parseFloat(row.querySelector('.inv-item-price').value) || 0;
-      subtotal += (q * p);
-    });
-
-    const taxAmount = subtotal * (taxRate / 100);
-    const grandTotal = subtotal + taxAmount;
-
-    document.getElementById('inv-sum-subtotal').innerText = subtotal.toFixed(2) + ' ر.س';
-    document.getElementById('inv-sum-tax').innerText = taxAmount.toFixed(2) + ' ر.س';
-    document.getElementById('inv-sum-grand').innerText = grandTotal.toFixed(2) + ' ر.س';
-  }
-
-  // ترحيل الفاتورة للسيرفر والشيت
-  async function submitInvoiceAction() {
-    const items = [];
-    document.querySelectorAll('.inv-item-row').forEach(row => {
-      const name = row.querySelector('.inv-item-name').value;
-      const qty = parseFloat(row.querySelector('.inv-item-qty').value) || 0;
-      const price = parseFloat(row.querySelector('.inv-item-price').value) || 0;
-      if (qty > 0 && price > 0) {
-        items.push({ itemName: name, qty: qty, unitPrice: price, costPrice: price * 0.7 });
+      if (!lines || lines.length < 2) {
+        throw new Error("يجب إدخال طرفين على الأقل لاكتمال القيد المحاسبي.");
       }
-    });
 
-    if (items.length === 0) {
-      showToast('يرجى إضافة صنف وسعر صحيح للفاتورة', true);
-      return;
-    }
+      var totalDebit = 0;
+      var totalCredit = 0;
+      for (var i = 0; i < lines.length; i++) {
+        var d = Number(lines[i].debit) || 0;
+        var c = Number(lines[i].credit) || 0;
+        if (d > 0 && c > 0) throw new Error("لا يمكن أن يكون الطرف مديناً ودائناً في الوقت نفسه.");
+        totalDebit += d;
+        totalCredit += c;
+      }
 
-    const type = document.getElementById('inv-type').value;
-    const partySel = document.getElementById('inv-party-select');
-    const taxRate = parseFloat(document.getElementById('inv-tax-mode').value) || 0;
-    const date = document.getElementById('inv-date').value;
+      if (Math.abs(totalDebit - totalCredit) > 0.01) {
+        throw new Error("القيد غير متوازن! مدين: " + totalDebit.toFixed(2) + " | دائن: " + totalCredit.toFixed(2));
+      }
 
-    const payload = {
-      action: "CREATE_INVOICE",
-      spreadsheetId: localStorage.getItem("user_sheet_id"),
-      invoiceType: type,
-      partyAccountCode: partySel.value,
-      partyAccountName: partySel.options[partySel.selectedIndex].text.split(' - ')[1],
-      paymentMethod: document.getElementById('inv-payment-method').value,
-      applyTax: taxRate > 0,
-      taxRate: taxRate,
-      invoiceDate: date,
-      items: items
-    };
+      var entryNo = getNextEntryNumber(sheet);
+      var now = new Date();
+      var dateStr = data.entryDate || Utilities.formatDate(now, "Asia/Riyadh", "yyyy-MM-dd");
+      var timeStr = Utilities.formatDate(now, "Asia/Riyadh", "yyyy/MM/dd HH:mm:ss");
+      var refNo = data.refNo ? String(data.refNo) : ("REF-" + Math.floor(10000 + Math.random() * 90000));
 
-    showToast('جارٍ حفظ الفاتورة وتحديث المستودع...');
-
-    try {
-      fetch(SCRIPT_URL, {
-        method: "POST",
-        body: JSON.stringify(payload)
+      lines.forEach(function(line) {
+        sheet.appendRow([
+          entryNo,
+          dateStr,
+          refNo,
+          line.accountCode,
+          line.accountName,
+          line.description,
+          Number(line.debit) || 0,
+          Number(line.credit) || 0,
+          timeStr
+        ]);
       });
-      showToast('تم إصدار الفاتورة وتحديث المستودع والقيود بنجاح');
-      document.getElementById('invoice-items-list').innerHTML = '';
-      addInvoiceItemRow();
-      switchTab('tab-home');
-    } catch (e) {
-      showToast('تم تسجيل الفاتورة بنجاح');
+
+      return ContentService.createTextOutput(JSON.stringify({
+        status: "success",
+        entryNo: entryNo,
+        message: "تم ترحيل القيد رقم (" + entryNo + ") بنجاح"
+      })).setMimeType(ContentService.MimeType.JSON);
     }
-  }
 
-  // وظائف اليومية العامة
-  function addEntryRow() {
-    const list = document.getElementById('entries-list');
-    const div = document.createElement('div');
-    div.className = 'entry-row';
-    div.innerHTML = `
-      <button class="btn-remove-row" onclick="this.parentElement.remove(); calculateBalance();">×</button>
-      <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 8px;">
-        <select class="account-selector"></select>
-        <input type="number" placeholder="مدين" class="input-debit" value="0" oninput="calculateBalance()">
-        <input type="number" placeholder="دائن" class="input-credit" value="0" oninput="calculateBalance()">
-      </div>
-    `;
-    list.appendChild(div);
-    populateAccountSelects();
-  }
+    // ج) حفظ وإصدار فاتورة ذكية (مع أو بدون ضريبة وتحديث المستودع واليومية آلياً)
+    if (action === "CREATE_INVOICE") {
+      ensureInventorySheetsExist(ss);
 
-  function calculateBalance() {
-    let deb = 0, crd = 0;
-    document.querySelectorAll('.input-debit').forEach(i => deb += parseFloat(i.value || 0));
-    document.querySelectorAll('.input-credit').forEach(i => crd += parseFloat(i.value || 0));
-    document.getElementById('total-debit').innerText = deb.toFixed(2);
-    document.getElementById('total-credit').innerText = crd.toFixed(2);
+      var invSheet = ss.getSheetByName("سجل الفواتير");
+      var detailsSheet = ss.getSheetByName("تفاصيل الفواتير");
+      var journalSheet = ss.getSheetByName("اليومية العامة");
+      var stockSheet = ss.getSheetByName("المخزن والأصناف");
 
-    const b = document.getElementById('balance-status');
-    const btn = document.getElementById('btn-save-entry');
-    if (deb > 0 && Math.abs(deb - crd) < 0.01) {
-      b.className = 'status-badge balanced'; b.innerText = 'القيد متوازن ✓';
-      btn.disabled = false; btn.style.opacity = '1';
-    } else {
-      b.className = 'status-badge unbalanced'; b.innerText = deb === 0 ? 'أدخل أطراف القيد' : 'غير متوازن';
-      btn.disabled = true; btn.style.opacity = '0.5';
-    }
-  }
+      var isSales = (data.invoiceType === "sales"); // sales أو purchase
+      var invPrefix = isSales ? "INV-SAL-" : "INV-PUR-";
+      var invNo = getNextInvoiceNumber(invSheet, invPrefix);
+      var now = new Date();
+      var dateStr = data.invoiceDate || Utilities.formatDate(now, "Asia/Riyadh", "yyyy-MM-dd");
+      var timeStr = Utilities.formatDate(now, "Asia/Riyadh", "yyyy/MM/dd HH:mm:ss");
 
-  function saveEntryAction() {
-    const date = document.getElementById('entry-date').value;
-    const memo = document.getElementById('entry-memo').value || 'قيد يومية';
-    const lines = [];
+      var items = data.items || [];
+      if (items.length === 0) throw new Error("يجب إضافة صنف واحد على الأقل داخل الفاتورة.");
 
-    document.querySelectorAll('#entries-list .entry-row').forEach(r => {
-      const sel = r.querySelector('.account-selector');
-      const d = parseFloat(r.querySelector('.input-debit').value || 0);
-      const c = parseFloat(r.querySelector('.input-credit').value || 0);
-      if (d > 0 || c > 0) {
-        ledgerEntries.push({ date, accountCode: sel.value, desc: memo, debit: d, credit: c });
-        lines.push({ accountCode: sel.value, accountName: sel.options[sel.selectedIndex].text.split(' - ')[1], description: memo, debit: d, credit: c });
+      var subTotal = 0;
+      var taxTotal = 0;
+      var totalCostOfGoods = 0;
+
+      // 1. تسجيل بنود الفاتورة وتحديث المخزن
+      items.forEach(function(item) {
+        var qty = Number(item.qty) || 0;
+        var unitPrice = Number(item.unitPrice) || 0;
+        var costPrice = Number(item.costPrice) || 0;
+        var hasTax = (item.applyTax === true || data.applyTax === true);
+        var taxRate = hasTax ? (Number(item.taxRate || data.taxRate) || 15) : 0;
+
+        var lineTotal = qty * unitPrice;
+        var lineTax = lineTotal * (taxRate / 100);
+        var lineGross = lineTotal + lineTax;
+
+        subTotal += lineTotal;
+        taxTotal += lineTax;
+        totalCostOfGoods += (qty * costPrice);
+
+        detailsSheet.appendRow([
+          invNo,
+          item.itemCode || "-",
+          item.itemName,
+          qty,
+          unitPrice,
+          hasTax ? "نعم (" + taxRate + "%)" : "بدون ضريبة",
+          lineTotal,
+          lineTax,
+          lineGross
+        ]);
+
+        // تحديث كميات الصنف في ورقة المخزن
+        updateStockQuantity(stockSheet, item.itemCode, item.itemName, qty, isSales, costPrice, unitPrice);
+      });
+
+      var grandTotal = subTotal + taxTotal;
+      var entryNo = getNextEntryNumber(journalSheet);
+
+      // 2. توليد قيود اليومية المحاسبية آلياً
+      var partyAccCode = data.partyAccountCode; // حساب العميل أو المورد أو الصندوق
+      var partyAccName = data.partyAccountName;
+
+      if (isSales) {
+        // مبيعات:
+        // مدين: الصندوق/العميل بإجمالي المبلغ شامل الضريبة
+        journalSheet.appendRow([entryNo, dateStr, invNo, partyAccCode, partyAccName, "فاتورة مبيعات رقم " + invNo, grandTotal, 0, timeStr]);
+        // دائن: إيراد المبيعات (صافي قبل الضريبة)
+        journalSheet.appendRow([entryNo, dateStr, invNo, "4101", "إيراد مبيعات المنتجات", "قيمة مبيعات فاتورة " + invNo, 0, subTotal, timeStr]);
+        // دائن: ضريبة القيمة المضافة المحصلة (إن وجدت)
+        if (taxTotal > 0) {
+          journalSheet.appendRow([entryNo, dateStr, invNo, "2103", "ضريبة القيمة المضافة المستحقة", "ضريبة فاتورة مبيعات " + invNo, 0, taxTotal, timeStr]);
+        }
+        // قيد تكلفة البضاعة المباعة تلقائياً للمخزن
+        if (totalCostOfGoods > 0) {
+          var cogsEntryNo = getNextEntryNumber(journalSheet);
+          journalSheet.appendRow([cogsEntryNo, dateStr, invNo, "5101", "تكلفة البضاعة المباعة / المشتريات", "تكلفة مبيعات فاتورة " + invNo, totalCostOfGoods, 0, timeStr]);
+          journalSheet.appendRow([cogsEntryNo, dateStr, invNo, "1131", "مخزون بضاعة المستودع الرئيسي", "صرف مخزون فاتورة " + invNo, 0, totalCostOfGoods, timeStr]);
+        }
+      } else {
+        // مشتريات:
+        // مدين: تكلفة المشتريات أو المخزون
+        journalSheet.appendRow([entryNo, dateStr, invNo, "1131", "مخزون بضاعة المستودع الرئيسي", "فاتورة مشتريات بضاعة " + invNo, subTotal, 0, timeStr]);
+        // مدين: ضريبة مدخلات قابلة للخصم (إن وجدت)
+        if (taxTotal > 0) {
+          journalSheet.appendRow([entryNo, dateStr, invNo, "2103", "ضريبة القيمة المضافة المستحقة", "ضريبة مشتريات فاتورة " + invNo, taxTotal, 0, timeStr]);
+        }
+        // دائن: الصندوق أو المورد بالإجمالي
+        journalSheet.appendRow([entryNo, dateStr, invNo, partyAccCode, partyAccName, "استحقاق فاتورة مشتريات " + invNo, 0, grandTotal, timeStr]);
       }
-    });
 
-    persistData();
-    showToast('تم ترحيل القيد بنجاح');
-    document.getElementById('entry-memo').value = '';
-    document.querySelectorAll('.input-debit').forEach(i => i.value = 0);
-    document.querySelectorAll('.input-credit').forEach(i => i.value = 0);
-    calculateBalance();
+      // 3. توثيق الفاتورة في سجل الفواتير
+      invSheet.appendRow([
+        invNo,
+        dateStr,
+        isSales ? "مبيعات" : "مشتريات",
+        partyAccName,
+        data.paymentMethod || "نقدي",
+        subTotal,
+        taxTotal > 0 ? "نعم" : "معفى / بدون ضريبة",
+        taxTotal > 0 ? (data.taxRate || 15) + "%" : "0%",
+        taxTotal,
+        grandTotal,
+        entryNo,
+        data.notes || ""
+      ]);
 
-    fetch(SCRIPT_URL, {
-      method: "POST",
-      body: JSON.stringify({
-        action: "NEW_ENTRY",
-        spreadsheetId: localStorage.getItem("user_sheet_id"),
-        entryDate: date,
-        lines: lines
-      })
-    });
+      return ContentService.createTextOutput(JSON.stringify({
+        status: "success",
+        invoiceNo: invNo,
+        entryNo: entryNo,
+        subTotal: subTotal,
+        taxTotal: taxTotal,
+        grandTotal: grandTotal,
+        message: "تم إصدار الفاتورة وتحديث المستودع وتوليد القيد بنجاح"
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    // د) استرجاع قائمة الأصناف من المستودع
+    if (action === "GET_INVENTORY_ITEMS") {
+      ensureInventorySheetsExist(ss);
+      var stockSheet = ss.getSheetByName("المخزن والأصناف");
+      var rows = stockSheet.getDataRange().getValues();
+      var items = [];
+      for (var i = 1; i < rows.length; i++) {
+        if (rows[i][0] || rows[i][1]) {
+          items.push({
+            code: String(rows[i][0]),
+            name: String(rows[i][1]),
+            unit: String(rows[i][2] || 'حبة'),
+            barcode: String(rows[i][3] || ''),
+            buyPrice: Number(rows[i][4]) || 0,
+            salePrice: Number(rows[i][5]) || 0,
+            stockQty: Number(rows[i][9]) || 0
+          });
+        }
+      }
+      return ContentService.createTextOutput(JSON.stringify({
+        status: "success",
+        items: items
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    // هـ) كشف حساب
+    if (action === "STATEMENT") {
+      var journalSheet = ss.getSheetByName("اليومية العامة");
+      var jData = journalSheet.getDataRange().getValues();
+      var accountCode = String(data.accountCode);
+      var rows = [];
+      var balance = 0;
+
+      for (var r = 1; r < jData.length; r++) {
+        if (String(jData[r][3]) === accountCode) {
+          var deb = Number(jData[r][6]) || 0;
+          var crd = Number(jData[r][7]) || 0;
+          balance += (deb - crd);
+          rows.push({
+            entryNo: jData[r][0],
+            date: Utilities.formatDate(new Date(jData[r][1]), "Asia/Riyadh", "yyyy-MM-dd"),
+            desc: jData[r][5],
+            debit: deb,
+            credit: crd,
+            balance: balance
+          });
+        }
+      }
+
+      return ContentService.createTextOutput(JSON.stringify({
+        status: "success",
+        rows: rows,
+        currentBalance: balance
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    return ContentService.createTextOutput(JSON.stringify({
+      status: "success",
+      message: "تم استلام الطلب"
+    })).setMimeType(ContentService.MimeType.JSON);
+
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({
+      status: "error",
+      message: err.toString()
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+// =============================================================
+// 6. دوال مساعدة لضمان وجود الجداول وتحديث المخزون
+// =============================================================
+function ensureInventorySheetsExist(ss) {
+  if (!ss.getSheetByName('المخزن والأصناف')) {
+    var s1 = ss.insertSheet('المخزن والأصناف');
+    s1.setRightToLeft(true);
+    s1.appendRow(['كود الصنف', 'اسم الصنف', 'الوحدة', 'الباركود', 'سعر الشراء (التكلفة)', 'سعر البيع', 'الكمية الافتتاحية', 'الوارد', 'المنصرف', 'الرصيد الحالي', 'حد الطلب']);
+  }
+  if (!ss.getSheetByName('سجل الفواتير')) {
+    var s2 = ss.insertSheet('سجل الفواتير');
+    s2.setRightToLeft(true);
+    s2.appendRow(['رقم الفاتورة', 'التاريخ', 'النوع (مبيعات/مشتريات)', 'الطرف الآخر (عميل/مورد)', 'طريقة الدفع', 'الإجمالي قبل الضريبة', 'تطبيق الضريبة؟', 'نسبة الضريبة %', 'قيمة الضريبة', 'الصافي النهائي', 'رقم القيد المحاسبي', 'ملاحظات']);
+  }
+  if (!ss.getSheetByName('تفاصيل الفواتير')) {
+    var s3 = ss.insertSheet('تفاصيل الفواتير');
+    s3.setRightToLeft(true);
+    s3.appendRow(['رقم الفاتورة', 'كود الصنف', 'اسم الصنف', 'الكمية', 'سعر الوحدة', 'خاضع للضريبة؟', 'قيمة البند', 'قيمة الضريبة', 'الإجمالي']);
+  }
+}
+
+function updateStockQuantity(stockSheet, itemCode, itemName, qty, isSales, costPrice, salePrice) {
+  var data = stockSheet.getDataRange().getValues();
+  var foundRow = -1;
+
+  for (var i = 1; i < data.length; i++) {
+    if (String(data[i][0]) === String(itemCode) || String(data[i][1]) === String(itemName)) {
+      foundRow = i + 1;
+      break;
+    }
   }
 
-  function updateDashboardStats() {
-    let cash = 0, cust = 0, vend = 0;
-    ledgerEntries.forEach(e => {
-      const a = chartOfAccounts.find(x => x.code === e.accountCode);
-      if (!a) return;
-      if (a.base === 'cash' || a.base === 'bank') cash += (e.debit - e.credit);
-      if (a.base === 'customer') cust += (e.debit - e.credit);
-      if (a.base === 'vendor') vend += (e.credit - e.debit);
-    });
-    document.getElementById('dash-cash').innerText = Math.max(0, cash).toLocaleString(undefined, {minimumFractionDigits: 2});
-    document.getElementById('dash-customers').innerText = Math.max(0, cust).toLocaleString(undefined, {minimumFractionDigits: 2});
-    document.getElementById('dash-vendors').innerText = Math.max(0, vend).toLocaleString(undefined, {minimumFractionDigits: 2});
+  if (foundRow > 0) {
+    var inQty = Number(stockSheet.getRange(foundRow, 8).getValue()) || 0;
+    var outQty = Number(stockSheet.getRange(foundRow, 9).getValue()) || 0;
+    var initQty = Number(stockSheet.getRange(foundRow, 7).getValue()) || 0;
+
+    if (isSales) {
+      outQty += qty;
+      stockSheet.getRange(foundRow, 9).setValue(outQty);
+    } else {
+      inQty += qty;
+      stockSheet.getRange(foundRow, 8).setValue(inQty);
+    }
+    var currentBal = initQty + inQty - outQty;
+    stockSheet.getRange(foundRow, 10).setValue(currentBal);
+  } else {
+    // صنف جديد يسجل لأول مرة في المستودع
+    var inQ = isSales ? 0 : qty;
+    var outQ = isSales ? qty : 0;
+    var cur = inQ - outQ;
+    var newCode = itemCode || ("ITM-" + Math.floor(100 + Math.random() * 900));
+    stockSheet.appendRow([
+      newCode, itemName, 'حبة', '', costPrice, salePrice, 0, inQ, outQ, cur, 5
+    ]);
   }
-
-  function loadStatementData() {
-    const sel = document.getElementById('statement-account-selector');
-    if (!sel || !sel.value) return;
-    const code = sel.value;
-    const acc = chartOfAccounts.find(a => a.code === code) || { nature: "مدين" };
-    const tbody = document.getElementById('statement-rows');
-    tbody.innerHTML = '';
-    let bal = 0;
-
-    ledgerEntries.filter(e => e.accountCode === code).forEach(item => {
-      bal += acc.nature === "مدين" ? (item.debit - item.credit) : (item.credit - item.debit);
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${item.date.substring(5)}</td><td>${item.desc}</td><td>${item.debit || '-'}</td><td>${item.credit || '-'}</td><td style="font-weight:700;">${bal.toFixed(2)}</td>`;
-      tbody.appendChild(tr);
-    });
-    document.getElementById('final-balance').innerText = bal.toFixed(2);
-  }
-
-  function openAddAccountModal() { document.getElementById('modal-add-account').classList.add('open'); }
-  function closeAddAccountModal() { document.getElementById('modal-add-account').classList.remove('open'); }
-  function confirmAddAccount() {
-    const name = document.getElementById('new-acc-name').value.trim();
-    const type = document.getElementById('new-acc-type').value;
-    if (!name) return showToast('يرجى كتابة الاسم', true);
-    const code = String(Math.floor(1130 + Math.random() * 800));
-    chartOfAccounts.push({ code, name, cat: "حسابات مضافة", base: type, nature: (type === 'vendor' ? 'دائن' : 'مدين') });
-    persistData();
-    populateAccountSelects();
-    closeAddAccountModal();
-    showToast('تمت إضافة الحساب بنجاح');
-  }
-
-  window.onload = function() {
-    const today = new Date().toISOString().split('T')[0];
-    if (document.getElementById('entry-date')) document.getElementById('entry-date').value = today;
-    if (document.getElementById('inv-date')) document.getElementById('inv-date').value = today;
-    if (document.getElementById('date-to')) document.getElementById('date-to').value = today;
-
-    populateAccountSelects();
-    addInvoiceItemRow();
-    updateDashboardStats();
-  };
-</script>
-</body>
-</html>
+}

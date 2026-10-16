@@ -1750,26 +1750,49 @@
 
   function openAddAccountModal() { document.getElementById('modal-add-account').classList.add('open'); }
   function closeAddAccountModal() { document.getElementById('modal-add-account').classList.remove('open'); }
-  function confirmAddAccount() {
+  
+  // دالة إضافة الحساب المحدثة مع ترحيل فوري لـ Google Sheets
+  async function confirmAddAccount() {
     const name = document.getElementById('new-acc-name').value.trim();
     const type = document.getElementById('new-acc-type').value;
     if (!name) return showToast('يرجى كتابة اسم الحساب', true);
     
     let prefix = type === 'vendor' ? '210' : (type === 'customer' ? '112' : '520');
     let code = prefix + Math.floor(10 + Math.random() * 89);
-    
-    chartOfAccounts.push({
+    let cat = type === 'vendor' ? "الموردون والالتزامات" : (type === 'customer' ? "العملاء والمدينون" : "المصروفات");
+    let nature = type === 'vendor' ? 'دائن' : 'مدين';
+
+    const newAcc = {
       code: code,
       name: name,
-      cat: type === 'vendor' ? "الموردون والالتزامات" : (type === 'customer' ? "العملاء والمدينون" : "المصروفات"),
+      cat: cat,
       base: type,
-      nature: type === 'vendor' ? 'دائن' : 'مدين'
-    });
+      nature: nature
+    };
 
+    chartOfAccounts.push(newAcc);
     persistData();
     populateAccountSelects();
     closeAddAccountModal();
     showToast(`تمت إضافة ${name} برقم ${code}`);
+    document.getElementById('new-acc-name').value = '';
+
+    // إرسال المورد/العميل الجديد مباشرة إلى ورقة دليل الحسابات في الشيت
+    try {
+      fetch(SCRIPT_URL, {
+        method: "POST",
+        body: JSON.stringify({
+          action: "ADD_ACCOUNT",
+          spreadsheetId: localStorage.getItem("user_sheet_id"),
+          code: code,
+          name: name,
+          cat: cat,
+          nature: nature
+        })
+      });
+    } catch (err) {
+      console.warn("فشل ترحيل الحساب للشيت سحابياً:", err);
+    }
   }
 
   window.onload = function() {

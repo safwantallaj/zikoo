@@ -1211,6 +1211,7 @@
     input.value = '';
   }
 
+  // تحليل الفاتورة مع إظهار رسالة الخطأ الصريحة بدلاً من إخفائها
   async function analyzeInvoiceWithAI(base64Image) {
     const loading = document.getElementById('ocr-loading-overlay');
     loading.style.display = 'flex';
@@ -1218,6 +1219,7 @@
     try {
       const response = await fetch(SCRIPT_URL, {
         method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify({
           action: "ANALYZE_INVOICE_AI",
           imageBase64: base64Image
@@ -1250,7 +1252,7 @@
                 </div>
                 <div>
                   <label style="font-size:11px;">سعر الوحدة</label>
-                  <input type="number" class="inv-item-price" value="${it.price || 100}" min="0" oninput="calculateInvoiceTotals()">
+                  <input type="number" class="inv-item-price" value="${it.price || 10}" min="0" oninput="calculateInvoiceTotals()">
                 </div>
               </div>
             `;
@@ -1261,19 +1263,20 @@
         }
 
         calculateInvoiceTotals();
-        showToast(`تم مسح الفاتورة، يمكنك مراجعة الأصناف والأسعار`);
+        showToast(`تم مسح الفاتورة وتعبئة البيانات بنجاح ✅`);
       } else {
-        throw new Error(res.message || "تعذر التحليل");
+        // إظهار نص الخطأ الحقيقي القادم من السيرفر
+        throw new Error(res.message || "فشل التحليل من المصدر");
       }
     } catch (err) {
-      console.warn("AI Fallback:", err);
-      showToast('تم استلام الفاتورة، يرجى كتابة الأصناف والمبالغ');
+      console.error("AI Error:", err);
+      // تنبيه بالخطأ الفعلي لنعرف أين المشكلة بالمليمتر
+      showToast('خطأ: ' + (err.message || 'فشل الاتصال بالذكاء الاصطناعي'), true);
       addInvoiceItemRow();
     } finally {
       loading.style.display = 'none';
     }
   }
-
   const defaultAccounts = [
     { code: "1111", name: "الصندوق الرئيسي (الخزينة)", cat: "النقدية والبنوك", base: "cash", nature: "مدين" },
     { code: "1113", name: "الحساب البنكي الجاري", cat: "النقدية والبنوك", base: "bank", nature: "مدين" },

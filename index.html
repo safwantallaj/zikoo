@@ -10,6 +10,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
+  <!-- مكتبة التعرف الضوئي OCR لمسح الفواتير -->
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
   <style>
     :root {
       --primary: #2563eb;
@@ -91,16 +94,24 @@
       font-weight: 700;
     }
 
-    .user-pill {
+    .header-actions {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
+    }
+
+    .currency-badge {
+      display: flex;
+      align-items: center;
+      gap: 4px;
       background: var(--primary-light);
-      padding: 6px 12px;
+      padding: 5px 10px;
       border-radius: 20px;
       font-size: 12px;
       color: var(--primary-dark);
-      font-weight: 600;
+      font-weight: 700;
+      cursor: pointer;
+      border: 1px solid #bfdbfe;
     }
 
     main {
@@ -264,6 +275,12 @@
     .btn:active { transform: scale(0.98); }
     .btn-primary { background: var(--primary); color: white; }
     .btn-secondary { background: #334155; color: white; }
+    .btn-scan {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+      margin-bottom: 14px;
+      box-shadow: 0 4px 15px rgba(16, 185, 129, 0.25);
+    }
     .btn-outline {
       background: transparent;
       border: 1px dashed var(--primary);
@@ -360,9 +377,7 @@
       cursor: pointer;
     }
 
-    .btn-inv-tag:active {
-      background: #dbeafe;
-    }
+    .btn-inv-tag:active { background: #dbeafe; }
 
     nav {
       position: fixed;
@@ -395,7 +410,6 @@
     .nav-item i { font-size: 18px; }
     .nav-item.active { color: var(--primary); }
 
-    /* النافذة المنبثقة - محسنة لتظهر فوق كل العناصر دائماً */
     .modal-overlay {
       display: none;
       position: fixed;
@@ -407,9 +421,7 @@
       backdrop-filter: blur(4px);
     }
 
-    .modal-overlay.open {
-      display: flex !important;
-    }
+    .modal-overlay.open { display: flex !important; }
 
     .modal-panel {
       background: white;
@@ -447,6 +459,46 @@
       padding: 6px 8px;
       border-bottom: 1px solid #e2e8f0;
     }
+
+    .currency-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin: 15px 0;
+    }
+
+    .currency-btn {
+      padding: 12px;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      background: white;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: all 0.2s;
+    }
+
+    .currency-btn:hover, .currency-btn.selected {
+      border-color: var(--primary);
+      background: var(--primary-light);
+      color: var(--primary-dark);
+    }
+
+    #ocr-loading-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.8);
+      z-index: 2147483648;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      color: white;
+      text-align: center;
+      padding: 20px;
+    }
   </style>
 </head>
 <body>
@@ -458,9 +510,14 @@
       <div class="brand-icon"><i class="fa-solid fa-calculator"></i></div>
       <div class="brand-title">المحاسب الذكي</div>
     </div>
-    <div class="user-pill">
-      <i class="fa-solid fa-circle-check" style="color: var(--success);"></i>
-      <span>متصل سحابياً</span>
+    <div class="header-actions">
+      <div class="currency-badge" onclick="openCurrencyModal()" title="تغيير العملة">
+        <i class="fa-solid fa-coins"></i>
+        <span id="header-curr-label">ر.س</span>
+      </div>
+      <div class="user-pill" style="padding: 5px 8px;">
+        <i class="fa-solid fa-circle-check" style="color: var(--success);"></i>
+      </div>
     </div>
   </header>
 
@@ -470,17 +527,17 @@
     <div id="tab-home" class="tab-content active">
       <div class="hero-balance">
         <div class="hero-title">السيولة النقدية المتاحة (خزائن وبنوك)</div>
-        <div class="hero-value"><span id="dash-cash">0.00</span> <span style="font-size: 15px; font-weight: normal;">ر.س</span></div>
+        <div class="hero-value"><span id="dash-cash">0.00</span> <span class="curr-symbol" style="font-size: 15px; font-weight: normal;">ر.س</span></div>
       </div>
 
       <div class="stat-row">
         <div class="stat-card">
           <div class="stat-label"><i class="fa-solid fa-users" style="color: var(--primary);"></i> ديون عند العملاء</div>
-          <div class="stat-val" id="dash-customers" style="color: var(--primary);">0.00</div>
+          <div class="stat-val" style="color: var(--primary);"><span id="dash-customers">0.00</span> <span class="curr-symbol" style="font-size:12px;">ر.س</span></div>
         </div>
         <div class="stat-card">
           <div class="stat-label"><i class="fa-solid fa-truck" style="color: var(--danger);"></i> ديون للموردين</div>
-          <div class="stat-val" id="dash-vendors" style="color: var(--danger);">0.00</div>
+          <div class="stat-val" style="color: var(--danger);"><span id="dash-vendors">0.00</span> <span class="curr-symbol" style="font-size:12px;">ر.س</span></div>
         </div>
       </div>
 
@@ -498,9 +555,17 @@
       </button>
     </div>
 
-    <!-- Tab 2: Smart Invoices (الفواتير والمستودع) -->
+    <!-- Tab 2: Smart Invoices (مع كاميرا الـ OCR) -->
     <div id="tab-invoice" class="tab-content">
-      <h3 style="margin-bottom: 14px; font-size: 18px;">إصدار فاتورة ذكية</h3>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <h3 style="font-size: 18px;">إصدار فاتورة ذكية</h3>
+      </div>
+
+      <!-- زر الكاميرا لمسح الفاتورة الورقية -->
+      <button class="btn btn-scan" onclick="triggerCameraScan()">
+        <i class="fa-solid fa-camera"></i> مسح الفاتورة بالكاميرا (Smart Scanner)
+      </button>
+      <input type="file" id="camera-file-input" accept="image/*" capture="environment" style="display: none;" onchange="handleScannedInvoice(this)">
 
       <div class="invoice-card">
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
@@ -561,15 +626,15 @@
       <div class="invoice-summary-box">
         <div class="summary-row">
           <span>المجموع قبل الضريبة:</span>
-          <span id="inv-sum-subtotal">0.00 ر.س</span>
+          <span><span id="inv-sum-subtotal">0.00</span> <span class="curr-symbol">ر.س</span></span>
         </div>
         <div class="summary-row">
           <span>قيمة الضريبة:</span>
-          <span id="inv-sum-tax">0.00 ر.س</span>
+          <span><span id="inv-sum-tax">0.00</span> <span class="curr-symbol">ر.س</span></span>
         </div>
         <div class="summary-row total">
           <span>الصافي الإجمالي:</span>
-          <span id="inv-sum-grand">0.00 ر.س</span>
+          <span><span id="inv-sum-grand">0.00</span> <span class="curr-symbol">ر.س</span></span>
         </div>
       </div>
 
@@ -640,7 +705,7 @@
       </div>
       <div style="background: var(--bg); padding: 10px 14px; border-radius: 8px; margin-bottom: 10px; font-size: 13px; display: flex; justify-content: space-between;">
         <span id="active-acc-label">الحساب: -</span>
-        <span>الرصيد: <strong id="final-balance" style="color: var(--primary);">0.00</strong></span>
+        <span>الرصيد: <strong id="final-balance" style="color: var(--primary);">0.00</strong> <span class="curr-symbol">ر.س</span></span>
       </div>
       <table class="statement-table">
         <thead>
@@ -679,7 +744,37 @@
 
 </div>
 
-<!-- نافذة إضافة حساب جديد -->
+<!-- Modal 1: نافذة اختيار العملة للمستخدم الجديد -->
+<div class="modal-overlay" id="modal-currency-setup">
+  <div class="modal-panel">
+    <div style="text-align: center; margin-bottom: 14px;">
+      <div style="width: 50px; height: 50px; background: var(--primary-light); color: var(--primary); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 8px;">
+        <i class="fa-solid fa-coins"></i>
+      </div>
+      <h3 style="font-size: 18px; font-weight: 800;">تحديد العملة الرئيسية</h3>
+      <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">اختر عملة التعامل المحاسبي المعتمدة لنشاطك التجاري</p>
+    </div>
+
+    <div class="currency-grid">
+      <button type="button" class="currency-btn" onclick="selectCurrency('ر.س', 'ريال سعودي')"><span>🇸🇦 ريال سعودي</span> <strong>ر.س</strong></button>
+      <button type="button" class="currency-btn" onclick="selectCurrency('ج.م', 'جنيه مصري')"><span>🇪🇬 جنيه مصري</span> <strong>ج.م</strong></button>
+      <button type="button" class="currency-btn" onclick="selectCurrency('ل.س', 'ليرة سورية')"><span>🇸🇾 ليرة سورية</span> <strong>ل.س</strong></button>
+      <button type="button" class="currency-btn" onclick="selectCurrency('د.إ', 'درهم إماراتي')"><span>🇦🇪 درهم إماراتي</span> <strong>د.إ</strong></button>
+      <button type="button" class="currency-btn" onclick="selectCurrency('$', 'دولار أمريكي')"><span>🇺🇸 دولار أمريكي</span> <strong>$</strong></button>
+      <button type="button" class="currency-btn" onclick="selectCurrency('د.أ', 'دينار أردني')"><span>🇯🇴 دينار أردني</span> <strong>د.أ</strong></button>
+    </div>
+
+    <div class="form-group" style="margin-top: 10px;">
+      <label style="font-size: 12px;">أو كتابة رمز عملة أخرى مخصصة:</label>
+      <div style="display: flex; gap: 8px;">
+        <input type="text" id="custom-currency-input" placeholder="مثال: د.ك، يورو...">
+        <button class="btn btn-secondary" style="width: auto; padding: 0 16px;" onclick="applyCustomCurrency()">تطبيق</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal 2: إضافة حساب جديد -->
 <div class="modal-overlay" id="modal-add-account">
   <div class="modal-panel">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
@@ -704,7 +799,7 @@
   </div>
 </div>
 
-<!-- نافذة عرض الفاتورة المنبثقة التفصيلية المحدثة بالكامل -->
+<!-- Modal 3: عرض الفاتورة الرقمية -->
 <div class="modal-overlay" id="modal-view-invoice">
   <div class="modal-panel">
     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 10px;">
@@ -723,6 +818,13 @@
       </button>
     </div>
   </div>
+</div>
+
+<!-- شاشة معالجة الكاميرا والـ OCR -->
+<div id="ocr-loading-overlay">
+  <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 40px; margin-bottom: 16px; color: #38bdf8;"></i>
+  <h3 style="font-size: 18px; margin-bottom: 6px;">جارٍ مسح وقراءة الفاتورة الذكية...</h3>
+  <p id="ocr-progress-text" style="font-size: 13px; color: #94a3b8;">معالجة النصوص والمبالغ عبر الذكاء الاصطناعي</p>
 </div>
 
 <script>
@@ -744,6 +846,33 @@
       toast.style.opacity = "0";
       toast.style.transform = "translateX(-50%) translateY(10px)";
     }, 3200);
+  }
+
+  // إدارة العملة الرئيسية
+  let currentCurrency = localStorage.getItem('smart_currency') || 'ر.س';
+
+  function applyCurrency(symbol) {
+    currentCurrency = symbol;
+    localStorage.setItem('smart_currency', symbol);
+    document.getElementById('header-curr-label').innerText = symbol;
+    document.querySelectorAll('.curr-symbol').forEach(el => el.innerText = symbol);
+  }
+
+  function openCurrencyModal() {
+    document.getElementById('modal-currency-setup').classList.add('open');
+  }
+
+  function selectCurrency(symbol, name) {
+    applyCurrency(symbol);
+    document.getElementById('modal-currency-setup').classList.remove('open');
+    showToast(`تم اعتماد ${name} (${symbol}) كعملة رئيسية`);
+  }
+
+  function applyCustomCurrency() {
+    const val = document.getElementById('custom-currency-input').value.trim();
+    if (val) {
+      selectCurrency(val, val);
+    }
   }
 
   const defaultAccounts = [
@@ -808,6 +937,83 @@
     }
   }
 
+  // كاميرا مسح الفاتورة والـ OCR
+  function triggerCameraScan() {
+    document.getElementById('camera-file-input').click();
+  }
+
+  async function handleScannedInvoice(input) {
+    if (!input.files || !input.files[0]) return;
+    const file = input.files[0];
+    const loading = document.getElementById('ocr-loading-overlay');
+    const progText = document.getElementById('ocr-progress-text');
+    loading.style.display = 'flex';
+
+    try {
+      progText.innerText = 'جارٍ معالجة الصورة ضوئياً...';
+      const result = await Tesseract.recognize(file, 'ara+eng', {
+        logger: m => {
+          if (m.status === 'recognizing text') {
+            progText.innerText = `جارٍ قراءة النصوص: ${Math.round(m.progress * 100)}%`;
+          }
+        }
+      });
+
+      const text = result.data.text;
+      console.log("OCR Result:", text);
+
+      // استخراج الأرقام والمبالغ
+      const numbers = text.match(/\d+(\.\d{1,2})?/g);
+      let detectedAmount = 0;
+      if (numbers && numbers.length > 0) {
+        const floatNums = numbers.map(Number).filter(n => n > 0 && n < 1000000);
+        if (floatNums.length > 0) {
+          detectedAmount = Math.max(...floatNums); // أقصى رقم عادة هو الإجمالي النهائي
+        }
+      }
+
+      // استخراج التاريخ
+      const dateMatch = text.match(/\d{4}[-/.]\d{1,2}[-/.]\d{1,2}/);
+      if (dateMatch) {
+        const parsedDate = dateMatch[0].replace(/[/.]/g, '-');
+        document.getElementById('inv-date').value = parsedDate;
+      }
+
+      // تعبئة البيانات في صف الفاتورة
+      const list = document.getElementById('invoice-items-list');
+      list.innerHTML = '';
+      const div = document.createElement('div');
+      div.className = 'inv-item-row';
+      div.innerHTML = `
+        <button class="btn-remove-row" onclick="this.parentElement.remove(); calculateInvoiceTotals();">×</button>
+        <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 8px;">
+          <div>
+            <label style="font-size:11px;">اسم الصنف (ممسوح)</label>
+            <input type="text" class="inv-item-name" value="مشتريات فاتورة ممسوحة">
+          </div>
+          <div>
+            <label style="font-size:11px;">الكمية</label>
+            <input type="number" class="inv-item-qty" value="1" min="1" oninput="calculateInvoiceTotals()">
+          </div>
+          <div>
+            <label style="font-size:11px;">السعر الإجمالي</label>
+            <input type="number" class="inv-item-price" value="${detectedAmount || 100}" min="0" oninput="calculateInvoiceTotals()">
+          </div>
+        </div>
+      `;
+      list.appendChild(div);
+      calculateInvoiceTotals();
+
+      showToast(`تم مسح الفاتورة بنجاح: المبلغ المقروء ${detectedAmount || 0} ${currentCurrency}`);
+    } catch (err) {
+      console.error(err);
+      showToast('تعذر قراءة الفاتورة تلقائياً، يمكنك إدخالها يدوياً', true);
+    } finally {
+      loading.style.display = 'none';
+      input.value = '';
+    }
+  }
+
   function addInvoiceItemRow() {
     const container = document.getElementById('invoice-items-list');
     const div = document.createElement('div');
@@ -846,9 +1052,9 @@
     const taxAmount = subtotal * (taxRate / 100);
     const grandTotal = subtotal + taxAmount;
 
-    document.getElementById('inv-sum-subtotal').innerText = subtotal.toFixed(2) + ' ر.س';
-    document.getElementById('inv-sum-tax').innerText = taxAmount.toFixed(2) + ' ر.س';
-    document.getElementById('inv-sum-grand').innerText = grandTotal.toFixed(2) + ' ر.س';
+    document.getElementById('inv-sum-subtotal').innerText = subtotal.toFixed(2);
+    document.getElementById('inv-sum-tax').innerText = taxAmount.toFixed(2);
+    document.getElementById('inv-sum-grand').innerText = grandTotal.toFixed(2);
   }
 
   async function submitInvoiceAction() {
@@ -893,6 +1099,7 @@
       subtotal: subtotal,
       taxAmount: taxAmount,
       grandTotal: grandTotal,
+      currency: currentCurrency,
       items: items
     };
     smartInvoices.push(fullInvoice);
@@ -927,7 +1134,7 @@
       items: items
     };
 
-    showToast('تم ترحيل الفاتورة وتحديث كشف الحساب بنجاح');
+    showToast('تم حفظ الفاتورة وتحديث كشف الحساب بنجاح');
     document.getElementById('invoice-items-list').innerHTML = '';
     addInvoiceItemRow();
 
@@ -947,11 +1154,9 @@
     }
   }
 
-  // الدالة العالمية لعرض الفاتورة
   window.openInvoicePopup = function(invId, entryIndex) {
     let inv = smartInvoices.find(x => x.id === invId);
 
-    // إذا لم تكن الفاتورة مخزنة في smartInvoices (سجلت سابقاً)، ننشئ تفاصيلها من القيد
     if (!inv && entryIndex !== undefined && ledgerEntries[entryIndex]) {
       const e = ledgerEntries[entryIndex];
       const acc = chartOfAccounts.find(a => a.code === e.accountCode) || { name: 'حساب مسجل' };
@@ -967,6 +1172,7 @@
         subtotal: amount,
         taxAmount: 0,
         grandTotal: amount,
+        currency: currentCurrency,
         items: [{ itemName: e.desc, qty: 1, unitPrice: amount }]
       };
     }
@@ -976,6 +1182,7 @@
       return;
     }
 
+    const curr = inv.currency || currentCurrency;
     let itemsRows = '';
     inv.items.forEach((it, idx) => {
       itemsRows += `
@@ -998,7 +1205,7 @@
           </div>
           <div style="text-align:left;">
             <div style="font-size:12px; font-weight:700;">التاريخ: ${inv.date}</div>
-            <div style="font-size:11px; color:var(--primary); font-weight:700;">${inv.payMethod === 'credit' ? 'الدفع: آجل (على الحساب)' : 'الدفع: نقداً'}</div>
+            <div style="font-size:11px; color:var(--primary); font-weight:700;">${inv.payMethod === 'credit' ? 'الدفع: آجل' : 'الدفع: نقداً'}</div>
           </div>
         </div>
 
@@ -1024,15 +1231,15 @@
         <div style="border-top:1px dashed #cbd5e1; padding-top:8px; font-size:13px;">
           <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
             <span>المجموع قبل الضريبة:</span>
-            <span>${Number(inv.subtotal).toFixed(2)} ر.س</span>
+            <span>${Number(inv.subtotal).toFixed(2)} ${curr}</span>
           </div>
           <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
             <span>ضريبة القيمة المضافة:</span>
-            <span>${Number(inv.taxAmount || 0).toFixed(2)} ر.س</span>
+            <span>${Number(inv.taxAmount || 0).toFixed(2)} ${curr}</span>
           </div>
           <div style="display:flex; justify-content:space-between; font-size:15px; font-weight:800; color:var(--primary); border-top:1px solid #cbd5e1; padding-top:6px; margin-top:6px;">
             <span>الصافي الإجمالي:</span>
-            <span>${Number(inv.grandTotal).toFixed(2)} ر.س</span>
+            <span>${Number(inv.grandTotal).toFixed(2)} ${curr}</span>
           </div>
         </div>
       </div>
@@ -1206,6 +1413,13 @@
     if (document.getElementById('entry-date')) document.getElementById('entry-date').value = today;
     if (document.getElementById('inv-date')) document.getElementById('inv-date').value = today;
     if (document.getElementById('date-to')) document.getElementById('date-to').value = today;
+
+    // فحص العملة للمستخدم الجديد
+    if (!localStorage.getItem('smart_currency')) {
+      openCurrencyModal();
+    } else {
+      applyCurrency(localStorage.getItem('smart_currency'));
+    }
 
     populateAccountSelects();
     addInvoiceItemRow();

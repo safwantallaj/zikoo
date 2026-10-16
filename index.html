@@ -485,7 +485,7 @@
       color: var(--primary-dark);
     }
 
-    /* واجهة الكاميرا الحية المباشرة Live Camera */
+    /* واجهة الكاميرا الحية المباشرة */
     #live-camera-modal {
       display: none;
       position: fixed;
@@ -637,13 +637,13 @@
       </button>
     </div>
 
-    <!-- Tab 2: Smart Invoices (مع تشغيل الكاميرا الحية المباشرة) -->
+    <!-- Tab 2: Smart Invoices -->
     <div id="tab-invoice" class="tab-content">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
         <h3 style="font-size: 18px;">إصدار فاتورة ذكية</h3>
       </div>
 
-      <!-- زر الكاميرا الحية بالذكاء الاصطناعي -->
+      <!-- زر الكاميرا ومسح الفاتورة الذكي -->
       <button class="btn btn-scan" onclick="startLiveCamera()">
         <i class="fa-solid fa-camera"></i> تشغيل الكاميرا ومسح الفاتورة الذكي (AI Vision)
       </button>
@@ -825,16 +825,19 @@
 
 </div>
 
-<!-- نافذة الكاميرا الحية المباشرة Live Camera Modal -->
+<!-- نافذة الكاميرا الحية المباشرة -->
 <div id="live-camera-modal">
-  <video id="camera-video-stream" autoplay playsinline></video>
+  <video id="camera-video-stream" autoplay playsinline webkit-playsinline muted></video>
   <div class="camera-overlay-frame">
     <span>ضع الفاتورة داخل الإطار</span>
   </div>
   <div class="camera-controls">
     <button class="btn-camera-close" onclick="stopLiveCamera()"><i class="fa-solid fa-xmark"></i></button>
     <button class="btn-capture-shutter" onclick="captureLiveInvoice()"></button>
-    <div style="width: 44px;"></div>
+    <label class="btn-camera-close" style="cursor: pointer;" title="كاميرا النظام">
+      <i class="fa-solid fa-images"></i>
+      <input type="file" accept="image/*" capture="environment" style="display: none;" onchange="handleSystemPhoto(this)">
+    </label>
   </div>
 </div>
 
@@ -971,25 +974,44 @@
 
   let videoStream = null;
 
-  // تشغيل الكاميرا الحية المباشرة
+  // تشغيل الكاميرا الحية المباشرة مع فك حظر التشغيل التلقائي
   async function startLiveCamera() {
     const modal = document.getElementById('live-camera-modal');
     const video = document.getElementById('camera-video-stream');
 
     try {
+      if (videoStream) {
+        stopLiveCamera();
+      }
+
       videoStream = await navigator.mediaDevices.getUserMedia({
         video: {
           facingMode: { ideal: "environment" },
-          width: { ideal: 1920 },
-          height: { ideal: 1080 }
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
         },
         audio: false
       });
+
       video.srcObject = videoStream;
+      video.muted = true;
       modal.style.display = 'flex';
+
+      // تشغيل الفيديو برمجياً لتجاوز حظر WebView
+      await video.play().catch(e => {
+        console.warn("Autoplay retry on user action:", e);
+      });
+
     } catch (err) {
       console.error(err);
-      showToast('تعذر تشغيل الكاميرا مباشرة، يرجى منح الإذن للتطبيق', true);
+      showToast('تعذر فتح بث الكاميرا، سيتم فتح كاميرا النظام بدلاً منها', true);
+      // خيار احتياطي يفتح كاميرا النظام فوراً
+      const fallbackInput = document.createElement('input');
+      fallbackInput.type = 'file';
+      fallbackInput.accept = 'image/*';
+      fallbackInput.capture = 'environment';
+      fallbackInput.onchange = (e) => handleSystemPhoto(fallbackInput);
+      fallbackInput.click();
     }
   }
 
@@ -1014,6 +1036,21 @@
 
     const base64Data = canvas.toDataURL('image/jpeg', 0.85).split(',')[1];
     analyzeInvoiceWithAI(base64Data);
+  }
+
+  // معالجة الصورة في حال استخدام كاميرا النظام أو الأستوديو
+  function handleSystemPhoto(input) {
+    if (!input.files || !input.files[0]) return;
+    const file = input.files[0];
+    stopLiveCamera();
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const base64Data = e.target.result.split(',')[1];
+      analyzeInvoiceWithAI(base64Data);
+    };
+    reader.readAsDataURL(file);
+    input.value = '';
   }
 
   // تحليل الفاتورة عبر الذكاء الاصطناعي
@@ -1067,7 +1104,7 @@
         }
 
         calculateInvoiceTotals();
-        showToast(`تم تحليل الفاتورة بالذكاء الاصطناعي بدقة 100%`);
+        showToast(`تم تحليل الفاتورة بالذكاء الاصطناعي بدقة`);
       } else {
         throw new Error(res.message || "تعذر التحليل");
       }

@@ -389,8 +389,8 @@
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(15, 23, 42, 0.55);
-      z-index: 100;
+      background: rgba(15, 23, 42, 0.65);
+      z-index: 99999;
       align-items: flex-end;
       justify-content: center;
       backdrop-filter: blur(4px);
@@ -413,7 +413,6 @@
       to { transform: translateY(0); }
     }
 
-    /* كرت الفاتورة المنبثقة التفصيلية */
     .digital-invoice {
       border: 1px solid var(--border);
       border-radius: 12px;
@@ -701,7 +700,7 @@
   </div>
 </div>
 
-<!-- Modal 2: عرض الفاتورة الرقمية التفصيلية بضغطة زر -->
+<!-- Modal 2: عرض الفاتورة الرقمية التفصيلية -->
 <div class="modal" id="modal-view-invoice">
   <div class="modal-content">
     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 10px;">
@@ -709,9 +708,7 @@
       <button style="border:none; background:none; font-size:22px; cursor:pointer;" onclick="closeViewInvoiceModal()">×</button>
     </div>
 
-    <div id="digital-invoice-body">
-      <!-- محتوى الفاتورة يُبنى ديناميكياً هنا -->
-    </div>
+    <div id="digital-invoice-body"></div>
 
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px;">
       <button class="btn btn-primary" onclick="window.print()">
@@ -850,7 +847,6 @@
     document.getElementById('inv-sum-grand').innerText = grandTotal.toFixed(2) + ' ر.س';
   }
 
-  // ترحيل الفاتورة وحفظها مع معرّفها التفصيلي
   async function submitInvoiceAction() {
     const items = [];
     document.querySelectorAll('.inv-item-row').forEach(row => {
@@ -875,7 +871,6 @@
     const taxRate = parseFloat(document.getElementById('inv-tax-mode').value) || 0;
     const date = document.getElementById('inv-date').value || new Date().toISOString().split('T')[0];
 
-    // توليد رقم فاتورة محلي موحد
     const invId = "INV-" + (type === 'sales' ? 'SAL-' : 'PUR-') + Math.floor(100 + Math.random() * 900);
 
     let subtotal = 0;
@@ -883,7 +878,6 @@
     const taxAmount = subtotal * (taxRate / 100);
     const grandTotal = subtotal + taxAmount;
 
-    // 1. تخزين كائن الفاتورة بكامل بنوده
     const fullInvoice = {
       id: invId,
       date: date,
@@ -899,7 +893,6 @@
     };
     smartInvoices.push(fullInvoice);
 
-    // 2. تسجيل أطراف القيد وربطه بمعرّف الفاتورة (invoiceId)
     const memo = (type === 'sales' ? 'فاتورة مبيعات ' : 'فاتورة مشتريات ') + (payMethod === 'credit' ? '(آجل)' : '(نقدي)') + ' #' + invId;
     if (type === 'sales') {
       ledgerEntries.push({ date, accountCode: partyCode, desc: memo, debit: grandTotal, credit: 0, invoiceId: invId });
@@ -917,7 +910,6 @@
 
     persistData();
 
-    // 3. المزامنة السحابية
     const payload = {
       action: "CREATE_INVOICE",
       spreadsheetId: localStorage.getItem("user_sheet_id"),
@@ -944,7 +936,6 @@
       console.warn("المزامنة السحابية قيد المعالجة:", e);
     }
 
-    // الانتقال المباشر لكشف حساب العميل أو المورد
     const stmtSel = document.getElementById('statement-account-selector');
     if (stmtSel) {
       stmtSel.value = partyCode;
@@ -952,10 +943,30 @@
     }
   }
 
-  // عرض تفاصيل الفاتورة عند النقر
-  function openInvoiceDetails(invoiceId) {
-    const inv = smartInvoices.find(x => x.id === invoiceId);
+  // دالة عرض تفاصيل الفاتورة المحصنة
+  window.openInvoiceDetails = function(invId, entryIndex) {
+    let inv = smartInvoices.find(x => x.id === invId);
     const container = document.getElementById('digital-invoice-body');
+
+    // دعم احتياطي إذا كانت الفاتورة مسجلة قبل هذا التحديث أو تم مسح ذاكرة smart_invoices
+    if (!inv && entryIndex !== undefined && ledgerEntries[entryIndex]) {
+      const e = ledgerEntries[entryIndex];
+      const acc = chartOfAccounts.find(a => a.code === e.accountCode) || { name: 'حساب مسجل' };
+      inv = {
+        id: invId || "INV-GEN",
+        date: e.date,
+        type: e.desc.includes('مبيعات') ? 'sales' : 'purchase',
+        partyCode: e.accountCode,
+        partyName: acc.name,
+        payMethod: e.desc.includes('آجل') ? 'credit' : 'cash',
+        taxRate: 15,
+        subtotal: (e.debit || e.credit || 0),
+        taxAmount: 0,
+        grandTotal: (e.debit || e.credit || 0),
+        items: [{ itemName: e.desc, qty: 1, unitPrice: (e.debit || e.credit || 0) }]
+      };
+    }
+
     if (!inv) {
       showToast('لا توجد تفاصيل إضافية لهذا السطر');
       return;
@@ -968,7 +979,7 @@
           <td>${idx + 1}</td>
           <td><strong>${it.itemName}</strong></td>
           <td style="text-align:center;">${it.qty}</td>
-          <td style="text-align:left;">${it.unitPrice.toFixed(2)}</td>
+          <td style="text-align:left;">${Number(it.unitPrice).toFixed(2)}</td>
           <td style="text-align:left; font-weight:700;">${(it.qty * it.unitPrice).toFixed(2)}</td>
         </tr>
       `;
@@ -1009,26 +1020,26 @@
         <div style="border-top:1px dashed #cbd5e1; padding-top:8px; font-size:13px;">
           <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
             <span>المجموع قبل الضريبة:</span>
-            <span>${inv.subtotal.toFixed(2)} ر.س</span>
+            <span>${Number(inv.subtotal).toFixed(2)} ر.س</span>
           </div>
           <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
-            <span>ضريبة القيمة المضافة (${inv.taxRate}%):</span>
-            <span>${inv.taxAmount.toFixed(2)} ر.س</span>
+            <span>ضريبة القيمة المضافة:</span>
+            <span>${Number(inv.taxAmount || 0).toFixed(2)} ر.س</span>
           </div>
           <div style="display:flex; justify-content:space-between; font-size:15px; font-weight:800; color:var(--primary); border-top:1px solid #cbd5e1; padding-top:6px; margin-top:6px;">
             <span>الصافي الإجمالي المستحق:</span>
-            <span>${inv.grandTotal.toFixed(2)} ر.س</span>
+            <span>${Number(inv.grandTotal).toFixed(2)} ر.س</span>
           </div>
         </div>
       </div>
     `;
 
     document.getElementById('modal-view-invoice').classList.add('open');
-  }
+  };
 
-  function closeViewInvoiceModal() {
+  window.closeViewInvoiceModal = function() {
     document.getElementById('modal-view-invoice').classList.remove('open');
-  }
+  };
 
   function loadStatementData() {
     const sel = document.getElementById('statement-account-selector');
@@ -1042,8 +1053,11 @@
     const tbody = document.getElementById('statement-rows');
     tbody.innerHTML = '';
 
-    const filtered = ledgerEntries.filter(e => {
-      return String(e.accountCode) === String(code) && (!dateFrom || e.date >= dateFrom) && (!dateTo || e.date <= dateTo);
+    const filtered = [];
+    ledgerEntries.forEach((e, idx) => {
+      if (String(e.accountCode) === String(code) && (!dateFrom || e.date >= dateFrom) && (!dateTo || e.date <= dateTo)) {
+        filtered.push({ entry: e, index: idx });
+      }
     });
 
     if (filtered.length === 0) {
@@ -1053,21 +1067,28 @@
     }
 
     let bal = 0;
-    filtered.forEach(item => {
+    filtered.forEach(obj => {
+      const item = obj.entry;
+      const originalIdx = obj.index;
       bal += acc.nature === "مدين" ? (item.debit - item.credit) : (item.credit - item.debit);
-      const isInvoice = !!item.invoiceId;
+      
+      const isInvoice = !!item.invoiceId || (item.desc && item.desc.includes('فاتورة'));
+      const invoiceIdVal = item.invoiceId || (item.desc && item.desc.includes('#') ? item.desc.split('#')[1].trim() : 'INV-OLD');
+      
       const tr = document.createElement('tr');
       if (isInvoice) {
         tr.className = 'clickable-row';
         tr.title = 'اضغط لعرض تفاصيل الفاتورة';
-        tr.onclick = () => openInvoiceDetails(item.invoiceId);
+        tr.addEventListener('click', function() {
+          openInvoiceDetails(invoiceIdVal, originalIdx);
+        });
       }
 
       tr.innerHTML = `
         <td>${item.date.substring(5)}</td>
         <td>
           ${item.desc}
-          ${isInvoice ? `<span style="font-size:11px; color:var(--primary); display:block;"><i class="fa-solid fa-arrow-up-right-from-square"></i> عرض الفاتورة</span>` : ''}
+          ${isInvoice ? `<span style="font-size:11px; color:var(--primary); font-weight:700; display:block; margin-top:2px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> عرض الفاتورة</span>` : ''}
         </td>
         <td style="${item.debit > 0 ? 'color: var(--success); font-weight:700;' : ''}">${item.debit > 0 ? item.debit.toLocaleString() : '-'}</td>
         <td style="${item.credit > 0 ? 'color: var(--danger); font-weight:700;' : ''}">${item.credit > 0 ? item.credit.toLocaleString() : '-'}</td>

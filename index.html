@@ -20,6 +20,7 @@
       --danger: #ef4444;
       --danger-light: #fef2f2;
       --warning: #f59e0b;
+      --warning-light: #fffbeb;
       --bg: #f8fafc;
       --card: #ffffff;
       --text: #0f172a;
@@ -55,8 +56,27 @@
       box-shadow: 0 0 40px rgba(0,0,0,0.06);
     }
 
+    /* شريط حالة الترخيص العلوي */
+    #license-banner {
+      background: var(--warning-light);
+      border-bottom: 1px solid #fde68a;
+      padding: 6px 14px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #b45309;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    #license-banner.pro {
+      background: var(--success-light);
+      border-bottom: 1px solid #a7f3d0;
+      color: #065f46;
+    }
+
     header {
-      padding: 16px 20px;
+      padding: 14px 20px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -458,6 +478,24 @@
       box-shadow: 0 -10px 40px rgba(0,0,0,0.2);
     }
 
+    /* شاشة الترحيب والتفعيل الشاملة */
+    #modal-onboarding {
+      align-items: center;
+      padding: 20px;
+      background: rgba(15, 23, 42, 0.95);
+    }
+
+    #modal-onboarding .modal-panel {
+      border-radius: 24px;
+      max-height: 90vh;
+      animation: zoomIn 0.3s ease;
+    }
+
+    @keyframes zoomIn {
+      from { transform: scale(0.92); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
     .digital-invoice {
       border: 1px solid var(--border);
       border-radius: 12px;
@@ -608,6 +646,15 @@
 <body>
 
 <div class="app-container">
+
+  <!-- شريط الترخيص المباشر -->
+  <div id="license-banner">
+    <div>
+      <i class="fa-solid fa-clock-rotate-left"></i>
+      <span id="banner-license-text">جاري فحص حالة الترخيص...</span>
+    </div>
+    <span id="banner-upgrade-btn" style="text-decoration: underline; cursor: pointer;" onclick="openOnboardingModal(true)">ترقية الكود</span>
+  </div>
   
   <header>
     <div class="brand">
@@ -827,21 +874,22 @@
     <div id="tab-settings" class="tab-content">
       <h3 style="margin-bottom: 14px; font-size: 18px;"><i class="fa-solid fa-sliders" style="color: var(--primary);"></i> إعدادات النظام وفريق العمل</h3>
 
-      <!-- بطاقة صاحب النسخة والحساب السحابي -->
+      <!-- بطاقة الترخيص والحساب المستقل -->
       <div class="settings-card">
-        <div style="font-weight: 700; font-size: 14px; margin-bottom: 10px; color: var(--primary); display: flex; align-items: center; gap: 6px;">
-          <i class="fa-solid fa-user-shield"></i> بيانات مالك النسخة والربط
+        <div style="font-weight: 700; font-size: 14px; margin-bottom: 10px; color: var(--primary); display: flex; align-items: center; justify-content: space-between;">
+          <span><i class="fa-solid fa-key"></i> بيانات الترخيص والشيت المستقل</span>
+          <span id="settings-license-tag" class="role-badge admin">نشط</span>
         </div>
         <div class="form-group">
-          <label>البريد الإلكتروني للمالك / المشتري</label>
-          <input type="email" id="set-owner-email" placeholder="owner@gmail.com">
+          <label>البريد الإلكتروني المرتبط</label>
+          <input type="email" id="set-owner-email" readonly style="background:#f1f5f9;">
         </div>
         <div class="form-group">
-          <label>معرّف دفتر الحسابات (Google Sheet ID)</label>
-          <input type="text" id="set-sheet-id" placeholder="معرّف الشيت المربوط...">
+          <label>معرّف الشيت المستقل (Google Sheet ID)</label>
+          <input type="text" id="set-sheet-id" readonly style="background:#f1f5f9;">
         </div>
-        <button class="btn btn-secondary" style="padding: 9px;" onclick="saveOwnerSettings()">
-          <i class="fa-solid fa-floppy-disk"></i> حفظ بيانات الربط
+        <button class="btn btn-outline" style="border-style: solid; padding: 9px;" onclick="openOnboardingModal(true)">
+          <i class="fa-solid fa-arrows-rotate"></i> ترقية أو تغيير كود التفعيل
         </button>
       </div>
 
@@ -886,7 +934,7 @@
           <i class="fa-solid fa-coins"></i> تغيير العملة الرئيسية المعتمدة (<span class="curr-symbol">ر.س</span>)
         </button>
         <button class="btn btn-outline" style="border-style: solid; color: var(--danger); border-color: var(--danger);" onclick="resetLocalDataConfirm()">
-          <i class="fa-solid fa-trash-can"></i> إعادة تهيئة البيانات المحلية للتطبيق
+          <i class="fa-solid fa-trash-can"></i> إعادة تهيئة الحساب ومسح البيانات من الهاتف
         </button>
       </div>
 
@@ -920,6 +968,38 @@
 
 </div>
 
+<!-- نافذة الترحيب وتفعيل الترخيص (Welcome & Onboarding Modal) -->
+<div class="modal-overlay" id="modal-onboarding">
+  <div class="modal-panel" style="text-align: center;">
+    <div style="width: 58px; height: 58px; background: linear-gradient(135deg, var(--primary), #38bdf8); color: white; border-radius: 16px; display: inline-flex; align-items: center; justify-content: center; font-size: 26px; margin-bottom: 12px; box-shadow: 0 8px 20px rgba(37,99,235,0.3);">
+      <i class="fa-solid fa-shield-halved"></i>
+    </div>
+    <h3 style="font-size: 20px; font-weight: 800; margin-bottom: 4px;">مرحباً بك في المحاسب الذكي</h3>
+    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 18px;">
+      لتجهيز مساحة عملك المحاسبية المستقلة على Google Drive، يرجى إدخال بريدك وكود الترخيص المخصص لك.
+    </p>
+
+    <div class="form-group" style="text-align: right;">
+      <label style="font-size: 12px;"><i class="fa-solid fa-envelope" style="color: var(--primary);"></i> بريدك الإلكتروني (Gmail)</label>
+      <input type="email" id="onboard-email" placeholder="name@gmail.com">
+      <span style="font-size: 10px; color: #94a3b8;">سيتم استنساخ الشيت ومشاركته مع هذا البريد فوراً.</span>
+    </div>
+
+    <div class="form-group" style="text-align: right;">
+      <label style="font-size: 12px;"><i class="fa-solid fa-key" style="color: var(--warning);"></i> كود التفعيل (License Key)</label>
+      <input type="text" id="onboard-key" placeholder="مثال: TRIAL-2026 أو PRO-2026" style="text-transform: uppercase; font-weight: 700; letter-spacing: 1px;">
+    </div>
+
+    <button class="btn btn-primary" id="btn-activate-license" style="padding: 14px; font-size: 15px;" onclick="submitLicenseActivation()">
+      <i class="fa-solid fa-rocket"></i> تفعيل مساحة العمل السحابية
+    </button>
+
+    <div style="margin-top: 14px; font-size: 11px; color: #94a3b8; display: flex; align-items: center; justify-content: center; gap: 6px;">
+      <i class="fa-solid fa-lock" style="color: var(--success);"></i> بياناتك المحاسبية مشفرة ومحفوظة بالكامل في Drive الخاص بك
+    </div>
+  </div>
+</div>
+
 <!-- نافذة الكاميرا الحية المباشرة -->
 <div id="live-camera-modal">
   <video id="camera-video-stream" autoplay playsinline webkit-playsinline muted></video>
@@ -936,7 +1016,7 @@
   </div>
 </div>
 
-<!-- Modal 1: نافذة اختيار العملة -->
+<!-- Modal: نافذة اختيار العملة -->
 <div class="modal-overlay" id="modal-currency-setup">
   <div class="modal-panel">
     <div style="text-align: center; margin-bottom: 14px;">
@@ -966,7 +1046,7 @@
   </div>
 </div>
 
-<!-- Modal 2: إضافة حساب جديد -->
+<!-- Modal: إضافة حساب جديد -->
 <div class="modal-overlay" id="modal-add-account">
   <div class="modal-panel">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
@@ -991,7 +1071,7 @@
   </div>
 </div>
 
-<!-- Modal 3: عرض الفاتورة الرقمية -->
+<!-- Modal: عرض الفاتورة الرقمية -->
 <div class="modal-overlay" id="modal-view-invoice">
   <div class="modal-panel">
     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 10px;">
@@ -1020,7 +1100,8 @@
 </div>
 
 <script>
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwLOI0RojX4Av83dofkvavHAe6oIP-VsLc7I6KxbZaGXmSRKWJsS_HnsTp7dfs_Irjt/exec";
+  // رابط النشر الخاص بسيرفرك المحدث
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwFaGAUNK_kvEyCauTIer6NijuUDw2dPR002c-6eX9X7EbRnknptd-IdZeKE5XjQr93/exec";
 
   function showToast(message, isError = false) {
     let toast = document.getElementById("appToast");
@@ -1038,6 +1119,135 @@
       toast.style.opacity = "0";
       toast.style.transform = "translateX(-50%) translateY(10px)";
     }, 3200);
+  }
+
+  // إدارة نظام التراخيص والفترة التجريبية
+  let currentLicense = JSON.parse(localStorage.getItem('smart_license')) || null;
+
+  function updateLicenseUI() {
+    const banner = document.getElementById('license-banner');
+    const textEl = document.getElementById('banner-license-text');
+    const upgradeBtn = document.getElementById('banner-upgrade-btn');
+    const tagEl = document.getElementById('settings-license-tag');
+
+    if (!currentLicense) {
+      banner.className = '';
+      textEl.innerText = 'يرجى تفعيل الترخيص للبدء';
+      upgradeBtn.innerText = 'تفعيل الآن';
+      if (tagEl) { tagEl.innerText = 'غير مفعل'; tagEl.className = 'role-badge'; }
+      openOnboardingModal();
+      return;
+    }
+
+    if (currentLicense.type === 'PRO') {
+      banner.className = 'pro';
+      textEl.innerHTML = '<i class="fa-solid fa-crown" style="color:#10b981;"></i> النسخة الدائمة (PRO) - وصول مفتوح وغير محدود';
+      upgradeBtn.style.display = 'none';
+      if (tagEl) { tagEl.innerText = 'نسخة دائمة PRO'; tagEl.className = 'role-badge admin'; }
+    } else {
+      // حساب الأيام المتبقية
+      const today = new Date();
+      const expDate = new Date(currentLicense.endDate);
+      const diffTime = expDate - today;
+      const daysLeft = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+      const entriesLeft = Math.max(0, (Number(currentLicense.limitEntries) || 100) - ledgerEntries.length);
+
+      banner.className = '';
+      textEl.innerHTML = `نسخة تجريبية: متبقي <strong>${daysLeft}</strong> يوم | <strong>${entriesLeft}</strong> قيد`;
+      upgradeBtn.style.display = 'inline';
+      upgradeBtn.innerText = 'ترقية النسخة';
+      if (tagEl) { tagEl.innerText = `تجريبي (${daysLeft} يوم متبقي)`; tagEl.className = 'role-badge'; }
+    }
+  }
+
+  function openOnboardingModal(allowClose = false) {
+    const m = document.getElementById('modal-onboarding');
+    m.classList.add('open');
+    if (currentLicense) {
+      document.getElementById('onboard-email').value = currentLicense.email || '';
+      document.getElementById('onboard-key').value = currentLicense.key || '';
+    }
+  }
+
+  function closeOnboardingModal() {
+    document.getElementById('modal-onboarding').classList.remove('open');
+  }
+
+  async function submitLicenseActivation() {
+    const email = document.getElementById('onboard-email').value.trim().toLowerCase();
+    const key = document.getElementById('onboard-key').value.trim().toUpperCase();
+    const btn = document.getElementById('btn-activate-license');
+
+    if (!email || !email.includes('@')) return showToast('يرجى إدخال بريد Gmail صحيح', true);
+    if (!key) return showToast('يرجى إدخال كود التفعيل', true);
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري استنساخ الشيت وتفعيل الترخيص...';
+
+    try {
+      const response = await fetch(SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({
+          action: "VERIFY_OR_ACTIVATE_LICENSE",
+          email: email,
+          licenseKey: key
+        })
+      });
+
+      const res = await response.json();
+      if (res.status === "success" && res.license) {
+        currentLicense = res.license;
+        localStorage.setItem('smart_license', JSON.stringify(currentLicense));
+        localStorage.setItem('user_owner_email', currentLicense.email);
+        localStorage.setItem('user_sheet_id', currentLicense.sheetId);
+
+        closeOnboardingModal();
+        updateLicenseUI();
+        
+        const own = document.getElementById('set-owner-email');
+        const sht = document.getElementById('set-sheet-id');
+        if (own) own.value = currentLicense.email;
+        if (sht) sht.value = currentLicense.sheetId;
+
+        showToast('تم تفعيل نسختك واستنساخ الشيت بنجاح 🎉');
+      } else {
+        throw new Error(res.message || "فشل التحقق من الكود");
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('خطأ التفعيل: ' + err.message, true);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fa-solid fa-rocket"></i> تفعيل مساحة العمل السحابية';
+    }
+  }
+
+  function checkLicenseLimitBeforeAction() {
+    if (!currentLicense) {
+      openOnboardingModal();
+      return false;
+    }
+
+    if (currentLicense.type === 'PRO') return true;
+
+    // فحص التجريبي
+    const today = new Date();
+    const expDate = new Date(currentLicense.endDate);
+    if (today > expDate) {
+      showToast('انتهت مهلة الـ 20 يوماً للنسخة التجريبية. يرجى الترقية إلى PRO لمتابعة التسجيل.', true);
+      openOnboardingModal(true);
+      return false;
+    }
+
+    const limit = Number(currentLicense.limitEntries) || 100;
+    if (ledgerEntries.length >= limit) {
+      showToast('لقد بلغت الحد الأقصى (100 قيد) للنسخة التجريبية. يرجى الترقية إلى PRO.', true);
+      openOnboardingModal(true);
+      return false;
+    }
+
+    return true;
   }
 
   // إدارة العملة
@@ -1119,16 +1329,8 @@
     showToast('تم حذف العضو من الفريق');
   }
 
-  function saveOwnerSettings() {
-    const email = document.getElementById('set-owner-email').value.trim();
-    const sheetId = document.getElementById('set-sheet-id').value.trim();
-    if (email) localStorage.setItem('user_owner_email', email);
-    if (sheetId) localStorage.setItem('user_sheet_id', sheetId);
-    showToast('تم حفظ بيانات الربط السحابي والمالك بنجاح');
-  }
-
   function resetLocalDataConfirm() {
-    if (confirm('هل أنت متأكد من مسح البيانات المحلية من الهاتف؟ (بيانات Google Sheet ستظل محفوظة)')) {
+    if (confirm('هل أنت متأكد من مسح البيانات المحلية والترخيص من هذا الهاتف؟ (دفتر Google Sheet سيظل محفوظاً في درايف)')) {
       localStorage.clear();
       location.reload();
     }
@@ -1182,7 +1384,6 @@
     document.getElementById('live-camera-modal').style.display = 'none';
   }
 
-  // التقاط مباشر من الكاميرا مع تحجيم خفيف لمنع التعليق
   async function captureLiveInvoice() {
     const video = document.getElementById('camera-video-stream');
     const canvas = document.createElement('canvas');
@@ -1206,7 +1407,6 @@
     analyzeInvoiceWithAI(base64Data);
   }
 
-  // معالجة صور النظام مع ضغط ذكي فوري يمنع بطء أو تعليق الإرسال
   function handleSystemPhoto(input) {
     if (!input.files || !input.files[0]) return;
     const file = input.files[0];
@@ -1244,7 +1444,6 @@
     input.value = '';
   }
 
-  // تحليل الفاتورة عبر الذكاء الاصطناعي مع إظهار النتيجة فوراً
   async function analyzeInvoiceWithAI(base64Image) {
     const loading = document.getElementById('ocr-loading-overlay');
     loading.style.display = 'flex';
@@ -1329,6 +1528,7 @@
     localStorage.setItem('smart_entries', JSON.stringify(ledgerEntries));
     localStorage.setItem('smart_invoices', JSON.stringify(smartInvoices));
     updateDashboardStats();
+    updateLicenseUI();
   }
 
   function switchTab(tabId, el) {
@@ -1345,6 +1545,7 @@
       const sht = document.getElementById('set-sheet-id');
       if (own) own.value = localStorage.getItem('user_owner_email') || '';
       if (sht) sht.value = localStorage.getItem('user_sheet_id') || '';
+      updateLicenseUI();
     }
   }
 
@@ -1422,6 +1623,8 @@
   }
 
   async function submitInvoiceAction() {
+    if (!checkLicenseLimitBeforeAction()) return;
+
     const items = [];
     document.querySelectorAll('.inv-item-row').forEach(row => {
       const name = row.querySelector('.inv-item-name').value;
@@ -1702,6 +1905,8 @@
   }
 
   function saveEntryAction() {
+    if (!checkLicenseLimitBeforeAction()) return;
+
     const date = document.getElementById('entry-date').value;
     const memo = document.getElementById('entry-memo').value || 'قيد يومية';
     const lines = [];
@@ -1751,8 +1956,9 @@
   function openAddAccountModal() { document.getElementById('modal-add-account').classList.add('open'); }
   function closeAddAccountModal() { document.getElementById('modal-add-account').classList.remove('open'); }
   
-  // دالة إضافة الحساب المحدثة مع ترحيل فوري لـ Google Sheets
   async function confirmAddAccount() {
+    if (!checkLicenseLimitBeforeAction()) return;
+
     const name = document.getElementById('new-acc-name').value.trim();
     const type = document.getElementById('new-acc-type').value;
     if (!name) return showToast('يرجى كتابة اسم الحساب', true);
@@ -1777,7 +1983,6 @@
     showToast(`تمت إضافة ${name} برقم ${code}`);
     document.getElementById('new-acc-name').value = '';
 
-    // إرسال المورد/العميل الجديد مباشرة إلى ورقة دليل الحسابات في الشيت
     try {
       fetch(SCRIPT_URL, {
         method: "POST",
@@ -1811,6 +2016,9 @@
     addInvoiceItemRow();
     updateDashboardStats();
     renderTeamList();
+
+    // التحقق من حالة الترخيص فور بدء التشغيل
+    updateLicenseUI();
   };
 </script>
 </body>

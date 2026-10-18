@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>المحاسب الذكي | Smart Ledger</title>
   <link rel="manifest" href="manifest.json">
-  <link rel="preconnect" href="[https://fonts.googleapis.com](https://fonts.googleapis.com)">
-  <link rel="preconnect" href="[https://fonts.gstatic.com](https://fonts.gstatic.com)" crossorigin>
-  <link href="[https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap](https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap)" rel="stylesheet">
-  <link rel="stylesheet" href="[https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css](https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css)">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
   <style>
     :root {
@@ -940,34 +940,7 @@
         </button>
       </div>
 
-      <!-- بطاقة فريق العمل والصلاحيات -->
-      <div class="settings-card">
-        <div style="font-weight: 700; font-size: 14px; margin-bottom: 6px; color: var(--primary); display: flex; align-items: center; gap: 6px;">
-          <i class="fa-solid fa-users-gear"></i> إدارة فريق العمل والصلاحيات
-        </div>
-        <div style="background: var(--bg); border-radius: 12px; padding: 10px; margin-bottom: 12px;">
-          <div class="form-group">
-            <label style="font-size: 11px;">بريد عضو الفريق</label>
-            <input type="email" id="new-member-email" placeholder="teammate@gmail.com">
-          </div>
-          <div class="form-group">
-            <label style="font-size: 11px;">الصلاحية الممنوحة</label>
-            <select id="new-member-role">
-              <option value="admin">مدير نظام (كامل الصلاحيات)</option>
-              <option value="accountant">محاسب (تسجيل قيود وفواتير)</option>
-              <option value="cashier">كاشير (فواتير مبيعات فقط)</option>
-              <option value="viewer">مشاهد (اطلاع وكشوف حسابات فقط)</option>
-            </select>
-          </div>
-          <button class="btn btn-primary" style="padding: 9px; font-size: 13px;" onclick="addTeamMember()">
-            <i class="fa-solid fa-user-plus"></i> إضافة العضو إلى الفريق
-          </button>
-        </div>
-        <label style="font-size: 12px; margin-bottom: 6px;">أعضاء الفريق الحاليين:</label>
-        <div id="team-members-list" style="border: 1px solid var(--border); border-radius: 10px; background: white;"></div>
-      </div>
-
-      <!-- التفضيلات العامة -->
+      <!-- التفضيلات العامة وإعادة التهيئة -->
       <div class="settings-card">
         <div style="font-weight: 700; font-size: 14px; margin-bottom: 10px; color: var(--primary); display: flex; align-items: center; gap: 6px;">
           <i class="fa-solid fa-gear"></i> التفضيلات العامة
@@ -1118,6 +1091,32 @@
   </div>
 </div>
 
+<!-- Modal: Export Backup View (WhatsApp / Clipboard / File) -->
+<div class="modal-overlay" id="modal-backup-export">
+  <div class="modal-panel">
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 12px;">
+      <h3 style="font-size: 16px; color: var(--primary);"><i class="fa-solid fa-file-shield"></i> النسخة الاحتياطية للبيانات</h3>
+      <button style="border:none; background:none; font-size:24px; cursor:pointer; color:#64748b;" onclick="closeBackupModal()">×</button>
+    </div>
+    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">
+      تم تجهيز نسخة بياناتك بالكامل. يمكنك نسخها أو إرسالها لحفظها بأمان:
+    </p>
+    <textarea id="backup-text-content" readonly style="width: 100%; height: 130px; font-size: 11px; direction: ltr; background: #f8fafc; font-family: monospace; border: 1px solid var(--border); border-radius: 8px; padding: 8px;"></textarea>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 14px;">
+      <button class="btn btn-primary" onclick="copyBackupToClipboard()">
+        <i class="fa-solid fa-copy"></i> نسخ للحافظة
+      </button>
+      <button class="btn btn-secondary" style="background: #25D366; color: white;" onclick="shareBackupWhatsApp()">
+        <i class="fa-brands fa-whatsapp"></i> إرسال لواتساب
+      </button>
+    </div>
+    <button class="btn btn-outline" style="margin-top: 8px; border-style: solid;" onclick="downloadBackupFileDirect()">
+      <i class="fa-solid fa-download"></i> محاولة التنزيل المباشر كملف
+    </button>
+  </div>
+</div>
+
 <!-- OCR Overlay -->
 <div id="ocr-loading-overlay">
   <i class="fa-solid fa-brain fa-fade" style="font-size: 45px; margin-bottom: 16px; color: #38bdf8;"></i>
@@ -1126,7 +1125,7 @@
 </div>
 
 <script>
-  // ضع هنا رابط Web App الخاص بك بعد الـ Deploy
+  // رابط Web App الخاص بـ Google Apps Script بعد النشر
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz5lG8-m6WwIw_ts4tTj_GSRIYS1Dp6-UYJHjX4uTZmDBLpLUGTBJEQynOzB0gDcScf/exec";
 
   function showToast(message, isError = false) {
@@ -1278,6 +1277,7 @@
     return true;
   }
 
+  // المزامنة السحابية الكاملة (Two-Way Cloud Sync)
   async function triggerCloudSync() {
     const sheetId = localStorage.getItem('user_sheet_id');
     if (!sheetId) return showToast('يرجى تفعيل الترخيص أولاً لربط الشيت السحابي', true);
@@ -1324,8 +1324,12 @@
     }
   }
 
-  // 1. تصدير النسخة الاحتياطية (متوافق مع الهواتف والحواسيب)
- async function exportLocalBackup() {
+  // ==========================================
+  // منظومة النسخ الاحتياطي (مودال متوافق مع كافة الأجهزة)
+  // ==========================================
+  let globalBackupJson = "";
+
+  function exportLocalBackup() {
     try {
       const backupData = {
         exportDate: new Date().toISOString(),
@@ -1336,54 +1340,69 @@
         invoices: smartInvoices
       };
 
-      const jsonString = JSON.stringify(backupData, null, 2);
-      const fileName = `Ledger_Backup_${new Date().toISOString().split('T')[0]}.json`;
+      globalBackupJson = JSON.stringify(backupData, null, 2);
 
-      // 1. محاولة استخدام المشاركة الأصلية للهاتف (Web Share API)
-      if (navigator.share) {
-        try {
-          const file = new File([jsonString], fileName, { type: "application/json" });
-          if (navigator.canShare && navigator.canShare({ files: [file] })) {
-            await navigator.share({
-              files: [file],
-              title: 'النسخة الاحتياطية للمحاسب الذكي',
-              text: 'ملف النسخة الاحتياطية لقاعدة البيانات'
-            });
-            showToast('تمت مشاركة وتصدير النسخة بنجاح 💾');
-            return;
-          }
-        } catch (shareErr) {
-          console.warn("Share skipped or failed, falling back to download", shareErr);
-        }
-      }
+      const textEl = document.getElementById('backup-text-content');
+      if (textEl) textEl.value = globalBackupJson;
 
-      // 2. المحاولة التقليدية عبر إنشاء رابط تنزيل
-      const blob = new Blob([jsonString], { type: "application/json;charset=utf-8" });
-      const url = URL.createObjectURL(blob);
-      const dlAnchor = document.createElement('a');
-      dlAnchor.href = url;
-      dlAnchor.download = fileName;
-      document.body.appendChild(dlAnchor);
-      dlAnchor.click();
-      document.body.removeChild(dlAnchor);
-      setTimeout(() => URL.revokeObjectURL(url), 1500);
+      const modal = document.getElementById('modal-backup-export');
+      if (modal) modal.classList.add('open');
 
-      // 3. نسخ المحتوى للحافظة كأمان إضافي في بيئات WebView
       if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(jsonString).then(() => {
-          showToast('تم حفظ الملف ونسخ المحتوى في الحافظة 💾');
-        }).catch(() => {
-          showToast('تم تصدير النسخة الاحتياطية بنجاح 💾');
-        });
-      } else {
-        showToast('تم تصدير النسخة الاحتياطية بنجاح 💾');
+        navigator.clipboard.writeText(globalBackupJson);
       }
     } catch (err) {
       console.error(err);
-      showToast('خطأ أثناء التصدير: ' + err.message, true);
+      alert('خطأ أثناء تجهيز النسخة: ' + err.message);
     }
   }
-  // 2. دالة إعادة تهيئة الحساب ومسح البيانات من الهاتف
+
+  function closeBackupModal() {
+    const modal = document.getElementById('modal-backup-export');
+    if (modal) modal.classList.remove('open');
+  }
+
+  function copyBackupToClipboard() {
+    const textEl = document.getElementById('backup-text-content');
+    if (textEl) {
+      textEl.select();
+      textEl.setSelectionRange(0, 99999);
+      try {
+        navigator.clipboard.writeText(textEl.value).then(() => {
+          showToast('تم نسخ كامل النسخة الاحتياطية إلى الحافظة بنجاح 📋');
+        }).catch(() => {
+          document.execCommand("copy");
+          showToast('تم نسخ النسخة الاحتياطية للحافظة 📋');
+        });
+      } catch (e) {
+        document.execCommand("copy");
+        showToast('تم نسخ النسخة الاحتياطية 📋');
+      }
+    }
+  }
+
+  function shareBackupWhatsApp() {
+    if (!globalBackupJson) return;
+    const waUrl = "https://api.whatsapp.com/send?text=" + encodeURIComponent(globalBackupJson);
+    window.open(waUrl, '_blank');
+  }
+
+  function downloadBackupFileDirect() {
+    if (!globalBackupJson) return;
+    const fileName = `Ledger_Backup_${new Date().toISOString().split('T')[0]}.json`;
+    const blob = new Blob([globalBackupJson], { type: "application/json;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    showToast('تم إرسال أمر التنزيل 💾');
+  }
+
+  // إعادة تهيئة الحساب ومسح البيانات
   function resetLocalDataConfirm() {
     const isConfirmed = confirm(
       "⚠️ تحذير أمني:\n\nهل أنت متأكد من رغبتك في مسح كافة البيانات المحفوظة على هذا الهاتف وإعادة التهيئة؟\n\n(لن تتأثر بياناتك المسجلة على Google Sheet، وستتمكن من استرجاعها عبر المزامنة السحابية)."
@@ -1405,6 +1424,8 @@
       }, 1000);
     }
   }
+
+  // إدارة العملة
   let currentCurrency = localStorage.getItem('smart_currency') || 'ر.س';
 
   function applyCurrency(symbol) {
@@ -1425,6 +1446,7 @@
     if (val) selectCurrency(val, val);
   }
 
+  // الحسابات والقيود
   const defaultAccounts = [
     { code: "1111", name: "الصندوق الرئيسي (الخزينة)", cat: "النقدية والبنوك", base: "cash", nature: "مدين" },
     { code: "1113", name: "الحساب البنكي الجاري", cat: "النقدية والبنوك", base: "bank", nature: "مدين" },
@@ -1460,11 +1482,6 @@
       calculateFinancialReports();
     }
     if (tabId === 'tab-settings') {
-      renderTeamList();
-      const own = document.getElementById('set-owner-email');
-      const sht = document.getElementById('set-sheet-id');
-      if (own) own.value = localStorage.getItem('user_owner_email') || '';
-      if (sht) sht.value = localStorage.getItem('user_sheet_id') || '';
       updateLicenseUI();
     }
   }
@@ -1615,9 +1632,7 @@
     document.getElementById('inv-sum-grand').innerText = grandTotal.toFixed(2);
   }
 
-  // ==========================================
-  // دوال الفاتورة: الحفظ وتعديل الفاتورة بالكامل
-  // ==========================================
+  // حفظ وتعديل الفاتورة
   async function submitInvoiceAction() {
     if (!checkLicenseLimitBeforeAction()) return;
 
@@ -1668,7 +1683,6 @@
     if (isEditMode) {
       smartInvoices = smartInvoices.filter(x => x.id !== invId);
       smartInvoices.push(fullInvoice);
-      // إزالة قيود اليومية القديمة التابعة للفاتورة
       ledgerEntries = ledgerEntries.filter(e => e.invoiceId !== invId && !(e.desc && e.desc.includes(invId)));
     } else {
       smartInvoices.push(fullInvoice);
@@ -1936,9 +1950,7 @@
     document.getElementById('final-balance').innerText = bal.toLocaleString(undefined, {minimumFractionDigits: 2});
   }
 
-  // ==========================================
   // دوال تعديل القيد المحاسبي
-  // ==========================================
   function startEditEntry(entryIndex) {
     const target = ledgerEntries[entryIndex];
     if (!target) return;
@@ -2196,6 +2208,7 @@
     });
   }
 
+  // إدارة الكاميرا وقراءة الذكاء الاصطناعي
   let videoStream = null;
 
   async function startLiveCamera() {

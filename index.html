@@ -1154,20 +1154,28 @@
     const textEl = document.getElementById('banner-license-text');
     const upgradeBtn = document.getElementById('banner-upgrade-btn');
     const tagEl = document.getElementById('settings-license-tag');
+    const own = document.getElementById('set-owner-email');
+    const sht = document.getElementById('set-sheet-id');
 
     if (!currentLicense) {
-      banner.className = '';
-      textEl.innerText = 'يرجى تفعيل الترخيص للبدء';
-      upgradeBtn.innerText = 'تفعيل الآن';
+      if (banner) banner.className = '';
+      if (textEl) textEl.innerText = 'يرجى تفعيل الترخيص للبدء';
+      if (upgradeBtn) { upgradeBtn.style.display = 'inline'; upgradeBtn.innerText = 'تفعيل الآن'; }
       if (tagEl) { tagEl.innerText = 'غير مفعل'; tagEl.className = 'role-badge'; }
+      if (own) own.value = '';
+      if (sht) sht.value = '';
       openOnboardingModal();
       return;
     }
 
+    // تعبئة بيانات الإعدادات تلقائياً من الترخيص المحفوظ
+    if (own) own.value = currentLicense.email || localStorage.getItem('user_owner_email') || '';
+    if (sht) sht.value = currentLicense.sheetId || localStorage.getItem('user_sheet_id') || '';
+
     if (currentLicense.type === 'PRO') {
-      banner.className = 'pro';
-      textEl.innerHTML = '<i class="fa-solid fa-crown" style="color:#10b981;"></i> النسخة الدائمة (PRO) - وصول مفتوح وغير محدود';
-      upgradeBtn.style.display = 'none';
+      if (banner) banner.className = 'pro';
+      if (textEl) textEl.innerHTML = '<i class="fa-solid fa-crown" style="color:#10b981;"></i> النسخة الدائمة (PRO) - وصول مفتوح وغير محدود';
+      if (upgradeBtn) upgradeBtn.style.display = 'none';
       if (tagEl) { tagEl.innerText = 'نسخة دائمة PRO'; tagEl.className = 'role-badge admin'; }
     } else {
       const today = new Date();
@@ -1176,10 +1184,9 @@
       const daysLeft = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
       const entriesLeft = Math.max(0, (Number(currentLicense.limitEntries) || 100) - ledgerEntries.length);
 
-      banner.className = '';
-      textEl.innerHTML = `نسخة تجريبية: متبقي <strong>${daysLeft}</strong> يوم | <strong>${entriesLeft}</strong> قيد`;
-      upgradeBtn.style.display = 'inline';
-      upgradeBtn.innerText = 'ترقية النسخة';
+      if (banner) banner.className = '';
+      if (textEl) textEl.innerHTML = `نسخة تجريبية: متبقي <strong>${daysLeft}</strong> يوم | <strong>${entriesLeft}</strong> قيد`;
+      if (upgradeBtn) { upgradeBtn.style.display = 'inline'; upgradeBtn.innerText = 'ترقية النسخة'; }
       if (tagEl) { tagEl.innerText = `تجريبي (${daysLeft} يوم متبقي)`; tagEl.className = 'role-badge'; }
     }
   }
@@ -1318,7 +1325,7 @@
   }
 
   // 1. تصدير النسخة الاحتياطية (متوافق مع الهواتف والحواسيب)
-  function exportLocalBackup() {
+ async function exportLocalBackup() {
     try {
       const backupData = {
         exportDate: new Date().toISOString(),
@@ -1332,6 +1339,25 @@
       const jsonString = JSON.stringify(backupData, null, 2);
       const fileName = `Ledger_Backup_${new Date().toISOString().split('T')[0]}.json`;
 
+      // 1. محاولة استخدام المشاركة الأصلية للهاتف (Web Share API)
+      if (navigator.share) {
+        try {
+          const file = new File([jsonString], fileName, { type: "application/json" });
+          if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            await navigator.share({
+              files: [file],
+              title: 'النسخة الاحتياطية للمحاسب الذكي',
+              text: 'ملف النسخة الاحتياطية لقاعدة البيانات'
+            });
+            showToast('تمت مشاركة وتصدير النسخة بنجاح 💾');
+            return;
+          }
+        } catch (shareErr) {
+          console.warn("Share skipped or failed, falling back to download", shareErr);
+        }
+      }
+
+      // 2. المحاولة التقليدية عبر إنشاء رابط تنزيل
       const blob = new Blob([jsonString], { type: "application/json;charset=utf-8" });
       const url = URL.createObjectURL(blob);
       const dlAnchor = document.createElement('a');
@@ -1340,23 +1366,23 @@
       document.body.appendChild(dlAnchor);
       dlAnchor.click();
       document.body.removeChild(dlAnchor);
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      setTimeout(() => URL.revokeObjectURL(url), 1500);
 
+      // 3. نسخ المحتوى للحافظة كأمان إضافي في بيئات WebView
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(jsonString).then(() => {
-          showToast('تم تصدير الملف ونسخ البيانات للحافظة بنجاح 💾');
+          showToast('تم حفظ الملف ونسخ المحتوى في الحافظة 💾');
         }).catch(() => {
-          showToast('تم بدء تحميل النسخة الاحتياطية 💾');
+          showToast('تم تصدير النسخة الاحتياطية بنجاح 💾');
         });
       } else {
-        showToast('تم بدء تحميل النسخة الاحتياطية 💾');
+        showToast('تم تصدير النسخة الاحتياطية بنجاح 💾');
       }
     } catch (err) {
       console.error(err);
-      showToast('تعذر تصدير النسخة: ' + err.message, true);
+      showToast('خطأ أثناء التصدير: ' + err.message, true);
     }
   }
-
   // 2. دالة إعادة تهيئة الحساب ومسح البيانات من الهاتف
   function resetLocalDataConfirm() {
     const isConfirmed = confirm(

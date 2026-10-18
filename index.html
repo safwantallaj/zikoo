@@ -1317,24 +1317,68 @@
     }
   }
 
+  // 1. تصدير النسخة الاحتياطية (متوافق مع الهواتف والحواسيب)
   function exportLocalBackup() {
-    const backupData = {
-      exportDate: new Date().toISOString(),
-      license: currentLicense,
-      currency: currentCurrency,
-      accounts: chartOfAccounts,
-      entries: ledgerEntries,
-      invoices: smartInvoices
-    };
+    try {
+      const backupData = {
+        exportDate: new Date().toISOString(),
+        license: currentLicense,
+        currency: currentCurrency,
+        accounts: chartOfAccounts,
+        entries: ledgerEntries,
+        invoices: smartInvoices
+      };
 
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
-    const dlAnchor = document.createElement('a');
-    dlAnchor.setAttribute("href", dataStr);
-    dlAnchor.setAttribute("download", `Ledger_Backup_${new Date().toISOString().split('T')[0]}.json`);
-    dlAnchor.click();
-    showToast('تم تصدير النسخة الاحتياطية بنجاح 💾');
+      const jsonString = JSON.stringify(backupData, null, 2);
+      const fileName = `Ledger_Backup_${new Date().toISOString().split('T')[0]}.json`;
+
+      const blob = new Blob([jsonString], { type: "application/json;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const dlAnchor = document.createElement('a');
+      dlAnchor.href = url;
+      dlAnchor.download = fileName;
+      document.body.appendChild(dlAnchor);
+      dlAnchor.click();
+      document.body.removeChild(dlAnchor);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(jsonString).then(() => {
+          showToast('تم تصدير الملف ونسخ البيانات للحافظة بنجاح 💾');
+        }).catch(() => {
+          showToast('تم بدء تحميل النسخة الاحتياطية 💾');
+        });
+      } else {
+        showToast('تم بدء تحميل النسخة الاحتياطية 💾');
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('تعذر تصدير النسخة: ' + err.message, true);
+    }
   }
 
+  // 2. دالة إعادة تهيئة الحساب ومسح البيانات من الهاتف
+  function resetLocalDataConfirm() {
+    const isConfirmed = confirm(
+      "⚠️ تحذير أمني:\n\nهل أنت متأكد من رغبتك في مسح كافة البيانات المحفوظة على هذا الهاتف وإعادة التهيئة؟\n\n(لن تتأثر بياناتك المسجلة على Google Sheet، وستتمكن من استرجاعها عبر المزامنة السحابية)."
+    );
+
+    if (isConfirmed) {
+      localStorage.removeItem('smart_license');
+      localStorage.removeItem('user_owner_email');
+      localStorage.removeItem('user_sheet_id');
+      localStorage.removeItem('smart_entries');
+      localStorage.removeItem('smart_invoices');
+      localStorage.removeItem('smart_accounts');
+      localStorage.removeItem('smart_currency');
+
+      showToast('تم مسح البيانات وإعادة تهيئة التطبيق بنجاح');
+
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    }
+  }
   let currentCurrency = localStorage.getItem('smart_currency') || 'ر.س';
 
   function applyCurrency(symbol) {

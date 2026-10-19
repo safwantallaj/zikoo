@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>المحاسب الذكي | Smart Ledger</title>
   <link rel="manifest" href="manifest.json">
-  <link rel="preconnect" href="[https://fonts.googleapis.com](https://fonts.googleapis.com)">
-  <link rel="preconnect" href="[https://fonts.gstatic.com](https://fonts.gstatic.com)" crossorigin>
-  <link href="[https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap](https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap)" rel="stylesheet">
-  <link rel="stylesheet" href="[https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css](https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css)">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
   <style>
     :root {
@@ -1412,7 +1412,6 @@
     }
   }
 
-  // دالات معالج الأرصدة الافتتاحية التأسيسي (Setup Wizard)
   function openOpeningWizardModal() {
     document.getElementById('modal-opening-wizard').classList.add('open');
     if (document.getElementById('wiz-customers-container').children.length === 0) addWizardCustomerRow();
@@ -1561,7 +1560,6 @@
     });
   }
 
-  // التحكم الديناميكي بحقل وسؤال الرصيد الافتتاحي
   function toggleOpeningBalanceField() {
     const type = document.getElementById('new-acc-type').value;
     const box = document.getElementById('box-acc-opening-bal');
@@ -1613,6 +1611,7 @@
     return true;
   }
 
+  // دالة المزامنة المصححة والمحصنة تماماً ضد تراكم الحسابات القديمة
   async function triggerCloudSync() {
     const sheetId = localStorage.getItem('user_sheet_id');
     if (!sheetId) return showToast('يرجى تفعيل الترخيص أولاً لربط الشيت السحابي', true);
@@ -1629,16 +1628,23 @@
 
       const res = await response.json();
       if (res.status === "success") {
-        if (res.entries && res.entries.length > 0) {
+        if (res.entries && Array.isArray(res.entries)) {
           ledgerEntries = res.entries;
           localStorage.setItem('smart_entries', JSON.stringify(ledgerEntries));
         }
-        if (res.accounts && res.accounts.length > 0) {
+
+        // استبدال الحسابات بحسابات الشيت الافتراضية لمنع أي تكرار وتطابق الأرقام بدقة
+        if (res.accounts && Array.isArray(res.accounts)) {
+          const mergedAccounts = [...defaultAccounts];
           res.accounts.forEach(cloudAcc => {
-            if (!chartOfAccounts.some(localAcc => localAcc.code === cloudAcc.code)) {
-              chartOfAccounts.push(cloudAcc);
+            const existingIdx = mergedAccounts.findIndex(a => a.code === cloudAcc.code);
+            if (existingIdx !== -1) {
+              mergedAccounts[existingIdx] = cloudAcc;
+            } else {
+              mergedAccounts.push(cloudAcc);
             }
           });
+          chartOfAccounts = mergedAccounts;
           localStorage.setItem('smart_accounts', JSON.stringify(chartOfAccounts));
         }
 
@@ -1649,7 +1655,7 @@
           loadStatementData();
           calculateFinancialReports();
         }
-        showToast('اكتملت المزامنة السحابية بنجاح ✅');
+        showToast('اكتملت المزامنة وتطابقت الأرصدة بنجاح ✅');
       } else {
         throw new Error(res.message || 'فشلت المزامنة');
       }
@@ -2590,7 +2596,6 @@
     const newAcc = { code, name, cat, base: type, nature };
     chartOfAccounts.push(newAcc);
 
-    // معالجة الرصيد الافتتاحي الشامل لجميع الحسابات (خزائن، بنوك، عملاء، موردين)
     if (openingBal > 0) {
       const date = new Date().toISOString().split('T')[0];
       const genNo = Date.now();

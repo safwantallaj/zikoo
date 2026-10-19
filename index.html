@@ -1612,27 +1612,30 @@
   }
 
   // دالة المزامنة المصححة والمحصنة تماماً ضد تراكم الحسابات القديمة
-  async function triggerCloudSync() {
-    const sheetId = localStorage.getItem('user_sheet_id');
-    if (!sheetId) return showToast('يرجى تفعيل الترخيص أولاً لربط الشيت السحابي', true);
+ if (res.accounts && Array.isArray(res.accounts)) {
+          const mergedAccounts = [...defaultAccounts];
+          res.accounts.forEach(cloudAcc => {
+            const cCode = String(cloudAcc.code).trim();
+            // تحديد نوع الحساب التلقائي حتى يتعرف عليه النظام فوراً
+            let inferredBase = "other";
+            if (cCode.startsWith("1111")) inferredBase = "cash";
+            else if (cCode.startsWith("111")) inferredBase = "bank";
+            else if (cCode.startsWith("112")) inferredBase = "customer";
+            else if (cCode.startsWith("210")) inferredBase = "vendor";
+            else if (cCode.startsWith("113")) inferredBase = "asset";
 
-    showToast('جاري مزامنة وسحب الحركات من Google Sheet...');
-    try {
-      const response = await fetch(SCRIPT_URL, {
-        method: "POST",
-        body: JSON.stringify({
-          action: "SYNC_PULL_DATA",
-          spreadsheetId: sheetId
-        })
-      });
+            cloudAcc.base = cloudAcc.base || inferredBase;
 
-      const res = await response.json();
-      if (res.status === "success") {
-        if (res.entries && Array.isArray(res.entries)) {
-          ledgerEntries = res.entries;
-          localStorage.setItem('smart_entries', JSON.stringify(ledgerEntries));
+            const existingIdx = mergedAccounts.findIndex(a => String(a.code).trim() === cCode);
+            if (existingIdx !== -1) {
+              mergedAccounts[existingIdx] = Object.assign({}, mergedAccounts[existingIdx], cloudAcc);
+            } else {
+              mergedAccounts.push(cloudAcc);
+            }
+          });
+          chartOfAccounts = mergedAccounts;
+          localStorage.setItem('smart_accounts', JSON.stringify(chartOfAccounts));
         }
-
         // استبدال الحسابات بحسابات الشيت الافتراضية لمنع أي تكرار وتطابق الأرقام بدقة
         if (res.accounts && Array.isArray(res.accounts)) {
           const mergedAccounts = [...defaultAccounts];
@@ -2563,15 +2566,44 @@
   function updateDashboardStats() {
     let cash = 0, cust = 0, vend = 0;
     ledgerEntries.forEach(e => {
-      const a = chartOfAccounts.find(x => x.code === e.accountCode);
-      if (!a) return;
-      if (a.base === 'cash' || a.base === 'bank') cash += (e.debit - e.credit);
-      if (a.base === 'customer') cust += (e.debit - e.credit);
-      if (a.base === 'vendor') vend += (e.credit - e.debit);
+      const accCodeStr = String(e.accountCode || "").trim();
+      const a = chartOfAccounts.find(x => String(x.code).trim() === accCodeStr);
+      
+      const debitVal = Number(e.debit) || 0;
+      const creditVal = Number(e.credit) || 0;
+      const netMovement = debitVal - creditVal;
+
+      // التعرف على النقدية والبنوك عبر الكود أو القاعدة أو التصنيف
+      const isCashOrBank = (a && (a.base === 'cash' || a.base === 'bank')) ||
+                           accCodeStr.startsWith("111") ||
+                           (a && a.cat && (a.cat.includes("نقدية") || a.cat.includes("بنوك")));
+
+      // التعرف على العملاء
+      const isCustomer = (a && a.base === 'customer') ||
+                         accCodeStr.startsWith("112") ||
+                         (a && a.cat && a.cat.includes("عملاء"));
+
+      // التعرف على الموردين
+      const isVendor = (a && a.base === 'vendor') ||
+                       accCodeStr.startsWith("210") ||
+                       (a && a.cat && a.cat.includes("مورد"));
+
+      if (isCashOrBank) {
+        cash += netMovement;
+      } else if (isCustomer) {
+        cust += netMovement;
+      } else if (isVendor) {
+        vend += (creditVal - debitVal);
+      }
     });
-    document.getElementById('dash-cash').innerText = Math.max(0, cash).toLocaleString(undefined, {minimumFractionDigits: 2});
-    document.getElementById('dash-customers').innerText = Math.max(0, cust).toLocaleString(undefined, {minimumFractionDigits: 2});
-    document.getElementById('dash-vendors').innerText = Math.max(0, vend).toLocaleString(undefined, {minimumFractionDigits: 2});
+
+    const cashEl = document.getElementById('dash-cash');
+    const custEl = document.getElementById('dash-customers');
+    const vendEl = document.getElementById('dash-vendors');
+
+    if (cashEl) cashEl.innerText = cash.toLocaleString(undefined, {minimumFractionDigits: 2});
+    if (custEl) custEl.innerText = Math.max(0, cust).toLocaleString(undefined, {minimumFractionDigits: 2});
+    if (vendEl) vendEl.innerText = Math.max(0, vend).toLocaleString(undefined, {minimumFractionDigits: 2});
   }
 
   function openAddAccountModal() { 

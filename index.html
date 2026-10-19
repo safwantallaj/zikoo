@@ -59,7 +59,7 @@
     #license-banner {
       background: var(--warning-light);
       border-bottom: 1px solid #fde68a;
-      padding: 6px 14px;
+      padding: 8px 14px;
       font-size: 11px;
       font-weight: 700;
       color: #b45309;
@@ -1020,7 +1020,8 @@
 
 <!-- Modal 1: تفعيل كود الترخيص -->
 <div class="modal-overlay" id="modal-onboarding">
-  <div class="modal-panel" style="text-align: center;">
+  <div class="modal-panel" style="text-align: center; position: relative;">
+    <button id="btn-close-onboard" style="position: absolute; top: 15px; left: 15px; border: none; background: none; font-size: 20px; cursor: pointer; color: #94a3b8; display: none;" onclick="closeOnboardingModal()">×</button>
     <div style="width: 58px; height: 58px; background: linear-gradient(135deg, var(--primary), #38bdf8); color: white; border-radius: 16px; display: inline-flex; align-items: center; justify-content: center; font-size: 26px; margin-bottom: 12px;">
       <i class="fa-solid fa-shield-halved"></i>
     </div>
@@ -1226,7 +1227,8 @@
 </div>
 
 <script>
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzE3l1X4q6gVz1-FbiXJtHgl-mK4r_kFZFHVHNpiNIiS7j5L0RLChZkr75JbIxzGK8/exec";
+  // رابط السيرفر المعتمد والمؤكد
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbypBY2o9VMhv3eXiejQcWVtt9byQkEcmWIvW1fd8goeNQ-cKCSs32J_xP6WYxRREIQ/exec";
 
   function showToast(message, isError = false) {
     let toast = document.getElementById("appToast");
@@ -1276,7 +1278,7 @@
     const invData = localStorage.getItem('smart_invoices');
     if (invData) smartInvoices = JSON.parse(invData);
   } catch (parseErr) {
-    console.warn("Storage reset due to corrupted JSON", parseErr);
+    console.warn("Storage parsing error:", parseErr);
   }
 
   function persistData() {
@@ -1300,32 +1302,42 @@
       const own = document.getElementById('set-owner-email');
       const sht = document.getElementById('set-sheet-id');
 
-      if (!currentLicense || !currentLicense.key) {
-        if (banner) banner.className = '';
-        if (textEl) textEl.innerHTML = '<i class="fa-solid fa-circle-exclamation" style="color:var(--warning);"></i> يرجى إدخال كود التفعيل للبدء';
-        if (upgradeBtn) { upgradeBtn.style.display = 'inline'; upgradeBtn.innerText = 'تفعيل الآن'; }
-        if (tagEl) { tagEl.innerText = 'غير مفعل'; tagEl.className = 'role-badge'; }
-        if (own) own.value = '';
-        if (sht) sht.value = '';
-        openOnboardingModal();
-        return;
-      }
+      const savedEmail = (currentLicense && currentLicense.email) || localStorage.getItem('user_owner_email') || '';
+      const savedSheet = (currentLicense && currentLicense.sheetId) || localStorage.getItem('user_sheet_id') || '';
 
-      const savedEmail = currentLicense.email || localStorage.getItem('user_owner_email') || '';
-      const savedSheet = currentLicense.sheetId || localStorage.getItem('user_sheet_id') || '';
       if (own) own.value = savedEmail;
       if (sht) sht.value = savedSheet;
+
+      if (!currentLicense || !currentLicense.key) {
+        if (savedSheet) {
+          // يوجد شيت مرتبط مسبقاً
+          if (banner) banner.className = 'pro';
+          if (textEl) textEl.innerHTML = '<i class="fa-solid fa-check-circle" style="color:#10b981;"></i> مساحة العمل السحابية متصلة';
+          if (upgradeBtn) { upgradeBtn.style.display = 'inline'; upgradeBtn.innerText = 'ترقية'; }
+          if (tagEl) { tagEl.innerText = 'نشط'; tagEl.className = 'role-badge admin'; }
+        } else {
+          // لم يتم التفعيل بعد
+          if (banner) banner.className = '';
+          if (textEl) textEl.innerHTML = '<i class="fa-solid fa-circle-exclamation" style="color:var(--warning);"></i> يرجى إدخال كود التفعيل للبدء';
+          if (upgradeBtn) { upgradeBtn.style.display = 'inline'; upgradeBtn.innerText = 'تفعيل الآن'; }
+          if (tagEl) { tagEl.innerText = 'غير مفعل'; tagEl.className = 'role-badge'; }
+        }
+        return;
+      }
 
       if (String(currentLicense.type).toUpperCase() === 'PRO') {
         if (banner) banner.className = 'pro';
         if (textEl) textEl.innerHTML = '<i class="fa-solid fa-crown" style="color:#10b981;"></i> النسخة الدائمة (PRO) - وصول مفتوح';
         if (upgradeBtn) upgradeBtn.style.display = 'none';
-        if (tagEl) { tagEl.innerText = 'نسخة دائمة PRO'; tagEl.className = 'role-badge admin'; }
+        if (tagEl) { tagEl.innerText = 'دائم PRO'; tagEl.className = 'role-badge admin'; }
       } else {
-        const today = new Date();
-        const expDate = new Date(currentLicense.endDate || today);
-        const diffTime = expDate - today;
-        const daysLeft = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+        let daysLeft = 20;
+        if (currentLicense.endDate && currentLicense.endDate !== "غير محدود") {
+          const exp = new Date(currentLicense.endDate);
+          if (!isNaN(exp.getTime())) {
+            daysLeft = Math.max(0, Math.ceil((exp - new Date()) / (1000 * 60 * 60 * 24)));
+          }
+        }
         const entriesCount = Array.isArray(ledgerEntries) ? ledgerEntries.length : 0;
         const limitCount = Number(currentLicense.limitEntries) || 100;
         const entriesLeft = Math.max(0, limitCount - entriesCount);
@@ -1344,8 +1356,10 @@
 
   function openOnboardingModal(allowClose = false) {
     const m = document.getElementById('modal-onboarding');
+    const closeBtn = document.getElementById('btn-close-onboard');
     if (m) {
       m.classList.add('open');
+      if (closeBtn) closeBtn.style.display = allowClose ? 'block' : 'none';
       if (currentLicense) {
         document.getElementById('onboard-email').value = currentLicense.email || '';
         document.getElementById('onboard-key').value = currentLicense.key || '';
@@ -1588,21 +1602,23 @@
   }
 
   function checkLicenseLimitBeforeAction() {
-    if (!currentLicense) {
-      openOnboardingModal();
-      return false;
-    }
-    if (currentLicense.type === 'PRO') return true;
-
-    const today = new Date();
-    const expDate = new Date(currentLicense.endDate);
-    if (today > expDate) {
-      showToast('انتهت مهلة الـ 20 يوماً للنسخة التجريبية. يرجى الترقية إلى PRO لمتابعة التسجيل.', true);
+    const sheetId = localStorage.getItem('user_sheet_id');
+    if (!sheetId && (!currentLicense || !currentLicense.key)) {
       openOnboardingModal(true);
       return false;
     }
+    if (currentLicense && currentLicense.type === 'PRO') return true;
 
-    const limit = Number(currentLicense.limitEntries) || 100;
+    if (currentLicense && currentLicense.endDate && currentLicense.endDate !== "غير محدود") {
+      const expDate = new Date(currentLicense.endDate);
+      if (!isNaN(expDate.getTime()) && new Date() > expDate) {
+        showToast('انتهت مهلة النسخة التجريبية. يرجى الترقية إلى PRO لمتابعة التسجيل.', true);
+        openOnboardingModal(true);
+        return false;
+      }
+    }
+
+    const limit = (currentLicense && Number(currentLicense.limitEntries)) || 100;
     if (ledgerEntries.length >= limit) {
       showToast('لقد بلغت الحد الأقصى (100 قيد) للنسخة التجريبية. يرجى الترقية إلى PRO.', true);
       openOnboardingModal(true);
@@ -1611,9 +1627,8 @@
     return true;
   }
 
-  // دالة المزامنة السحابية المصححة والمحصنة تماماً
   async function triggerCloudSync() {
-    const sheetId = localStorage.getItem('user_sheet_id');
+    const sheetId = localStorage.getItem('user_sheet_id') || (currentLicense && currentLicense.sheetId);
     if (!sheetId) return showToast('يرجى تفعيل الترخيص أولاً لربط الشيت السحابي', true);
 
     showToast('جاري مزامنة وسحب الحركات من Google Sheet...');
@@ -2553,4 +2568,267 @@
       persistData();
       showToast('تم ترحيل القيد بنجاح');
       document.getElementById('entry-memo').value = '';
-      document.querySelectorAll('.input-debit').forEach(
+      document.querySelectorAll('.input-debit').forEach(i => i.value = 0);
+      document.querySelectorAll('.input-credit').forEach(i => i.value = 0);
+      calculateBalance();
+
+      fetch(SCRIPT_URL, {
+        method: "POST",
+        body: JSON.stringify({
+          action: "NEW_ENTRY",
+          spreadsheetId: localStorage.getItem("user_sheet_id"),
+          entryDate: date,
+          lines: lines
+        })
+      });
+    }
+  }
+
+  function updateDashboardStats() {
+    let cash = 0, cust = 0, vend = 0;
+    ledgerEntries.forEach(e => {
+      const accCodeStr = String(e.accountCode || "").trim();
+      const a = chartOfAccounts.find(x => String(x.code).trim() === accCodeStr);
+      
+      const debitVal = Number(e.debit) || 0;
+      const creditVal = Number(e.credit) || 0;
+      const netMovement = debitVal - creditVal;
+
+      const isCashOrBank = (a && (a.base === 'cash' || a.base === 'bank')) ||
+                           accCodeStr.startsWith("111") ||
+                           (a && a.cat && (a.cat.includes("نقدية") || a.cat.includes("بنوك")));
+
+      const isCustomer = (a && a.base === 'customer') ||
+                         accCodeStr.startsWith("112") ||
+                         (a && a.cat && a.cat.includes("عملاء"));
+
+      const isVendor = (a && a.base === 'vendor') ||
+                       accCodeStr.startsWith("210") ||
+                       (a && a.cat && a.cat.includes("مورد"));
+
+      if (isCashOrBank) {
+        cash += netMovement;
+      } else if (isCustomer) {
+        cust += netMovement;
+      } else if (isVendor) {
+        vend += (creditVal - debitVal);
+      }
+    });
+
+    const cashEl = document.getElementById('dash-cash');
+    const custEl = document.getElementById('dash-customers');
+    const vendEl = document.getElementById('dash-vendors');
+
+    if (cashEl) cashEl.innerText = cash.toLocaleString(undefined, {minimumFractionDigits: 2});
+    if (custEl) custEl.innerText = Math.max(0, cust).toLocaleString(undefined, {minimumFractionDigits: 2});
+    if (vendEl) vendEl.innerText = Math.max(0, vend).toLocaleString(undefined, {minimumFractionDigits: 2});
+  }
+
+  function openAddAccountModal() { 
+    document.getElementById('modal-add-account').classList.add('open'); 
+    toggleOpeningBalanceField();
+  }
+  function closeAddAccountModal() { document.getElementById('modal-add-account').classList.remove('open'); }
+  
+  async function confirmAddAccount() {
+    if (!checkLicenseLimitBeforeAction()) return;
+    const name = document.getElementById('new-acc-name').value.trim();
+    const type = document.getElementById('new-acc-type').value;
+    const openingBal = parseFloat(document.getElementById('new-acc-opening-bal').value) || 0;
+
+    if (!name) return showToast('يرجى كتابة اسم الحساب', true);
+    
+    let prefix = (type === 'vendor') ? '210' : (type === 'customer' ? '112' : (type === 'expense' ? '520' : '111'));
+    let code = prefix + Math.floor(10 + Math.random() * 89);
+    let cat = (type === 'vendor') ? "الموردون والالتزامات" : (type === 'customer' ? "العملاء والمدينون" : (type === 'expense' ? "المصروفات" : "النقدية والبنوك"));
+    let nature = (type === 'vendor') ? 'دائن' : 'مدين';
+
+    const newAcc = { code, name, cat, base: type, nature };
+    chartOfAccounts.push(newAcc);
+
+    if (openingBal > 0) {
+      const date = new Date().toISOString().split('T')[0];
+      const genNo = Date.now();
+      if (!chartOfAccounts.some(a => a.code === '3101')) {
+        chartOfAccounts.push({ code: "3101", name: "رأس المال / الأرصدة الافتتاحية", cat: "حقوق الملكية", base: "equity", nature: "دائن" });
+      }
+
+      if (type === 'customer' || type === 'cash' || type === 'bank') {
+        const descText = (type === 'customer') ? ("رصيد افتتاحي سابق للعميل " + name) : ("رصيد تأسيسي / افتتاحي: " + name);
+        ledgerEntries.push({ entryNo: genNo, date: date, accountCode: code, accountName: name, desc: descText, debit: openingBal, credit: 0 });
+        ledgerEntries.push({ entryNo: genNo, date: date, accountCode: "3101", accountName: "رأس المال / الأرصدة الافتتاحية", desc: "تسوية رصيد افتتاح: " + name, debit: 0, credit: openingBal });
+      } else if (type === 'vendor') {
+        ledgerEntries.push({ entryNo: genNo, date: date, accountCode: "3101", accountName: "رأس المال / الأرصدة الافتتاحية", desc: "تسوية رصيد سابق للمورد: " + name, debit: openingBal, credit: 0 });
+        ledgerEntries.push({ entryNo: genNo, date: date, accountCode: code, accountName: name, desc: "رصيد افتتاحي سابق للمورد " + name, debit: 0, credit: openingBal });
+      }
+    }
+
+    persistData();
+    populateAccountSelects();
+    closeAddAccountModal();
+    showToast(`تمت إضافة ${name} برقم ${code}` + (openingBal > 0 ? ' وتسجيل الرصيد الافتتاحي' : ''));
+    document.getElementById('new-acc-name').value = '';
+    document.getElementById('new-acc-opening-bal').value = 0;
+
+    fetch(SCRIPT_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        action: "ADD_ACCOUNT",
+        spreadsheetId: localStorage.getItem("user_sheet_id"),
+        code: code,
+        name: name,
+        cat: cat,
+        nature: nature,
+        type: type,
+        openingBalance: openingBal
+      })
+    });
+  }
+
+  let videoStream = null;
+
+  async function startLiveCamera() {
+    const modal = document.getElementById('live-camera-modal');
+    const video = document.getElementById('camera-video-stream');
+    try {
+      if (videoStream) stopLiveCamera();
+      videoStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } },
+        audio: false
+      });
+      video.srcObject = videoStream;
+      video.muted = true;
+      modal.style.display = 'flex';
+      await video.play().catch(e => console.warn("Retry autoplay:", e));
+    } catch (err) {
+      const fallbackInput = document.createElement('input');
+      fallbackInput.type = 'file';
+      fallbackInput.accept = 'image/*';
+      fallbackInput.capture = 'environment';
+      fallbackInput.onchange = () => handleSystemPhoto(fallbackInput);
+      fallbackInput.click();
+    }
+  }
+
+  function stopLiveCamera() {
+    if (videoStream) {
+      videoStream.getTracks().forEach(track => track.stop());
+      videoStream = null;
+    }
+    document.getElementById('live-camera-modal').style.display = 'none';
+  }
+
+  async function captureLiveInvoice() {
+    const video = document.getElementById('camera-video-stream');
+    const canvas = document.createElement('canvas');
+    let w = video.videoWidth || 1280;
+    let h = video.videoHeight || 720;
+    const maxDim = 1280;
+    if (w > maxDim || h > maxDim) {
+      if (w > h) { h = Math.round((h * maxDim) / w); w = maxDim; }
+      else { w = Math.round((w * maxDim) / h); h = maxDim; }
+    }
+    canvas.width = w; canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, w, h);
+    stopLiveCamera();
+    const base64Data = canvas.toDataURL('image/jpeg', 0.75).split(',')[1];
+    analyzeInvoiceWithAI(base64Data);
+  }
+
+  function handleSystemPhoto(input) {
+    if (!input.files || !input.files[0]) return;
+    const file = input.files[0];
+    stopLiveCamera();
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const img = new Image();
+      img.onload = function() {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const maxDim = 1280;
+        let width = img.width, height = img.height;
+        if (width > height && width > maxDim) { height = Math.round((height * maxDim) / width); width = maxDim; }
+        else if (height > maxDim) { width = Math.round((width * maxDim) / height); height = maxDim; }
+        canvas.width = width; canvas.height = height;
+        ctx.drawImage(img, 0, 0, width, height);
+        const base64Data = canvas.toDataURL('image/jpeg', 0.75).split(',')[1];
+        analyzeInvoiceWithAI(base64Data);
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+    input.value = '';
+  }
+
+  async function analyzeInvoiceWithAI(base64Image) {
+    const loading = document.getElementById('ocr-loading-overlay');
+    loading.style.display = 'flex';
+    try {
+      const response = await fetch(SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action: "ANALYZE_INVOICE_AI", imageBase64: base64Image })
+      });
+      const res = await response.json();
+      if (res.status === "success" && res.data) {
+        const d = res.data;
+        if (d.date) document.getElementById('inv-date').value = d.date;
+        if (d.taxRate !== undefined) document.getElementById('inv-tax-mode').value = String(d.taxRate);
+
+        const list = document.getElementById('invoice-items-list');
+        list.innerHTML = '';
+        if (d.items && d.items.length > 0) {
+          d.items.forEach(it => {
+            const div = document.createElement('div');
+            div.className = 'inv-item-row';
+            div.innerHTML = `
+              <button class="btn-remove-row" onclick="this.parentElement.remove(); calculateInvoiceTotals();">×</button>
+              <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 8px;">
+                <div><label style="font-size:11px;">اسم الصنف</label><input type="text" class="inv-item-name" value="${it.name || 'بضاعة'}"></div>
+                <div><label style="font-size:11px;">الكمية</label><input type="number" class="inv-item-qty" value="${it.qty || 1}" min="1" oninput="calculateInvoiceTotals()"></div>
+                <div><label style="font-size:11px;">سعر الوحدة</label><input type="number" class="inv-item-price" value="${it.price || 10}" min="0" oninput="calculateInvoiceTotals()"></div>
+              </div>
+            `;
+            list.appendChild(div);
+          });
+        } else {
+          addInvoiceItemRow();
+        }
+        calculateInvoiceTotals();
+        showToast('تم مسح الفاتورة وتعبئة البنود بنجاح ✅');
+      } else {
+        throw new Error(res.message || "فشل التحليل");
+      }
+    } catch (err) {
+      showToast('خطأ: ' + err.message, true);
+      addInvoiceItemRow();
+    } finally {
+      loading.style.display = 'none';
+    }
+  }
+
+  window.addEventListener('DOMContentLoaded', function() {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      if (document.getElementById('entry-date')) document.getElementById('entry-date').value = today;
+      if (document.getElementById('inv-date')) document.getElementById('inv-date').value = today;
+      if (document.getElementById('date-to')) document.getElementById('date-to').value = today;
+
+      if (!localStorage.getItem('smart_currency')) {
+        openCurrencyModal();
+      } else {
+        applyCurrency(localStorage.getItem('smart_currency'));
+      }
+
+      populateAccountSelects();
+      addInvoiceItemRow();
+      updateDashboardStats();
+    } catch (e) {
+      console.warn("Init error:", e);
+    }
+    updateLicenseUI();
+  });
+</script>
+</body>
+</html>

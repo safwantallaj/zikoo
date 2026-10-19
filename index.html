@@ -626,10 +626,10 @@
   <!-- شريط الترخيص المباشر -->
   <div id="license-banner">
     <div>
-      <i class="fa-solid fa-clock-rotate-left"></i>
-      <span id="banner-license-text">جاري فحص حالة الترخيص...</span>
+      <i class="fa-solid fa-shield-halved"></i>
+      <span id="banner-license-text">النسخة السحابية</span>
     </div>
-    <span id="banner-upgrade-btn" style="text-decoration: underline; cursor: pointer;" onclick="openOnboardingModal(true)">ترقية الكود</span>
+    <span id="banner-upgrade-btn" style="text-decoration: underline; cursor: pointer;" onclick="openOnboardingModal(true)">تفعيل / ترقية الكود</span>
   </div>
   
   <header>
@@ -1193,9 +1193,10 @@
       const own = document.getElementById('set-owner-email');
       const sht = document.getElementById('set-sheet-id');
 
+      // 1. إذا لم يكن هناك ترخيص مفعل
       if (!currentLicense || !currentLicense.key) {
         if (banner) banner.className = '';
-        if (textEl) textEl.innerText = 'يرجى تفعيل الترخيص للبدء';
+        if (textEl) textEl.innerHTML = '<i class="fa-solid fa-circle-exclamation" style="color:var(--warning);"></i> يرجى إدخال كود التفعيل للبدء';
         if (upgradeBtn) { upgradeBtn.style.display = 'inline'; upgradeBtn.innerText = 'تفعيل الآن'; }
         if (tagEl) { tagEl.innerText = 'غير مفعل'; tagEl.className = 'role-badge'; }
         if (own) own.value = '';
@@ -1204,36 +1205,63 @@
         return;
       }
 
+      // 2. تعبئة بيانات الإعدادات
       const savedEmail = currentLicense.email || localStorage.getItem('user_owner_email') || '';
       const savedSheet = currentLicense.sheetId || localStorage.getItem('user_sheet_id') || '';
       if (own) own.value = savedEmail;
       if (sht) sht.value = savedSheet;
 
+      // 3. نسخة دائمة PRO
       if (String(currentLicense.type).toUpperCase() === 'PRO') {
         if (banner) banner.className = 'pro';
-        if (textEl) textEl.innerHTML = '<i class="fa-solid fa-crown" style="color:#10b981;"></i> النسخة الدائمة (PRO) - وصول مفتوح وغير محدود';
+        if (textEl) textEl.innerHTML = '<i class="fa-solid fa-crown" style="color:#10b981;"></i> النسخة الدائمة (PRO) - وصول مفتوح';
         if (upgradeBtn) upgradeBtn.style.display = 'none';
         if (tagEl) { tagEl.innerText = 'نسخة دائمة PRO'; tagEl.className = 'role-badge admin'; }
-      } else {
+      } 
+      // 4. نسخة تجريبية TRIAL
+      else {
         const today = new Date();
         const expDate = new Date(currentLicense.endDate || today);
         const diffTime = expDate - today;
         const daysLeft = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
         const entriesCount = Array.isArray(ledgerEntries) ? ledgerEntries.length : 0;
-        const entriesLeft = Math.max(0, (Number(currentLicense.limitEntries) || 100) - entriesCount);
+        const limitCount = Number(currentLicense.limitEntries) || 100;
+        const entriesLeft = Math.max(0, limitCount - entriesCount);
 
         if (banner) banner.className = '';
         if (textEl) textEl.innerHTML = `نسخة تجريبية: متبقي <strong>${daysLeft}</strong> يوم | <strong>${entriesLeft}</strong> قيد`;
         if (upgradeBtn) { upgradeBtn.style.display = 'inline'; upgradeBtn.innerText = 'ترقية النسخة'; }
-        if (tagEl) { tagEl.innerText = `تجريبي (${daysLeft} يوم متبقي)`; tagEl.className = 'role-badge'; }
+        if (tagEl) { tagEl.innerText = `تجريبي (${daysLeft} يوم)`; tagEl.className = 'role-badge'; }
       }
     } catch (err) {
-      console.error("خطأ في تحديث واجهة الترخيص:", err);
+      console.error("License UI Error:", err);
       const textEl = document.getElementById('banner-license-text');
-      if (textEl) textEl.innerText = 'جاهز للعمل';
+      if (textEl) textEl.innerText = 'المحاسب الذكي - متصل';
     }
   }
 
+  // تشغيل الإعدادات فور تحميل الصفحة
+  window.addEventListener('DOMContentLoaded', function() {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      if (document.getElementById('entry-date')) document.getElementById('entry-date').value = today;
+      if (document.getElementById('inv-date')) document.getElementById('inv-date').value = today;
+      if (document.getElementById('date-to')) document.getElementById('date-to').value = today;
+
+      if (!localStorage.getItem('smart_currency')) {
+        openCurrencyModal();
+      } else {
+        applyCurrency(localStorage.getItem('smart_currency'));
+      }
+
+      populateAccountSelects();
+      addInvoiceItemRow();
+      updateDashboardStats();
+    } catch (e) {
+      console.warn("Init error:", e);
+    }
+    updateLicenseUI();
+  });
   function openOnboardingModal(allowClose = false) {
     const m = document.getElementById('modal-onboarding');
     if (m) {

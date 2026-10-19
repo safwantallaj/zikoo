@@ -1018,7 +1018,7 @@
 
 </div>
 
-<!-- Modal 1: Onboarding License Activation -->
+<!-- Modal 1: تفعيل كود الترخيص -->
 <div class="modal-overlay" id="modal-onboarding">
   <div class="modal-panel" style="text-align: center;">
     <div style="width: 58px; height: 58px; background: linear-gradient(135deg, var(--primary), #38bdf8); color: white; border-radius: 16px; display: inline-flex; align-items: center; justify-content: center; font-size: 26px; margin-bottom: 12px;">
@@ -1106,7 +1106,7 @@
   </div>
 </div>
 
-<!-- Modal 3: إضافة حساب جديد مع خيار الرصيد الافتتاحي اللاحق -->
+<!-- Modal 3: إضافة حساب جديد مع فحص الرصيد الافتتاحي الشامل -->
 <div class="modal-overlay" id="modal-add-account">
   <div class="modal-panel">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
@@ -1114,27 +1114,29 @@
       <button style="border:none; background:none; font-size:22px; cursor:pointer;" onclick="closeAddAccountModal()">×</button>
     </div>
     <div class="form-group">
-      <label>النوع</label>
+      <label>نوع الحساب</label>
       <select id="new-acc-type" onchange="toggleOpeningBalanceField()">
-        <option value="vendor">مورد (ذمم دائنة)</option>
-        <option value="customer">عميل / زبون (ذمم مدينة)</option>
-        <option value="cash">صندوق / خزينة</option>
+        <option value="cash">صندوق / خزينة / محفظة إلكترونية</option>
         <option value="bank">حساب بنكي</option>
+        <option value="customer">عميل / زبون (ذمم مدينة)</option>
+        <option value="vendor">مورد / تاجر (ذمم دائنة)</option>
         <option value="expense">مصروف تشغيلي</option>
       </select>
     </div>
     <div class="form-group">
-      <label>الاسم</label>
-      <input type="text" id="new-acc-name" placeholder="مثال: مؤسسة النور، كهرباء وإنترنت...">
+      <label>اسم الحساب / الجهة</label>
+      <input type="text" id="new-acc-name" placeholder="مثال: فودافون كاش، بنك مصر، شركة الأمل...">
     </div>
 
-    <!-- حقل الرصيد السابق للعملاء والموردين القدامى -->
-    <div id="box-acc-opening-bal" class="form-group" style="background:var(--primary-light); padding:10px; border-radius:10px;">
-      <label style="font-size:12px; color:var(--primary-dark); font-weight:700;">
-        <i class="fa-solid fa-clock-rotate-left"></i> هل يوجد رصيد سابق (افتتاحي) مستحق لهذه الجهة؟
+    <!-- فحص وسؤال الرصيد السابق الشامل -->
+    <div id="box-acc-opening-bal" class="form-group" style="background:var(--primary-light); padding:12px; border-radius:12px; border:1px solid #bfdbfe;">
+      <label id="lbl-opening-bal-question" style="font-size:12px; color:var(--primary-dark); font-weight:700;">
+        <i class="fa-solid fa-scale-balanced"></i> هل يوجد رصيد سابق (افتتاحي) مستحق لهذا الحساب؟
       </label>
       <input type="number" id="new-acc-opening-bal" placeholder="0.00" value="0" min="0">
-      <span style="font-size:10px; color:#64748b;">إذا كانت جهة جديدة كلياً اتركها 0، وإذا كان قديماً سيتم تسجيل الرصيد مقابل رأس المال فوراً.</span>
+      <span id="lbl-opening-bal-hint" style="font-size:10px; color:#64748b; display:block; margin-top:4px;">
+        إذا كان الحساب جديداً كلياً اتركه (0)، وإذا كان به رصيد سابق سيتم تسويته تلقائياً مع حساب رأس المال.
+      </span>
     </div>
 
     <button class="btn btn-primary" onclick="confirmAddAccount()">حفظ وإدراج الحساب</button>
@@ -1224,7 +1226,7 @@
 </div>
 
 <script>
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzmd9TuDADeBP4lzRJPoOViRjIEzc7SbDIrDC7DywuRS9s4JwGY6Pu0ZQTL0znLyE0B/exec";
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzE3l1X4q6gVz1-FbiXJtHgl-mK4r_kFZFHVHNpiNIiS7j5L0RLChZkr75JbIxzGK8/exec";
 
   function showToast(message, isError = false) {
     let toast = document.getElementById("appToast");
@@ -1395,7 +1397,6 @@
 
         showToast('تم تفعيل نسختك واستنساخ الشيت بنجاح 🎉');
 
-        // فتح معالج الأرصدة الافتتاحية لأول مرة
         if (!localStorage.getItem('smart_wizard_completed')) {
           setTimeout(() => { openOpeningWizardModal(); }, 600);
         }
@@ -1411,7 +1412,7 @@
     }
   }
 
-  // دالات معالج الأرصدة الافتتاحية (Opening Balances Wizard)
+  // دالات معالج الأرصدة الافتتاحية التأسيسي (Setup Wizard)
   function openOpeningWizardModal() {
     document.getElementById('modal-opening-wizard').classList.add('open');
     if (document.getElementById('wiz-customers-container').children.length === 0) addWizardCustomerRow();
@@ -1480,7 +1481,6 @@
     if (cash > 0) lines.push({ accountCode: "1111", accountName: "الصندوق الرئيسي (الخزينة)", category: "النقدية والبنوك", nature: "مدين", debit: cash, credit: 0, description: "رصيد نقدية افتتاحي" });
     if (bank > 0) lines.push({ accountCode: "1113", accountName: "الحساب البنكي الجاري", category: "النقدية والبنوك", nature: "مدين", debit: bank, credit: 0, description: "رصيد بنكي افتتاحي" });
 
-    // قراءة العملاء
     document.querySelectorAll('#wiz-customers-container .wizard-item-row').forEach(row => {
       const name = row.querySelector('.wiz-cust-name').value.trim();
       const bal = parseFloat(row.querySelector('.wiz-cust-bal').value) || 0;
@@ -1492,7 +1492,6 @@
       }
     });
 
-    // قراءة الموردين
     document.querySelectorAll('#wiz-vendors-container .wizard-item-row').forEach(row => {
       const name = row.querySelector('.wiz-vend-name').value.trim();
       const bal = parseFloat(row.querySelector('.wiz-vend-bal').value) || 0;
@@ -1504,7 +1503,6 @@
       }
     });
 
-    // قراءة بضاعة أول المدة
     let stockTotalVal = 0;
     document.querySelectorAll('#wiz-stocks-container .wizard-item-row').forEach(row => {
       const name = row.querySelector('.wiz-stock-name').value.trim();
@@ -1521,7 +1519,6 @@
       totalAssets += stockTotalVal;
     }
 
-    // حساب رأس المال التأسيسي (المتمم المحاسبي)
     const equityVal = totalAssets - totalLiabilities;
     if (equityVal > 0) {
       lines.push({ accountCode: "3101", accountName: "رأس المال / الأرصدة الافتتاحية", category: "حقوق الملكية", nature: "دائن", debit: 0, credit: equityVal, description: "رأس المال الافتتاحي التأسيسي" });
@@ -1564,14 +1561,31 @@
     });
   }
 
+  // التحكم الديناميكي بحقل وسؤال الرصيد الافتتاحي
   function toggleOpeningBalanceField() {
     const type = document.getElementById('new-acc-type').value;
     const box = document.getElementById('box-acc-opening-bal');
-    if (type === 'customer' || type === 'vendor') {
-      box.style.display = 'block';
-    } else {
+    const qLbl = document.getElementById('lbl-opening-bal-question');
+    const hLbl = document.getElementById('lbl-opening-bal-hint');
+
+    if (type === 'expense') {
       box.style.display = 'none';
       document.getElementById('new-acc-opening-bal').value = 0;
+    } else {
+      box.style.display = 'block';
+      if (type === 'cash') {
+        qLbl.innerHTML = '<i class="fa-solid fa-wallet"></i> كم الرصيد الحالي المتوفر في هذه الخزينة / المحفظة؟';
+        hLbl.innerText = 'إذا كانت محفظة جديدة فارغة اتركها (0)، وإذا كان بها رصيد سيتم إدراجه فوراً في السيولة ورأس المال.';
+      } else if (type === 'bank') {
+        qLbl.innerHTML = '<i class="fa-solid fa-building-columns"></i> كم الرصيد الحالي المتوفر في هذا الحساب البنكي؟';
+        hLbl.innerText = 'إذا كان حساباً جديداً اتركه (0)، وإذا كان به رصيد سيضاف لأرصدة البنوك ورأس المال.';
+      } else if (type === 'customer') {
+        qLbl.innerHTML = '<i class="fa-solid fa-user-tag"></i> هل يوجد دين سابق ومستحق على هذا العميل (لك)؟';
+        hLbl.innerText = 'إذا كان عميلاً جديداً اتركه (0)، وإذا كان قديماً سيثبت الدين في كشف حسابه فوراً.';
+      } else if (type === 'vendor') {
+        qLbl.innerHTML = '<i class="fa-solid fa-truck-ramp-box"></i> هل يوجد دين سابق يطالبك به هذا المورد (عليك)؟';
+        hLbl.innerText = 'إذا كان مورداً جديداً اتركه (0)، وإذا كان قديماً سيثبت الدين في كشف حسابه فوراً.';
+      }
     }
   }
 
@@ -2568,15 +2582,15 @@
 
     if (!name) return showToast('يرجى كتابة اسم الحساب', true);
     
-    let prefix = type === 'vendor' ? '210' : (type === 'customer' ? '112' : (type === 'expense' ? '520' : '111'));
+    let prefix = (type === 'vendor') ? '210' : (type === 'customer' ? '112' : (type === 'expense' ? '520' : '111'));
     let code = prefix + Math.floor(10 + Math.random() * 89);
-    let cat = type === 'vendor' ? "الموردون والالتزامات" : (type === 'customer' ? "العملاء والمدينون" : (type === 'expense' ? "المصروفات" : "النقدية والبنوك"));
+    let cat = (type === 'vendor') ? "الموردون والالتزامات" : (type === 'customer' ? "العملاء والمدينون" : (type === 'expense' ? "المصروفات" : "النقدية والبنوك"));
     let nature = (type === 'vendor') ? 'دائن' : 'مدين';
 
     const newAcc = { code, name, cat, base: type, nature };
     chartOfAccounts.push(newAcc);
 
-    // معالجة الرصيد الافتتاحي اللاحق
+    // معالجة الرصيد الافتتاحي الشامل لجميع الحسابات (خزائن، بنوك، عملاء، موردين)
     if (openingBal > 0) {
       const date = new Date().toISOString().split('T')[0];
       const genNo = Date.now();
@@ -2584,12 +2598,13 @@
         chartOfAccounts.push({ code: "3101", name: "رأس المال / الأرصدة الافتتاحية", cat: "حقوق الملكية", base: "equity", nature: "دائن" });
       }
 
-      if (type === 'customer') {
-        ledgerEntries.push({ entryNo: genNo, date: date, accountCode: code, accountName: name, desc: "رصيد افتتاحي سابق للعميل", debit: openingBal, credit: 0 });
-        ledgerEntries.push({ entryNo: genNo, date: date, accountCode: "3101", accountName: "رأس المال / الأرصدة الافتتاحية", desc: "تسوية رصيد سابق للعميل " + name, debit: 0, credit: openingBal });
+      if (type === 'customer' || type === 'cash' || type === 'bank') {
+        const descText = (type === 'customer') ? ("رصيد افتتاحي سابق للعميل " + name) : ("رصيد تأسيسي / افتتاحي: " + name);
+        ledgerEntries.push({ entryNo: genNo, date: date, accountCode: code, accountName: name, desc: descText, debit: openingBal, credit: 0 });
+        ledgerEntries.push({ entryNo: genNo, date: date, accountCode: "3101", accountName: "رأس المال / الأرصدة الافتتاحية", desc: "تسوية رصيد افتتاح: " + name, debit: 0, credit: openingBal });
       } else if (type === 'vendor') {
-        ledgerEntries.push({ entryNo: genNo, date: date, accountCode: "3101", accountName: "رأس المال / الأرصدة الافتتاحية", desc: "تسوية رصيد سابق للمورد " + name, debit: openingBal, credit: 0 });
-        ledgerEntries.push({ entryNo: genNo, date: date, accountCode: code, accountName: name, desc: "رصيد افتتاحي سابق للمورد", debit: 0, credit: openingBal });
+        ledgerEntries.push({ entryNo: genNo, date: date, accountCode: "3101", accountName: "رأس المال / الأرصدة الافتتاحية", desc: "تسوية رصيد سابق للمورد: " + name, debit: openingBal, credit: 0 });
+        ledgerEntries.push({ entryNo: genNo, date: date, accountCode: code, accountName: name, desc: "رصيد افتتاحي سابق للمورد " + name, debit: 0, credit: openingBal });
       }
     }
 

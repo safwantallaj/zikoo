@@ -1143,7 +1143,6 @@
     }, 3200);
   }
 
-  // الحسابات والبيانات مع حماية ضد تلف الـ JSON
   const defaultAccounts = [
     { code: "1111", name: "الصندوق الرئيسي (الخزينة)", cat: "النقدية والبنوك", base: "cash", nature: "مدين" },
     { code: "1113", name: "الحساب البنكي الجاري", cat: "النقدية والبنوك", base: "bank", nature: "مدين" },
@@ -1177,9 +1176,13 @@
   }
 
   function persistData() {
-    localStorage.setItem('smart_accounts', JSON.stringify(chartOfAccounts));
-    localStorage.setItem('smart_entries', JSON.stringify(ledgerEntries));
-    localStorage.setItem('smart_invoices', JSON.stringify(smartInvoices));
+    try {
+      localStorage.setItem('smart_accounts', JSON.stringify(chartOfAccounts));
+      localStorage.setItem('smart_entries', JSON.stringify(ledgerEntries));
+      localStorage.setItem('smart_invoices', JSON.stringify(smartInvoices));
+    } catch (e) {
+      console.warn("Persist error:", e);
+    }
     updateDashboardStats();
     updateLicenseUI();
   }
@@ -1193,7 +1196,6 @@
       const own = document.getElementById('set-owner-email');
       const sht = document.getElementById('set-sheet-id');
 
-      // 1. إذا لم يكن هناك ترخيص مفعل
       if (!currentLicense || !currentLicense.key) {
         if (banner) banner.className = '';
         if (textEl) textEl.innerHTML = '<i class="fa-solid fa-circle-exclamation" style="color:var(--warning);"></i> يرجى إدخال كود التفعيل للبدء';
@@ -1205,21 +1207,17 @@
         return;
       }
 
-      // 2. تعبئة بيانات الإعدادات
       const savedEmail = currentLicense.email || localStorage.getItem('user_owner_email') || '';
       const savedSheet = currentLicense.sheetId || localStorage.getItem('user_sheet_id') || '';
       if (own) own.value = savedEmail;
       if (sht) sht.value = savedSheet;
 
-      // 3. نسخة دائمة PRO
       if (String(currentLicense.type).toUpperCase() === 'PRO') {
         if (banner) banner.className = 'pro';
         if (textEl) textEl.innerHTML = '<i class="fa-solid fa-crown" style="color:#10b981;"></i> النسخة الدائمة (PRO) - وصول مفتوح';
         if (upgradeBtn) upgradeBtn.style.display = 'none';
         if (tagEl) { tagEl.innerText = 'نسخة دائمة PRO'; tagEl.className = 'role-badge admin'; }
-      } 
-      // 4. نسخة تجريبية TRIAL
-      else {
+      } else {
         const today = new Date();
         const expDate = new Date(currentLicense.endDate || today);
         const diffTime = expDate - today;
@@ -1240,28 +1238,6 @@
     }
   }
 
-  // تشغيل الإعدادات فور تحميل الصفحة
-  window.addEventListener('DOMContentLoaded', function() {
-    try {
-      const today = new Date().toISOString().split('T')[0];
-      if (document.getElementById('entry-date')) document.getElementById('entry-date').value = today;
-      if (document.getElementById('inv-date')) document.getElementById('inv-date').value = today;
-      if (document.getElementById('date-to')) document.getElementById('date-to').value = today;
-
-      if (!localStorage.getItem('smart_currency')) {
-        openCurrencyModal();
-      } else {
-        applyCurrency(localStorage.getItem('smart_currency'));
-      }
-
-      populateAccountSelects();
-      addInvoiceItemRow();
-      updateDashboardStats();
-    } catch (e) {
-      console.warn("Init error:", e);
-    }
-    updateLicenseUI();
-  });
   function openOnboardingModal(allowClose = false) {
     const m = document.getElementById('modal-onboarding');
     if (m) {
@@ -1398,7 +1374,6 @@
     }
   }
 
-  // 1. أخذ نسخة سحابية جديدة على Google Drive
   async function exportLocalBackup() {
     const sheetId = localStorage.getItem('user_sheet_id');
     const email = localStorage.getItem('user_owner_email') || (currentLicense ? currentLicense.email : '');
@@ -1446,7 +1421,6 @@
     }
   }
 
-  // 2. استعراض النسخ الاحتياطية من Drive
   async function openRestoreBackupsModal() {
     const email = localStorage.getItem('user_owner_email') || (currentLicense ? currentLicense.email : '');
     if (!email) return showToast('يرجى تسجيل وتفعيل الحساب أولاً', true);
@@ -1510,7 +1484,6 @@
     document.getElementById('modal-restore-backups').classList.remove('open');
   }
 
-  // 3. تأكيد وتنفيذ الاسترجاع
   async function confirmRestoreBackup(backupId, backupName) {
     const isConfirmed = confirm(
       `⚠️ تحذير استرجاع البيانات:\n\nهل أنت متأكد من استرجاع:\n(${backupName})؟\n\n- سيتم أخذ نسخة أمان للشيت الحالي تلقائياً.\n- سيتم استبدال البيانات الحالية ببيانات النسخة المختارة.`
@@ -2372,4 +2345,102 @@
     ctx.drawImage(video, 0, 0, w, h);
     stopLiveCamera();
     const base64Data = canvas.toDataURL('image/jpeg', 0.75).split(',')[1];
-    analyzeInvoiceWithAI(base
+    analyzeInvoiceWithAI(base64Data);
+  }
+
+  function handleSystemPhoto(input) {
+    if (!input.files || !input.files[0]) return;
+    const file = input.files[0];
+    stopLiveCamera();
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const img = new Image();
+      img.onload = function() {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const maxDim = 1280;
+        let width = img.width, height = img.height;
+        if (width > height && width > maxDim) { height = Math.round((height * maxDim) / width); width = maxDim; }
+        else if (height > maxDim) { width = Math.round((width * maxDim) / height); height = maxDim; }
+        canvas.width = width; canvas.height = height;
+        ctx.drawImage(img, 0, 0, width, height);
+        const base64Data = canvas.toDataURL('image/jpeg', 0.75).split(',')[1];
+        analyzeInvoiceWithAI(base64Data);
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+    input.value = '';
+  }
+
+  async function analyzeInvoiceWithAI(base64Image) {
+    const loading = document.getElementById('ocr-loading-overlay');
+    loading.style.display = 'flex';
+    try {
+      const response = await fetch(SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action: "ANALYZE_INVOICE_AI", imageBase64: base64Image })
+      });
+      const res = await response.json();
+      if (res.status === "success" && res.data) {
+        const d = res.data;
+        if (d.date) document.getElementById('inv-date').value = d.date;
+        if (d.taxRate !== undefined) document.getElementById('inv-tax-mode').value = String(d.taxRate);
+
+        const list = document.getElementById('invoice-items-list');
+        list.innerHTML = '';
+        if (d.items && d.items.length > 0) {
+          d.items.forEach(it => {
+            const div = document.createElement('div');
+            div.className = 'inv-item-row';
+            div.innerHTML = `
+              <button class="btn-remove-row" onclick="this.parentElement.remove(); calculateInvoiceTotals();">×</button>
+              <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 8px;">
+                <div><label style="font-size:11px;">اسم الصنف</label><input type="text" class="inv-item-name" value="${it.name || 'بضاعة'}"></div>
+                <div><label style="font-size:11px;">الكمية</label><input type="number" class="inv-item-qty" value="${it.qty || 1}" min="1" oninput="calculateInvoiceTotals()"></div>
+                <div><label style="font-size:11px;">سعر الوحدة</label><input type="number" class="inv-item-price" value="${it.price || 10}" min="0" oninput="calculateInvoiceTotals()"></div>
+              </div>
+            `;
+            list.appendChild(div);
+          });
+        } else {
+          addInvoiceItemRow();
+        }
+        calculateInvoiceTotals();
+        showToast('تم مسح الفاتورة وتعبئة البنود بنجاح ✅');
+      } else {
+        throw new Error(res.message || "فشل التحليل");
+      }
+    } catch (err) {
+      showToast('خطأ: ' + err.message, true);
+      addInvoiceItemRow();
+    } finally {
+      loading.style.display = 'none';
+    }
+  }
+
+  window.addEventListener('DOMContentLoaded', function() {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      if (document.getElementById('entry-date')) document.getElementById('entry-date').value = today;
+      if (document.getElementById('inv-date')) document.getElementById('inv-date').value = today;
+      if (document.getElementById('date-to')) document.getElementById('date-to').value = today;
+
+      if (!localStorage.getItem('smart_currency')) {
+        openCurrencyModal();
+      } else {
+        applyCurrency(localStorage.getItem('smart_currency'));
+      }
+
+      populateAccountSelects();
+      addInvoiceItemRow();
+      updateDashboardStats();
+    } catch (e) {
+      console.warn("Init error:", e);
+    }
+    updateLicenseUI();
+  });
+</script>
+</body>
+</html>

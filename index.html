@@ -291,6 +291,7 @@
     .btn:active { transform: scale(0.98); }
     .btn-primary { background: var(--primary); color: white; }
     .btn-secondary { background: #334155; color: white; }
+    .btn-danger { background: var(--danger); color: white; }
     
     .btn-scan {
       background: linear-gradient(135deg, #10b981, #059669);
@@ -687,7 +688,7 @@
         </div>
       </div>
 
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px;">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
         <button class="btn btn-primary" onclick="switchTab('tab-invoice')">
           <i class="fa-solid fa-file-invoice-dollar"></i> إصدار فاتورة
         </button>
@@ -696,9 +697,14 @@
         </button>
       </div>
 
-      <button class="btn btn-outline" style="border-style: solid;" onclick="openAddAccountModal()">
-        <i class="fa-solid fa-folder-plus"></i> إضافة حساب / أصل / عميل / مورد
-      </button>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px;">
+        <button class="btn btn-danger" onclick="openQuickExpenseModal()">
+          <i class="fa-solid fa-receipt"></i> تسجيل مصروف
+        </button>
+        <button class="btn btn-outline" style="border-style: solid; margin-bottom:0;" onclick="openAddAccountModal()">
+          <i class="fa-solid fa-folder-plus"></i> إضافة حساب / أصل
+        </button>
+      </div>
     </div>
 
     <!-- Tab 2: Smart Invoices -->
@@ -1012,6 +1018,39 @@
 
 </div>
 
+<!-- Modal: تسجيل مصروف سريع -->
+<div class="modal-overlay" id="modal-quick-expense">
+  <div class="modal-panel">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+      <h3 style="font-size: 16px; color: var(--danger);"><i class="fa-solid fa-receipt"></i> تسجيل سند صرف / مصروف</h3>
+      <button style="border:none; background:none; font-size:22px; cursor:pointer;" onclick="closeQuickExpenseModal()">×</button>
+    </div>
+    <div class="form-group">
+      <label>بند المصروف</label>
+      <select id="quick-exp-acc"></select>
+    </div>
+    <div class="form-group">
+      <label>المبلغ المدفوع</label>
+      <input type="number" id="quick-exp-amount" placeholder="0.00" min="0.01" step="any">
+    </div>
+    <div class="form-group">
+      <label>طريقة الدفع (الخصم من)</label>
+      <select id="quick-exp-source"></select>
+    </div>
+    <div class="form-group">
+      <label>تاريخ الصرف</label>
+      <input type="date" id="quick-exp-date">
+    </div>
+    <div class="form-group">
+      <label>البيان / ملاحظات الصرف</label>
+      <input type="text" id="quick-exp-memo" placeholder="مثال: فاتورة كهرباء شهر 10، ضيافة عملاء...">
+    </div>
+    <button class="btn btn-danger" onclick="submitQuickExpenseAction()">
+      <i class="fa-solid fa-check"></i> حفظ وصرف المصروف فوراً
+    </button>
+  </div>
+</div>
+
 <!-- Modal 1: تفعيل كود الترخيص -->
 <div class="modal-overlay" id="modal-onboarding">
   <div class="modal-panel" style="text-align: center; position: relative;">
@@ -1097,7 +1136,7 @@
   </div>
 </div>
 
-<!-- Modal 3: إضافة حساب أو أصل جديد -->
+<!-- Modal 3: إضافة حساب أو أصل أو مصروف جديد -->
 <div class="modal-overlay" id="modal-add-account">
   <div class="modal-panel">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
@@ -1112,12 +1151,12 @@
         <option value="asset">أصل ثابت / مقتنيات (أجهزة، سيارات، ديكور...)</option>
         <option value="customer">عميل / زبون (ذمم مدينة)</option>
         <option value="vendor">مورد / تاجر (ذمم دائنة)</option>
-        <option value="expense">مصروف تشغيلي</option>
+        <option value="expense">مصروف تشغيلي / إداري / نثريات</option>
       </select>
     </div>
     <div class="form-group">
-      <label>اسم الحساب / الأصل / الجهة</label>
-      <input type="text" id="new-acc-name" placeholder="مثال: فودافون كاش، سيارة التوصيل، شركة الأمل...">
+      <label>اسم الحساب / الأصل / البند</label>
+      <input type="text" id="new-acc-name" placeholder="مثال: فودافون كاش، سيارة التوصيل، إيجار المخزن...">
     </div>
 
     <div id="box-acc-opening-bal" class="form-group" style="background:var(--primary-light); padding:12px; border-radius:12px; border:1px solid #bfdbfe;">
@@ -1217,7 +1256,6 @@
 </div>
 
 <script>
-  // الرابط المعتمد والصحيح للباك إند
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxHMj0wEpVtITSZdIyLnXv2oZiJroLDL4XaFl4u9aZnTYm_j5c7cAZ0AsHOsVYpECI/exec";
 
   function showToast(message, isError = false) {
@@ -1248,7 +1286,12 @@
     { code: "2103", name: "ضريبة القيمة المضافة المستحقة", cat: "الموردون والالتزامات", base: "liability", nature: "دائن" },
     { code: "3101", name: "رأس المال / الأرصدة الافتتاحية", cat: "حقوق الملكية", base: "equity", nature: "دائن" },
     { code: "4101", name: "إيراد مبيعات المنتجات", cat: "الإيرادات والمبيعات", base: "revenue", nature: "دائن" },
-    { code: "5101", name: "تكلفة المبيعات / المشتريات", cat: "المشتريات والمصروفات", base: "expense", nature: "مدين" }
+    { code: "5101", name: "تكلفة المبيعات / المشتريات", cat: "المشتريات والمصروفات", base: "expense", nature: "مدين" },
+    { code: "5201", name: "إيجار المقر / المحل", cat: "المصروفات التشغيلية", base: "expense", nature: "مدين" },
+    { code: "5202", name: "كهرباء ومياه وإنترنت", cat: "المصروفات التشغيلية", base: "expense", nature: "مدين" },
+    { code: "5203", name: "رواتب وأجور الموظفين", cat: "المصروفات التشغيلية", base: "expense", nature: "مدين" },
+    { code: "5204", name: "بوفيه وضيافة ونثريات", cat: "المصروفات التشغيلية", base: "expense", nature: "مدين" },
+    { code: "5205", name: "صيانة وإصلاحات", cat: "المصروفات التشغيلية", base: "expense", nature: "مدين" }
   ];
 
   let currentLicense = null;
@@ -1593,6 +1636,91 @@
     }
   }
 
+  // دوال تسجيل المصروف السريع
+  function openQuickExpenseModal() {
+    const expSel = document.getElementById('quick-exp-acc');
+    const srcSel = document.getElementById('quick-exp-source');
+    const dateInp = document.getElementById('quick-exp-date');
+
+    dateInp.value = new Date().toISOString().split('T')[0];
+
+    const expAccounts = chartOfAccounts.filter(a => a.base === 'expense' && a.code !== '5101');
+    expSel.innerHTML = expAccounts.map(a => `<option value="${a.code}">${a.code} - ${a.name}</option>`).join('');
+
+    const sourceAccounts = chartOfAccounts.filter(a => a.base === 'cash' || a.base === 'bank');
+    srcSel.innerHTML = sourceAccounts.map(a => `<option value="${a.code}">${a.code} - ${a.name}</option>`).join('');
+
+    document.getElementById('quick-exp-amount').value = '';
+    document.getElementById('quick-exp-memo').value = '';
+    document.getElementById('modal-quick-expense').classList.add('open');
+  }
+
+  function closeQuickExpenseModal() {
+    document.getElementById('modal-quick-expense').classList.remove('open');
+  }
+
+  async function submitQuickExpenseAction() {
+    if (!checkLicenseLimitBeforeAction()) return;
+
+    const expCode = document.getElementById('quick-exp-acc').value;
+    const expAcc = chartOfAccounts.find(a => a.code === expCode);
+    const srcCode = document.getElementById('quick-exp-source').value;
+    const srcAcc = chartOfAccounts.find(a => a.code === srcCode);
+
+    const amount = parseFloat(document.getElementById('quick-exp-amount').value) || 0;
+    const date = document.getElementById('quick-exp-date').value || new Date().toISOString().split('T')[0];
+    const userMemo = document.getElementById('quick-exp-memo').value.trim();
+
+    if (amount <= 0) return showToast('يرجى إدخال مبلغ صحيح للمصروف', true);
+    if (!expCode || !srcCode) return showToast('يرجى اختيار بند المصروف وطريقة الدفع', true);
+
+    const memo = userMemo ? `${expAcc.name} - ${userMemo}` : `صرف مصروف: ${expAcc.name}`;
+    const genNo = Date.now();
+
+    const lines = [
+      {
+        accountCode: expCode,
+        accountName: expAcc.name,
+        description: memo,
+        debit: amount,
+        credit: 0
+      },
+      {
+        accountCode: srcCode,
+        accountName: srcAcc.name,
+        description: memo,
+        debit: 0,
+        credit: amount
+      }
+    ];
+
+    lines.forEach(l => {
+      ledgerEntries.push({
+        entryNo: genNo,
+        date: date,
+        accountCode: l.accountCode,
+        accountName: l.accountName,
+        desc: l.description,
+        debit: l.debit,
+        credit: l.credit
+      });
+    });
+
+    persistData();
+    closeQuickExpenseModal();
+    showToast(`تم تسجيل مصروف ${amount.toFixed(2)} بنجاح وخصمه من السيولة`);
+
+    fetch(SCRIPT_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        action: "NEW_ENTRY",
+        spreadsheetId: localStorage.getItem("user_sheet_id"),
+        entryDate: date,
+        lines: lines
+      })
+    });
+  }
+
   function checkLicenseLimitBeforeAction() {
     const sheetId = localStorage.getItem('user_sheet_id');
     if (!sheetId && (!currentLicense || !currentLicense.key)) {
@@ -1650,6 +1778,7 @@
             else if (cCode.startsWith("112")) inferredBase = "customer";
             else if (cCode.startsWith("210")) inferredBase = "vendor";
             else if (cCode.startsWith("113") || cCode.startsWith("120")) inferredBase = "asset";
+            else if (cCode.startsWith("5")) inferredBase = "expense";
 
             cloudAcc.base = cloudAcc.base || inferredBase;
 
@@ -2632,7 +2761,7 @@
     
     let prefix = (type === 'vendor') ? '210' : (type === 'customer' ? '112' : (type === 'expense' ? '520' : (type === 'asset' ? '120' : '111')));
     let code = prefix + Math.floor(10 + Math.random() * 89);
-    let cat = (type === 'vendor') ? "الموردون والالتزامات" : (type === 'customer' ? "العملاء والمدينون" : (type === 'expense' ? "المصروفات" : (type === 'asset' ? "الأصول والممتلكات" : "النقدية والبنوك")));
+    let cat = (type === 'vendor') ? "الموردون والالتزامات" : (type === 'customer' ? "العملاء والمدينون" : (type === 'expense' ? "المصروفات التشغيلية" : (type === 'asset' ? "الأصول والممتلكات" : "النقدية والبنوك")));
     let nature = (type === 'vendor') ? 'دائن' : 'مدين';
 
     const newAcc = { code, name, cat, base: type, nature };

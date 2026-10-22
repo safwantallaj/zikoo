@@ -697,11 +697,11 @@
       </div>
 
       <button class="btn btn-outline" style="border-style: solid;" onclick="openAddAccountModal()">
-        <i class="fa-solid fa-folder-plus"></i> إضافة حساب / عميل / مورد جديد
+        <i class="fa-solid fa-folder-plus"></i> إضافة حساب / أصل / عميل / مورد
       </button>
     </div>
 
-    <!-- Tab 2: Smart Invoices (New & Edit) -->
+    <!-- Tab 2: Smart Invoices -->
     <div id="tab-invoice" class="tab-content">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
         <h3 id="invoice-form-title" style="font-size: 18px;">إصدار فاتورة ذكية</h3>
@@ -790,7 +790,7 @@
       </button>
     </div>
 
-    <!-- Tab 3: Journal Entry (New & Edit) -->
+    <!-- Tab 3: Journal Entry -->
     <div id="tab-entry" class="tab-content">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 14px;">
         <h3 id="entry-form-title" style="font-size: 18px;">تسجيل قيد يومية عام</h3>
@@ -844,7 +844,7 @@
       </button>
     </div>
 
-    <!-- Tab 4: Financial Reports & Statements -->
+    <!-- Tab 4: Financial Reports -->
     <div id="tab-statement" class="tab-content">
       <div style="display: flex; gap: 6px; margin-bottom: 14px; overflow-x: auto; padding-bottom: 4px;">
         <button class="btn btn-secondary" style="flex:1; padding:8px; font-size:11px; white-space:nowrap;" onclick="switchSubReport('ledger')">كشف الحساب</button>
@@ -853,7 +853,6 @@
         <button class="btn btn-secondary" style="flex:1; padding:8px; font-size:11px; white-space:nowrap;" onclick="switchSubReport('tax')">الإقرار الضريبي</button>
       </div>
 
-      <!-- Sub: Ledger -->
       <div id="sub-report-ledger">
         <div class="form-group">
           <label>اختر الحساب</label>
@@ -894,7 +893,6 @@
         </table>
       </div>
 
-      <!-- Sub: Income Statement -->
       <div id="sub-report-income" style="display: none;">
         <div class="report-card">
           <h4 style="margin-bottom: 12px; color: var(--primary);"><i class="fa-solid fa-chart-line"></i> قائمة الدخل (الأرباح والخسائر)</h4>
@@ -909,7 +907,6 @@
         </div>
       </div>
 
-      <!-- Sub: Trial Balance -->
       <div id="sub-report-trial" style="display: none;">
         <div class="report-card">
           <h4 style="margin-bottom: 12px; color: var(--primary);"><i class="fa-solid fa-scale-balanced"></i> ميزان المراجعة بالأرصدة</h4>
@@ -922,7 +919,6 @@
         </div>
       </div>
 
-      <!-- Sub: Tax Report -->
       <div id="sub-report-tax" style="display: none;">
         <div class="report-card">
           <h4 style="margin-bottom: 12px; color: var(--primary);"><i class="fa-solid fa-file-shield"></i> ملخص الإقرار الضريبي (VAT)</h4>
@@ -934,10 +930,9 @@
           </div>
         </div>
       </div>
-
     </div>
 
-    <!-- Tab 5: Settings & Workspace Setup -->
+    <!-- Tab 5: Settings -->
     <div id="tab-settings" class="tab-content">
       <h3 style="margin-bottom: 14px; font-size: 18px;"><i class="fa-solid fa-sliders" style="color: var(--primary);"></i> إعدادات النظام وفريق العمل</h3>
 
@@ -988,7 +983,6 @@
           <i class="fa-solid fa-trash-can"></i> إعادة تهيئة الحساب ومسح البيانات من الهاتف
         </button>
       </div>
-
     </div>
 
   </main>
@@ -1047,7 +1041,7 @@
   </div>
 </div>
 
-<!-- Modal 2: معالج الأرصدة الافتتاحية التأسيسي (Setup Wizard) -->
+<!-- Modal 2: معالج الأرصدة الافتتاحية -->
 <div class="modal-overlay" id="modal-opening-wizard">
   <div class="modal-panel">
     <div style="text-align: center; margin-bottom: 16px;">
@@ -1058,7 +1052,6 @@
       <p style="font-size: 12px; color: var(--text-muted);">أدخل أرصدتك وبضائعك الحالية وسيقوم النظام بموازنة رأس المال وتأسيس دفاترك تلقائياً.</p>
     </div>
 
-    <!-- 1. السيولة النقدية -->
     <div class="settings-card" style="background:#f8fafc;">
       <div style="font-weight:700; font-size:13px; margin-bottom:8px; color:var(--primary);"><i class="fa-solid fa-money-bill-wave"></i> 1. السيولة المتوفرة حالياً</div>
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
@@ -1073,7 +1066,6 @@
       </div>
     </div>
 
-    <!-- 2. ديون الزبائن والعملاء -->
     <div class="settings-card" style="background:#f8fafc;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
         <div style="font-weight:700; font-size:13px; color:var(--primary);"><i class="fa-solid fa-users"></i> 2. ديون عند الزبائن (لك)</div>
@@ -1082,7 +1074,6 @@
       <div id="wiz-customers-container"></div>
     </div>
 
-    <!-- 3. ديون الموردين -->
     <div class="settings-card" style="background:#f8fafc;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
         <div style="font-weight:700; font-size:13px; color:var(--danger);"><i class="fa-solid fa-truck"></i> 3. ديون للموردين (عليك)</div>
@@ -1091,7 +1082,6 @@
       <div id="wiz-vendors-container"></div>
     </div>
 
-    <!-- 4. بضاعة أول المدة -->
     <div class="settings-card" style="background:#f8fafc;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
         <div style="font-weight:700; font-size:13px; color:var(--success);"><i class="fa-solid fa-boxes-stacked"></i> 4. بضاعة أول المدة بالمستودع</div>
@@ -1107,11 +1097,11 @@
   </div>
 </div>
 
-<!-- Modal 3: إضافة حساب جديد مع فحص الرصيد الافتتاحي الشامل -->
+<!-- Modal 3: إضافة حساب أو أصل جديد -->
 <div class="modal-overlay" id="modal-add-account">
   <div class="modal-panel">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-      <h3 style="font-size: 16px;">إضافة حساب أو جهة جديدة</h3>
+      <h3 style="font-size: 16px;">إضافة حساب أو جهة أو أصل</h3>
       <button style="border:none; background:none; font-size:22px; cursor:pointer;" onclick="closeAddAccountModal()">×</button>
     </div>
     <div class="form-group">
@@ -1119,17 +1109,17 @@
       <select id="new-acc-type" onchange="toggleOpeningBalanceField()">
         <option value="cash">صندوق / خزينة / محفظة إلكترونية</option>
         <option value="bank">حساب بنكي</option>
+        <option value="asset">أصل ثابت / مقتنيات (أجهزة، سيارات، ديكور...)</option>
         <option value="customer">عميل / زبون (ذمم مدينة)</option>
         <option value="vendor">مورد / تاجر (ذمم دائنة)</option>
         <option value="expense">مصروف تشغيلي</option>
       </select>
     </div>
     <div class="form-group">
-      <label>اسم الحساب / الجهة</label>
-      <input type="text" id="new-acc-name" placeholder="مثال: فودافون كاش، بنك مصر، شركة الأمل...">
+      <label>اسم الحساب / الأصل / الجهة</label>
+      <input type="text" id="new-acc-name" placeholder="مثال: فودافون كاش، سيارة التوصيل، شركة الأمل...">
     </div>
 
-    <!-- فحص وسؤال الرصيد السابق الشامل -->
     <div id="box-acc-opening-bal" class="form-group" style="background:var(--primary-light); padding:12px; border-radius:12px; border:1px solid #bfdbfe;">
       <label id="lbl-opening-bal-question" style="font-size:12px; color:var(--primary-dark); font-weight:700;">
         <i class="fa-solid fa-scale-balanced"></i> هل يوجد رصيد سابق (افتتاحي) مستحق لهذا الحساب؟
@@ -1200,7 +1190,7 @@
   </div>
 </div>
 
-<!-- Modal 7: استرجاع النسخ الاحتياطية من Drive -->
+<!-- Modal 7: Restore Backups -->
 <div class="modal-overlay" id="modal-restore-backups">
   <div class="modal-panel">
     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 12px;">
@@ -1227,8 +1217,8 @@
 </div>
 
 <script>
-  // رابط السيرفر المعتمد والمؤكد
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbypBY2o9VMhv3eXiejQcWVtt9byQkEcmWIvW1fd8goeNQ-cKCSs32J_xP6WYxRREIQ/exec";
+  // الرابط المعتمد والصحيح للباك إند
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxHMj0wEpVtITSZdIyLnXv2oZiJroLDL4XaFl4u9aZnTYm_j5c7cAZ0AsHOsVYpECI/exec";
 
   function showToast(message, isError = false) {
     let toast = document.getElementById("appToast");
@@ -1253,6 +1243,7 @@
     { code: "1113", name: "الحساب البنكي الجاري", cat: "النقدية والبنوك", base: "bank", nature: "مدين" },
     { code: "1121", name: "عميل تجاري عام", cat: "العملاء والمدينون", base: "customer", nature: "مدين" },
     { code: "1131", name: "مخزون بضاعة المستودع الرئيسي", cat: "المخزون والأصول", base: "asset", nature: "مدين" },
+    { code: "1201", name: "الأصول الثابتة والمعدات", cat: "الأصول والممتلكات", base: "asset", nature: "مدين" },
     { code: "2101", name: "مورد تجاري عام", cat: "الموردون والالتزامات", base: "vendor", nature: "دائن" },
     { code: "2103", name: "ضريبة القيمة المضافة المستحقة", cat: "الموردون والالتزامات", base: "liability", nature: "دائن" },
     { code: "3101", name: "رأس المال / الأرصدة الافتتاحية", cat: "حقوق الملكية", base: "equity", nature: "دائن" },
@@ -1310,13 +1301,11 @@
 
       if (!currentLicense || !currentLicense.key) {
         if (savedSheet) {
-          // يوجد شيت مرتبط مسبقاً
           if (banner) banner.className = 'pro';
           if (textEl) textEl.innerHTML = '<i class="fa-solid fa-check-circle" style="color:#10b981;"></i> مساحة العمل السحابية متصلة';
           if (upgradeBtn) { upgradeBtn.style.display = 'inline'; upgradeBtn.innerText = 'ترقية'; }
           if (tagEl) { tagEl.innerText = 'نشط'; tagEl.className = 'role-badge admin'; }
         } else {
-          // لم يتم التفعيل بعد
           if (banner) banner.className = '';
           if (textEl) textEl.innerHTML = '<i class="fa-solid fa-circle-exclamation" style="color:var(--warning);"></i> يرجى إدخال كود التفعيل للبدء';
           if (upgradeBtn) { upgradeBtn.style.display = 'inline'; upgradeBtn.innerText = 'تفعيل الآن'; }
@@ -1591,6 +1580,9 @@
       } else if (type === 'bank') {
         qLbl.innerHTML = '<i class="fa-solid fa-building-columns"></i> كم الرصيد الحالي المتوفر في هذا الحساب البنكي؟';
         hLbl.innerText = 'إذا كان حساباً جديداً اتركه (0)، وإذا كان به رصيد سيضاف لأرصدة البنوك ورأس المال.';
+      } else if (type === 'asset') {
+        qLbl.innerHTML = '<i class="fa-solid fa-truck-pickup"></i> ما هي القيمة الدفترية / التأسيسية الحالية لهذا الأصل؟';
+        hLbl.innerText = 'إذا كان أصلاً مملوكاً مسبقاً، ضع قيمته هنا ليتم إضافته إلى ممتلكات المنشأة ورأس المال تلقائياً.';
       } else if (type === 'customer') {
         qLbl.innerHTML = '<i class="fa-solid fa-user-tag"></i> هل يوجد دين سابق ومستحق على هذا العميل (لك)؟';
         hLbl.innerText = 'إذا كان عميلاً جديداً اتركه (0)، وإذا كان قديماً سيثبت الدين في كشف حسابه فوراً.';
@@ -1657,7 +1649,7 @@
             else if (cCode.startsWith("111")) inferredBase = "bank";
             else if (cCode.startsWith("112")) inferredBase = "customer";
             else if (cCode.startsWith("210")) inferredBase = "vendor";
-            else if (cCode.startsWith("113")) inferredBase = "asset";
+            else if (cCode.startsWith("113") || cCode.startsWith("120")) inferredBase = "asset";
 
             cloudAcc.base = cloudAcc.base || inferredBase;
 
@@ -2636,11 +2628,11 @@
     const type = document.getElementById('new-acc-type').value;
     const openingBal = parseFloat(document.getElementById('new-acc-opening-bal').value) || 0;
 
-    if (!name) return showToast('يرجى كتابة اسم الحساب', true);
+    if (!name) return showToast('يرجى كتابة اسم الحساب أو الأصل', true);
     
-    let prefix = (type === 'vendor') ? '210' : (type === 'customer' ? '112' : (type === 'expense' ? '520' : '111'));
+    let prefix = (type === 'vendor') ? '210' : (type === 'customer' ? '112' : (type === 'expense' ? '520' : (type === 'asset' ? '120' : '111')));
     let code = prefix + Math.floor(10 + Math.random() * 89);
-    let cat = (type === 'vendor') ? "الموردون والالتزامات" : (type === 'customer' ? "العملاء والمدينون" : (type === 'expense' ? "المصروفات" : "النقدية والبنوك"));
+    let cat = (type === 'vendor') ? "الموردون والالتزامات" : (type === 'customer' ? "العملاء والمدينون" : (type === 'expense' ? "المصروفات" : (type === 'asset' ? "الأصول والممتلكات" : "النقدية والبنوك")));
     let nature = (type === 'vendor') ? 'دائن' : 'مدين';
 
     const newAcc = { code, name, cat, base: type, nature };
@@ -2653,8 +2645,8 @@
         chartOfAccounts.push({ code: "3101", name: "رأس المال / الأرصدة الافتتاحية", cat: "حقوق الملكية", base: "equity", nature: "دائن" });
       }
 
-      if (type === 'customer' || type === 'cash' || type === 'bank') {
-        const descText = (type === 'customer') ? ("رصيد افتتاحي سابق للعميل " + name) : ("رصيد تأسيسي / افتتاحي: " + name);
+      if (type === 'customer' || type === 'cash' || type === 'bank' || type === 'asset') {
+        const descText = (type === 'customer') ? ("رصيد افتتاحي سابق للعميل " + name) : ((type === 'asset') ? ("قيمة أصل تأسيسي: " + name) : ("رصيد تأسيسي / افتتاحي: " + name));
         ledgerEntries.push({ entryNo: genNo, date: date, accountCode: code, accountName: name, desc: descText, debit: openingBal, credit: 0 });
         ledgerEntries.push({ entryNo: genNo, date: date, accountCode: "3101", accountName: "رأس المال / الأرصدة الافتتاحية", desc: "تسوية رصيد افتتاح: " + name, debit: 0, credit: openingBal });
       } else if (type === 'vendor') {

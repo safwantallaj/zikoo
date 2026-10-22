@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>المحاسب الذكي | Smart Ledger</title>
-  <link rel="manifest" href="manifest.json">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -57,21 +56,15 @@
     }
 
     #license-banner {
-      background: var(--warning-light);
-      border-bottom: 1px solid #fde68a;
+      background: var(--success-light);
+      border-bottom: 1px solid #a7f3d0;
       padding: 8px 14px;
       font-size: 11px;
       font-weight: 700;
-      color: #b45309;
+      color: #065f46;
       display: flex;
       justify-content: space-between;
       align-items: center;
-    }
-
-    #license-banner.pro {
-      background: var(--success-light);
-      border-bottom: 1px solid #a7f3d0;
-      color: #065f46;
     }
 
     header {
@@ -642,13 +635,13 @@
 
 <div class="app-container">
 
-  <!-- شريط الترخيص المباشر -->
+  <!-- شريط الترخيص الدائم النشط -->
   <div id="license-banner">
     <div>
-      <i class="fa-solid fa-shield-halved"></i>
-      <span id="banner-license-text">النسخة السحابية</span>
+      <i class="fa-solid fa-crown" style="color:#10b981;"></i>
+      <span id="banner-license-text">النسخة الدائمة (PRO) - وصول مفتوح</span>
     </div>
-    <span id="banner-upgrade-btn" style="text-decoration: underline; cursor: pointer;" onclick="openOnboardingModal(true)">تفعيل / ترقية الكود</span>
+    <span id="banner-upgrade-btn" style="text-decoration: underline; cursor: pointer;" onclick="openOnboardingModal(true)">إعدادات الحساب</span>
   </div>
   
   <header>
@@ -945,21 +938,24 @@
       <div class="settings-card">
         <div style="font-weight: 700; font-size: 14px; margin-bottom: 10px; color: var(--primary); display: flex; align-items: center; justify-content: space-between;">
           <span><i class="fa-solid fa-key"></i> بيانات الترخيص والشيت المستقل</span>
-          <span id="settings-license-tag" class="role-badge admin">نشط</span>
+          <span id="settings-license-tag" class="role-badge admin">نشط PRO</span>
         </div>
         <div class="form-group">
           <label>البريد الإلكتروني المرتبط</label>
-          <input type="email" id="set-owner-email" readonly style="background:#f1f5f9;">
+          <input type="email" id="set-owner-email" style="background:#f1f5f9;">
         </div>
         <div class="form-group">
           <label>معرّف الشيت المستقل (Google Sheet ID)</label>
-          <input type="text" id="set-sheet-id" readonly style="background:#f1f5f9;">
+          <input type="text" id="set-sheet-id" style="background:#f1f5f9;" placeholder="الصق معرّف الشيت الخاص بك هنا">
         </div>
+        <button class="btn btn-primary" style="padding: 9px; margin-bottom: 8px; font-size: 13px;" onclick="saveSheetIdManually()">
+          <i class="fa-solid fa-floppy-disk"></i> حفظ معرّف الشيت يدوياً
+        </button>
         <button class="btn btn-outline" style="border-style: solid; padding: 9px; margin-bottom: 8px;" onclick="openOpeningWizardModal()">
           <i class="fa-solid fa-wand-magic-sparkles"></i> إعادة فتح معالج الأرصدة الافتتاحية
         </button>
         <button class="btn btn-outline" style="border-style: solid; padding: 9px;" onclick="openOnboardingModal(true)">
-          <i class="fa-solid fa-arrows-rotate"></i> ترقية أو تغيير كود التفعيل
+          <i class="fa-solid fa-arrows-rotate"></i> ربط حساب Gmail آخر
         </button>
       </div>
 
@@ -986,7 +982,7 @@
           <i class="fa-solid fa-coins"></i> تغيير العملة الرئيسية المعتمدة (<span class="curr-symbol">ر.س</span>)
         </button>
         <button class="btn btn-outline" style="border-style: solid; color: var(--danger); border-color: var(--danger);" onclick="resetLocalDataConfirm()">
-          <i class="fa-solid fa-trash-can"></i> إعادة تهيئة الحساب ومسح البيانات من الهاتف
+          <i class="fa-solid fa-trash-can"></i> إعادة تهيئة الحساب ومسح الذاكرة المؤقتة
         </button>
       </div>
     </div>
@@ -1051,27 +1047,26 @@
   </div>
 </div>
 
-<!-- Modal 1: تفعيل كود الترخيص -->
+<!-- Modal 1: نافذة الترخيص (اختيارية وغير معطلة للواجهة) -->
 <div class="modal-overlay" id="modal-onboarding">
   <div class="modal-panel" style="text-align: center; position: relative;">
-    <button id="btn-close-onboard" style="position: absolute; top: 15px; left: 15px; border: none; background: none; font-size: 20px; cursor: pointer; color: #94a3b8; display: none;" onclick="closeOnboardingModal()">×</button>
+    <button id="btn-close-onboard" style="position: absolute; top: 15px; left: 15px; border: none; background: none; font-size: 20px; cursor: pointer; color: #94a3b8;" onclick="closeOnboardingModal()">×</button>
     <div style="width: 58px; height: 58px; background: linear-gradient(135deg, var(--primary), #38bdf8); color: white; border-radius: 16px; display: inline-flex; align-items: center; justify-content: center; font-size: 26px; margin-bottom: 12px;">
       <i class="fa-solid fa-shield-halved"></i>
     </div>
-    <h3 style="font-size: 20px; font-weight: 800; margin-bottom: 4px;">مرحباً بك في المحاسب الذكي</h3>
+    <h3 style="font-size: 20px; font-weight: 800; margin-bottom: 4px;">إعدادات مساحة العمل</h3>
     <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 18px;">
-      لتجهيز مساحة عملك المحاسبية المستقلة على Google Drive، يرجى إدخال بريدك وكود الترخيص المخصص لك.
+      أدخل بريدك وكود الترخيص لربط أو استنساخ الشيت السحابي.
     </p>
 
     <div class="form-group" style="text-align: right;">
       <label style="font-size: 12px;"><i class="fa-solid fa-envelope" style="color: var(--primary);"></i> بريدك الإلكتروني (Gmail)</label>
       <input type="email" id="onboard-email" placeholder="name@gmail.com">
-      <span style="font-size: 10px; color: #94a3b8;">سيتم استنساخ الشيت ومشاركته مع هذا البريد فوراً.</span>
     </div>
 
     <div class="form-group" style="text-align: right;">
       <label style="font-size: 12px;"><i class="fa-solid fa-key" style="color: var(--warning);"></i> كود التفعيل (License Key)</label>
-      <input type="text" id="onboard-key" placeholder="مثال: TRIAL-2026 أو PRO-2026" style="text-transform: uppercase; font-weight: 700; letter-spacing: 1px;">
+      <input type="text" id="onboard-key" placeholder="PRO-2026" value="PRO-2026" style="text-transform: uppercase; font-weight: 700; letter-spacing: 1px;">
     </div>
 
     <button class="btn btn-primary" id="btn-activate-license" style="padding: 14px; font-size: 15px;" onclick="submitLicenseActivation()">
@@ -1294,15 +1289,20 @@
     { code: "5205", name: "صيانة وإصلاحات", cat: "المصروفات التشغيلية", base: "expense", nature: "مدين" }
   ];
 
-  let currentLicense = null;
+  // تفعيل دائم افتراضي آمن لتجاوز أي تعليق
+  let currentLicense = {
+    key: "PRO-2026",
+    type: "PRO",
+    status: "نشط",
+    email: localStorage.getItem('user_owner_email') || "",
+    sheetId: localStorage.getItem('user_sheet_id') || ""
+  };
+
   let chartOfAccounts = defaultAccounts;
   let ledgerEntries = [];
   let smartInvoices = [];
 
   try {
-    const licData = localStorage.getItem('smart_license');
-    if (licData) currentLicense = JSON.parse(licData);
-
     const accData = localStorage.getItem('smart_accounts');
     if (accData) chartOfAccounts = JSON.parse(accData);
 
@@ -1312,7 +1312,7 @@
     const invData = localStorage.getItem('smart_invoices');
     if (invData) smartInvoices = JSON.parse(invData);
   } catch (parseErr) {
-    console.warn("Storage parsing error:", parseErr);
+    console.warn("Storage parsing error, fallback to defaults", parseErr);
   }
 
   function persistData() {
@@ -1329,74 +1329,35 @@
 
   function updateLicenseUI() {
     try {
-      const banner = document.getElementById('license-banner');
-      const textEl = document.getElementById('banner-license-text');
-      const upgradeBtn = document.getElementById('banner-upgrade-btn');
-      const tagEl = document.getElementById('settings-license-tag');
       const own = document.getElementById('set-owner-email');
       const sht = document.getElementById('set-sheet-id');
-
-      const savedEmail = (currentLicense && currentLicense.email) || localStorage.getItem('user_owner_email') || '';
-      const savedSheet = (currentLicense && currentLicense.sheetId) || localStorage.getItem('user_sheet_id') || '';
+      const savedEmail = localStorage.getItem('user_owner_email') || '';
+      const savedSheet = localStorage.getItem('user_sheet_id') || '';
 
       if (own) own.value = savedEmail;
       if (sht) sht.value = savedSheet;
-
-      if (!currentLicense || !currentLicense.key) {
-        if (savedSheet) {
-          if (banner) banner.className = 'pro';
-          if (textEl) textEl.innerHTML = '<i class="fa-solid fa-check-circle" style="color:#10b981;"></i> مساحة العمل السحابية متصلة';
-          if (upgradeBtn) { upgradeBtn.style.display = 'inline'; upgradeBtn.innerText = 'ترقية'; }
-          if (tagEl) { tagEl.innerText = 'نشط'; tagEl.className = 'role-badge admin'; }
-        } else {
-          if (banner) banner.className = '';
-          if (textEl) textEl.innerHTML = '<i class="fa-solid fa-circle-exclamation" style="color:var(--warning);"></i> يرجى إدخال كود التفعيل للبدء';
-          if (upgradeBtn) { upgradeBtn.style.display = 'inline'; upgradeBtn.innerText = 'تفعيل الآن'; }
-          if (tagEl) { tagEl.innerText = 'غير مفعل'; tagEl.className = 'role-badge'; }
-        }
-        return;
-      }
-
-      if (String(currentLicense.type).toUpperCase() === 'PRO') {
-        if (banner) banner.className = 'pro';
-        if (textEl) textEl.innerHTML = '<i class="fa-solid fa-crown" style="color:#10b981;"></i> النسخة الدائمة (PRO) - وصول مفتوح';
-        if (upgradeBtn) upgradeBtn.style.display = 'none';
-        if (tagEl) { tagEl.innerText = 'دائم PRO'; tagEl.className = 'role-badge admin'; }
-      } else {
-        let daysLeft = 20;
-        if (currentLicense.endDate && currentLicense.endDate !== "غير محدود") {
-          const exp = new Date(currentLicense.endDate);
-          if (!isNaN(exp.getTime())) {
-            daysLeft = Math.max(0, Math.ceil((exp - new Date()) / (1000 * 60 * 60 * 24)));
-          }
-        }
-        const entriesCount = Array.isArray(ledgerEntries) ? ledgerEntries.length : 0;
-        const limitCount = Number(currentLicense.limitEntries) || 100;
-        const entriesLeft = Math.max(0, limitCount - entriesCount);
-
-        if (banner) banner.className = '';
-        if (textEl) textEl.innerHTML = `نسخة تجريبية: متبقي <strong>${daysLeft}</strong> يوم | <strong>${entriesLeft}</strong> قيد`;
-        if (upgradeBtn) { upgradeBtn.style.display = 'inline'; upgradeBtn.innerText = 'ترقية النسخة'; }
-        if (tagEl) { tagEl.innerText = `تجريبي (${daysLeft} يوم)`; tagEl.className = 'role-badge'; }
-      }
     } catch (err) {
       console.error("License UI Error:", err);
-      const textEl = document.getElementById('banner-license-text');
-      if (textEl) textEl.innerText = 'المحاسب الذكي - متصل';
     }
   }
 
-  function openOnboardingModal(allowClose = false) {
+  function saveSheetIdManually() {
+    const sht = document.getElementById('set-sheet-id').value.trim();
+    const own = document.getElementById('set-owner-email').value.trim();
+    if (!sht) return showToast('يرجى لصق معرّف الشيت أولاً', true);
+
+    localStorage.setItem('user_sheet_id', sht);
+    if (own) localStorage.setItem('user_owner_email', own);
+    currentLicense.sheetId = sht;
+    currentLicense.email = own;
+
+    showToast('تم حفظ معرّف الشيت بنجاح ✅');
+    triggerCloudSync();
+  }
+
+  function openOnboardingModal(allowClose = true) {
     const m = document.getElementById('modal-onboarding');
-    const closeBtn = document.getElementById('btn-close-onboard');
-    if (m) {
-      m.classList.add('open');
-      if (closeBtn) closeBtn.style.display = allowClose ? 'block' : 'none';
-      if (currentLicense) {
-        document.getElementById('onboard-email').value = currentLicense.email || '';
-        document.getElementById('onboard-key').value = currentLicense.key || '';
-      }
-    }
+    if (m) m.classList.add('open');
   }
 
   function closeOnboardingModal() {
@@ -1406,14 +1367,13 @@
 
   async function submitLicenseActivation() {
     const email = document.getElementById('onboard-email').value.trim().toLowerCase();
-    const key = document.getElementById('onboard-key').value.trim().toUpperCase();
+    const key = document.getElementById('onboard-key').value.trim().toUpperCase() || 'PRO-2026';
     const btn = document.getElementById('btn-activate-license');
 
     if (!email || !email.includes('@')) return showToast('يرجى إدخال بريد Gmail صحيح', true);
-    if (!key) return showToast('يرجى إدخال كود التفعيل', true);
 
     btn.disabled = true;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري استنساخ الشيت وتفعيل الترخيص...';
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري الاتصال...';
 
     try {
       const response = await fetch(SCRIPT_URL, {
@@ -1429,29 +1389,17 @@
       const res = await response.json();
       if (res.status === "success" && res.license) {
         currentLicense = res.license;
-        localStorage.setItem('smart_license', JSON.stringify(currentLicense));
         localStorage.setItem('user_owner_email', currentLicense.email);
         localStorage.setItem('user_sheet_id', currentLicense.sheetId);
-
         closeOnboardingModal();
         updateLicenseUI();
-        
-        const own = document.getElementById('set-owner-email');
-        const sht = document.getElementById('set-sheet-id');
-        if (own) own.value = currentLicense.email;
-        if (sht) sht.value = currentLicense.sheetId;
-
-        showToast('تم تفعيل نسختك واستنساخ الشيت بنجاح 🎉');
-
-        if (!localStorage.getItem('smart_wizard_completed')) {
-          setTimeout(() => { openOpeningWizardModal(); }, 600);
-        }
+        showToast('تم ربط مساحة العمل بنجاح 🎉');
       } else {
         throw new Error(res.message || "فشل التحقق من الكود");
       }
     } catch (err) {
       console.error(err);
-      showToast('خطأ التفعيل: ' + err.message, true);
+      showToast('خطأ: ' + err.message, true);
     } finally {
       btn.disabled = false;
       btn.innerHTML = '<i class="fa-solid fa-rocket"></i> تفعيل مساحة العمل السحابية';
@@ -1567,8 +1515,6 @@
     const equityVal = totalAssets - totalLiabilities;
     if (equityVal > 0) {
       lines.push({ accountCode: "3101", accountName: "رأس المال / الأرصدة الافتتاحية", category: "حقوق الملكية", nature: "دائن", debit: 0, credit: equityVal, description: "رأس المال الافتتاحي التأسيسي" });
-    } else if (equityVal < 0) {
-      lines.push({ accountCode: "3101", accountName: "رأس المال / الأرصدة الافتتاحية", category: "حقوق الملكية", nature: "مدين", debit: Math.abs(equityVal), credit: 0, description: "عجز رأس المال الافتتاحي" });
     }
 
     if (lines.length === 0) {
@@ -1592,7 +1538,7 @@
     persistData();
     populateAccountSelects();
     closeOpeningWizardModal();
-    showToast('تم تأسيس الأرصدة الافتتاحية ورأس المال بنجاح ✅');
+    showToast('تم تأسيس الأرصدة بنجاح ✅');
 
     fetch(SCRIPT_URL, {
       method: "POST",
@@ -1610,28 +1556,16 @@
     const type = document.getElementById('new-acc-type').value;
     const box = document.getElementById('box-acc-opening-bal');
     const qLbl = document.getElementById('lbl-opening-bal-question');
-    const hLbl = document.getElementById('lbl-opening-bal-hint');
 
     if (type === 'expense') {
       box.style.display = 'none';
       document.getElementById('new-acc-opening-bal').value = 0;
     } else {
       box.style.display = 'block';
-      if (type === 'cash') {
-        qLbl.innerHTML = '<i class="fa-solid fa-wallet"></i> كم الرصيد الحالي المتوفر في هذه الخزينة / المحفظة؟';
-        hLbl.innerText = 'إذا كانت محفظة جديدة فارغة اتركها (0)، وإذا كان بها رصيد سيتم إدراجه فوراً في السيولة ورأس المال.';
-      } else if (type === 'bank') {
-        qLbl.innerHTML = '<i class="fa-solid fa-building-columns"></i> كم الرصيد الحالي المتوفر في هذا الحساب البنكي؟';
-        hLbl.innerText = 'إذا كان حساباً جديداً اتركه (0)، وإذا كان به رصيد سيضاف لأرصدة البنوك ورأس المال.';
-      } else if (type === 'asset') {
+      if (type === 'asset') {
         qLbl.innerHTML = '<i class="fa-solid fa-truck-pickup"></i> ما هي القيمة الدفترية / التأسيسية الحالية لهذا الأصل؟';
-        hLbl.innerText = 'إذا كان أصلاً مملوكاً مسبقاً، ضع قيمته هنا ليتم إضافته إلى ممتلكات المنشأة ورأس المال تلقائياً.';
-      } else if (type === 'customer') {
-        qLbl.innerHTML = '<i class="fa-solid fa-user-tag"></i> هل يوجد دين سابق ومستحق على هذا العميل (لك)؟';
-        hLbl.innerText = 'إذا كان عميلاً جديداً اتركه (0)، وإذا كان قديماً سيثبت الدين في كشف حسابه فوراً.';
-      } else if (type === 'vendor') {
-        qLbl.innerHTML = '<i class="fa-solid fa-truck-ramp-box"></i> هل يوجد دين سابق يطالبك به هذا المورد (عليك)؟';
-        hLbl.innerText = 'إذا كان مورداً جديداً اتركه (0)، وإذا كان قديماً سيثبت الدين في كشف حسابه فوراً.';
+      } else {
+        qLbl.innerHTML = '<i class="fa-solid fa-scale-balanced"></i> هل يوجد رصيد سابق (افتتاحي) مستحق لهذا الحساب؟';
       }
     }
   }
@@ -1639,9 +1573,7 @@
   function openQuickExpenseModal() {
     const expSel = document.getElementById('quick-exp-acc');
     const srcSel = document.getElementById('quick-exp-source');
-    const dateInp = document.getElementById('quick-exp-date');
-
-    dateInp.value = new Date().toISOString().split('T')[0];
+    document.getElementById('quick-exp-date').value = new Date().toISOString().split('T')[0];
 
     const expAccounts = chartOfAccounts.filter(a => a.base === 'expense' && a.code !== '5101');
     expSel.innerHTML = expAccounts.map(a => `<option value="${a.code}">${a.code} - ${a.name}</option>`).join('');
@@ -1659,8 +1591,6 @@
   }
 
   async function submitQuickExpenseAction() {
-    if (!checkLicenseLimitBeforeAction()) return;
-
     const expCode = document.getElementById('quick-exp-acc').value;
     const expAcc = chartOfAccounts.find(a => a.code === expCode);
     const srcCode = document.getElementById('quick-exp-source').value;
@@ -1677,20 +1607,8 @@
     const genNo = Date.now();
 
     const lines = [
-      {
-        accountCode: expCode,
-        accountName: expAcc.name,
-        description: memo,
-        debit: amount,
-        credit: 0
-      },
-      {
-        accountCode: srcCode,
-        accountName: srcAcc.name,
-        description: memo,
-        debit: 0,
-        credit: amount
-      }
+      { accountCode: expCode, accountName: expAcc.name, description: memo, debit: amount, credit: 0 },
+      { accountCode: srcCode, accountName: srcAcc.name, description: memo, debit: 0, credit: amount }
     ];
 
     lines.forEach(l => {
@@ -1720,35 +1638,9 @@
     });
   }
 
-  function checkLicenseLimitBeforeAction() {
-    const sheetId = localStorage.getItem('user_sheet_id');
-    if (!sheetId && (!currentLicense || !currentLicense.key)) {
-      openOnboardingModal(true);
-      return false;
-    }
-    if (currentLicense && currentLicense.type === 'PRO') return true;
-
-    if (currentLicense && currentLicense.endDate && currentLicense.endDate !== "غير محدود") {
-      const expDate = new Date(currentLicense.endDate);
-      if (!isNaN(expDate.getTime()) && new Date() > expDate) {
-        showToast('انتهت مهلة النسخة التجريبية. يرجى الترقية إلى PRO لمتابعة التسجيل.', true);
-        openOnboardingModal(true);
-        return false;
-      }
-    }
-
-    const limit = (currentLicense && Number(currentLicense.limitEntries)) || 100;
-    if (ledgerEntries.length >= limit) {
-      showToast('لقد بلغت الحد الأقصى (100 قيد) للنسخة التجريبية. يرجى الترقية إلى PRO.', true);
-      openOnboardingModal(true);
-      return false;
-    }
-    return true;
-  }
-
   async function triggerCloudSync() {
-    const sheetId = localStorage.getItem('user_sheet_id') || (currentLicense && currentLicense.sheetId);
-    if (!sheetId) return showToast('يرجى تفعيل الترخيص أولاً لربط الشيت السحابي', true);
+    const sheetId = localStorage.getItem('user_sheet_id');
+    if (!sheetId) return showToast('يرجى إدخال معرّف الشيت في تبويب الإعدادات أولاً', true);
 
     showToast('جاري مزامنة وسحب الحركات من Google Sheet...');
     try {
@@ -1811,107 +1703,61 @@
 
   async function exportLocalBackup() {
     const sheetId = localStorage.getItem('user_sheet_id');
-    const email = localStorage.getItem('user_owner_email') || (currentLicense ? currentLicense.email : '');
+    const email = localStorage.getItem('user_owner_email') || '';
 
-    if (!sheetId || !email) {
-      showToast('يرجى تفعيل الترخيص وربط الشيت أولاً لإجراء النسخ الاحتياطي', true);
-      return;
-    }
+    if (!sheetId || !email) return showToast('يرجى تحديد الشيت والبريد في الإعدادات أولاً', true);
 
-    const isConfirmed = confirm(
-      "📦 إنشاء نسخة احتياطية سحابية:\n\n" +
-      "سيتم الآن إنشاء نسخة كاملة ومستقلة لدفتر حساباتك على Google Drive ومشاركتها مع بريدك (" + email + ") وإرسال رابطها عبر Gmail.\n\n" +
-      "هل تود المتابعة؟"
-    );
-
-    if (!isConfirmed) return;
-
-    showToast('جارٍ أرشفة البيانات وإنشاء النسخة الاحتياطية على Google Drive... ⏳');
-
+    showToast('جارٍ أرشفة النسخة الاحتياطية على Google Drive... ⏳');
     try {
       const response = await fetch(SCRIPT_URL, {
         method: "POST",
-        body: JSON.stringify({
-          action: "CREATE_DRIVE_BACKUP",
-          spreadsheetId: sheetId,
-          email: email
-        })
+        body: JSON.stringify({ action: "CREATE_DRIVE_BACKUP", spreadsheetId: sheetId, email: email })
       });
-
       const res = await response.json();
-
       if (res.status === "success") {
-        alert(
-          "✅ تم بنجاح إنشاء النسخة الاحتياطية!\n\n" +
-          "1. تم حفظ الملف على Google Drive باسم:\n" + res.backupFileName + "\n\n" +
-          "2. تم إرسال رسالة إلى بريدك الإلكتروني (" + email + ") تتضمن الرابط المباشر للملف."
-        );
         showToast('تمت أرشفة النسخة الاحتياطية بنجاح 💾');
       } else {
-        throw new Error(res.message || "فشل إنشاء النسخة السحابية");
+        throw new Error(res.message);
       }
     } catch (err) {
-      console.error(err);
-      showToast('خطأ أثناء إنشاء النسخة: ' + err.message, true);
+      showToast('خطأ: ' + err.message, true);
     }
   }
 
   async function openRestoreBackupsModal() {
-    const email = localStorage.getItem('user_owner_email') || (currentLicense ? currentLicense.email : '');
-    if (!email) return showToast('يرجى تسجيل وتفعيل الحساب أولاً', true);
+    const email = localStorage.getItem('user_owner_email') || '';
+    if (!email) return showToast('يرجى كتابة البريد في الإعدادات أولاً', true);
 
     const modal = document.getElementById('modal-restore-backups');
     const container = document.getElementById('backups-list-container');
     modal.classList.add('open');
-
-    container.innerHTML = `
-      <div style="text-align: center; padding: 20px; color: #64748b;">
-        <i class="fa-solid fa-spinner fa-spin" style="font-size: 24px; margin-bottom: 8px;"></i>
-        <div>جاري البحث عن النسخ الاحتياطية في Google Drive...</div>
-      </div>
-    `;
+    container.innerHTML = `<div style="text-align:center; padding:20px; color:#64748b;"><i class="fa-solid fa-spinner fa-spin"></i> جاري البحث...</div>`;
 
     try {
       const res = await fetch(SCRIPT_URL, {
         method: "POST",
-        body: JSON.stringify({
-          action: "LIST_BACKUPS",
-          email: email
-        })
+        body: JSON.stringify({ action: "LIST_BACKUPS", email: email })
       });
-
       const data = await res.json();
-      if (data.status === "success") {
-        if (!data.backups || data.backups.length === 0) {
-          container.innerHTML = `
-            <div style="text-align: center; padding: 25px; color: var(--text-muted);">
-              <i class="fa-solid fa-folder-open" style="font-size: 32px; margin-bottom: 8px; color: #cbd5e1;"></i>
-              <div>لا توجد نسخ احتياطية مؤرشفة لهذا الحساب حتى الآن.</div>
-            </div>
-          `;
-          return;
-        }
-
+      if (data.status === "success" && data.backups && data.backups.length > 0) {
         let html = '';
         data.backups.forEach(b => {
           html += `
             <div class="backup-item-card">
               <div>
-                <div style="font-size: 13px; font-weight: 700; color: #0f172a;"><i class="fa-solid fa-file-excel" style="color:#10b981;"></i> ${b.name}</div>
-                <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;"><i class="fa-regular fa-clock"></i> ${b.createdDate}</div>
+                <div style="font-size:13px; font-weight:700;">${b.name}</div>
+                <div style="font-size:11px; color:var(--text-muted);">${b.createdDate}</div>
               </div>
-              <button class="btn btn-primary" style="width: auto; padding: 6px 12px; font-size: 12px;" onclick="confirmRestoreBackup('${b.id}', '${b.name}')">
-                استرجاع
-              </button>
+              <button class="btn btn-primary" style="width:auto; padding:6px 12px; font-size:12px;" onclick="confirmRestoreBackup('${b.id}','${b.name}')">استرجاع</button>
             </div>
           `;
         });
         container.innerHTML = html;
       } else {
-        throw new Error(data.message || "فشل جلب النسخ");
+        container.innerHTML = `<div style="text-align:center; padding:20px; color:#64748b;">لا توجد نسخ مؤرشفة</div>`;
       }
     } catch (e) {
-      container.innerHTML = `<div style="text-align: center; color: var(--danger); padding: 15px;">خطأ: ${e.message}</div>`;
+      container.innerHTML = `<div style="text-align:center; color:var(--danger); padding:15px;">خطأ: ${e.message}</div>`;
     }
   }
 
@@ -1920,13 +1766,8 @@
   }
 
   async function confirmRestoreBackup(backupId, backupName) {
-    const isConfirmed = confirm(
-      `⚠️ تحذير استرجاع البيانات:\n\nهل أنت متأكد من استرجاع:\n(${backupName})؟\n\n- سيتم أخذ نسخة أمان للشيت الحالي تلقائياً.\n- سيتم استبدال البيانات الحالية ببيانات النسخة المختارة.`
-    );
-
-    if (!isConfirmed) return;
-
-    showToast('جارٍ استرجاع النسخة وتحديث الشيت السحابي... ⏳');
+    if (!confirm(`هل أنت متأكد من استرجاع:\n(${backupName})؟`)) return;
+    showToast('جارٍ استرجاع النسخة... ⏳');
     closeRestoreBackupsModal();
 
     try {
@@ -1936,44 +1777,25 @@
           action: "RESTORE_BACKUP",
           spreadsheetId: localStorage.getItem('user_sheet_id'),
           backupFileId: backupId,
-          email: localStorage.getItem('user_owner_email') || (currentLicense ? currentLicense.email : '')
+          email: localStorage.getItem('user_owner_email') || ''
         })
       });
-
       const data = await res.json();
       if (data.status === "success") {
-        showToast('تم الاسترجاع بنجاح! جارٍ مزامنة الشاشات...');
         await triggerCloudSync();
-        alert('✅ تم بنجاح استرجاع بيانات النسخة السابقة وتحديث النظام بالكامل.');
+        alert('✅ تم بنجاح استرجاع بيانات النسخة السابقة.');
       } else {
-        throw new Error(data.message || "فشل الاسترجاع");
+        throw new Error(data.message);
       }
     } catch (e) {
-      console.error(e);
-      showToast('خطأ أثناء الاسترجاع: ' + e.message, true);
+      showToast('خطأ: ' + e.message, true);
     }
   }
 
   function resetLocalDataConfirm() {
-    const isConfirmed = confirm(
-      "⚠️ تحذير أمني:\n\nهل أنت متأكد من رغبتك في مسح كافة البيانات المحفوظة على هذا الهاتف وإعادة التهيئة؟\n\n(لن تتأثر بياناتك المسجلة على Google Sheet، وستتمكن من استرجاعها عبر المزامنة السحابية)."
-    );
-
-    if (isConfirmed) {
-      localStorage.removeItem('smart_license');
-      localStorage.removeItem('user_owner_email');
-      localStorage.removeItem('user_sheet_id');
-      localStorage.removeItem('smart_entries');
-      localStorage.removeItem('smart_invoices');
-      localStorage.removeItem('smart_accounts');
-      localStorage.removeItem('smart_currency');
-      localStorage.removeItem('smart_wizard_completed');
-
-      showToast('تم مسح البيانات وإعادة تهيئة التطبيق بنجاح');
-
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
+    if (confirm("هل تود مسح البيانات المؤقتة المحلية من هذا الجهاز وإعادة تحميل الصفحة؟")) {
+      localStorage.clear();
+      location.reload();
     }
   }
 
@@ -1990,7 +1812,7 @@
   function selectCurrency(symbol, name) {
     applyCurrency(symbol);
     document.getElementById('modal-currency-setup').classList.remove('open');
-    showToast(`تم اعتماد ${name} (${symbol}) كعملة رئيسية`);
+    showToast(`تم اعتماد ${name} كعملة رئيسية`);
   }
   function applyCustomCurrency() {
     const val = document.getElementById('custom-currency-input').value.trim();
@@ -2021,12 +1843,7 @@
   }
 
   function calculateFinancialReports() {
-    let salesRev = 0;
-    let cogs = 0;
-    let expenses = 0;
-    let taxOut = 0;
-    let taxIn = 0;
-
+    let salesRev = 0, cogs = 0, expenses = 0, taxOut = 0, taxIn = 0;
     let accountBalances = {};
     chartOfAccounts.forEach(a => { accountBalances[a.code] = { name: a.name, debit: 0, credit: 0, cat: a.cat }; });
 
@@ -2043,10 +1860,7 @@
       if (e.accountCode === "4101") salesRev += (c - d);
       if (e.accountCode === "5101") cogs += (d - c);
       if (e.accountCode.startsWith("5") && e.accountCode !== "5101") expenses += (d - c);
-      if (e.accountCode === "2103") {
-        taxOut += c;
-        taxIn += d;
-      }
+      if (e.accountCode === "2103") { taxOut += c; taxIn += d; }
     });
 
     const grossProfit = salesRev - cogs;
@@ -2064,15 +1878,12 @@
 
     const trialBody = document.getElementById('trial-balance-rows');
     trialBody.innerHTML = '';
-    let totalD = 0, totalC = 0;
 
     for (let code in accountBalances) {
       let item = accountBalances[code];
       let netBal = item.debit - item.credit;
       let dCol = netBal > 0 ? netBal : 0;
       let cCol = netBal < 0 ? Math.abs(netBal) : 0;
-      totalD += dCol;
-      totalC += cCol;
 
       if (dCol > 0 || cCol > 0) {
         let tr = document.createElement('tr');
@@ -2160,8 +1971,6 @@
   }
 
   async function submitInvoiceAction() {
-    if (!checkLicenseLimitBeforeAction()) return;
-
     const items = [];
     document.querySelectorAll('.inv-item-row').forEach(row => {
       const name = row.querySelector('.inv-item-name').value;
@@ -2218,20 +2027,15 @@
     if (type === 'sales') {
       ledgerEntries.push({ date, accountCode: partyCode, desc: memo, debit: grandTotal, credit: 0, invoiceId: invId });
       ledgerEntries.push({ date, accountCode: "4101", desc: memo, debit: 0, credit: subtotal, invoiceId: invId });
-      if (taxAmount > 0) {
-        ledgerEntries.push({ date, accountCode: "2103", desc: "ضريبة القيمة المضافة", debit: 0, credit: taxAmount, invoiceId: invId });
-      }
+      if (taxAmount > 0) ledgerEntries.push({ date, accountCode: "2103", desc: "ضريبة القيمة المضافة", debit: 0, credit: taxAmount, invoiceId: invId });
     } else {
       ledgerEntries.push({ date, accountCode: "1131", desc: memo, debit: subtotal, credit: 0, invoiceId: invId });
-      if (taxAmount > 0) {
-        ledgerEntries.push({ date, accountCode: "2103", desc: "ضريبة مدخلات مشتريات", debit: taxAmount, credit: 0, invoiceId: invId });
-      }
+      if (taxAmount > 0) ledgerEntries.push({ date, accountCode: "2103", desc: "ضريبة مدخلات مشتريات", debit: taxAmount, credit: 0, invoiceId: invId });
       ledgerEntries.push({ date, accountCode: partyCode, desc: memo, debit: 0, credit: grandTotal, invoiceId: invId });
     }
 
     persistData();
-
-    showToast(isEditMode ? 'تم حفظ تعديلات الفاتورة وتحديث المستودع والقيود ✅' : 'تم حفظ الفاتورة وتحديث كشف الحساب بنجاح');
+    showToast(isEditMode ? 'تم حفظ التعديل ✅' : 'تم ترحيل الفاتورة بنجاح ✅');
     
     fetch(SCRIPT_URL, {
       method: "POST",
@@ -2252,43 +2056,30 @@
 
     cancelEditInvoiceMode();
     const stmtSel = document.getElementById('statement-account-selector');
-    if (stmtSel) {
-      stmtSel.value = partyCode;
-      switchTab('tab-statement');
-    }
+    if (stmtSel) { stmtSel.value = partyCode; switchTab('tab-statement'); }
   }
 
   function startEditInvoice(invId, entryIndex) {
     let inv = smartInvoices.find(x => x.id === invId);
-
     if (!inv && entryIndex !== undefined && ledgerEntries[entryIndex]) {
       const e = ledgerEntries[entryIndex];
       const acc = chartOfAccounts.find(a => a.code === e.accountCode) || { name: 'حساب مسجل' };
       const amount = Number(e.debit || e.credit || 0);
       inv = {
-        id: invId,
-        date: e.date,
+        id: invId, date: e.date,
         type: (e.desc && e.desc.includes('مبيعات')) ? 'sales' : 'purchase',
-        partyCode: e.accountCode,
-        partyName: acc.name,
-        payMethod: (e.desc && e.desc.includes('آجل')) ? 'credit' : 'cash',
-        taxRate: 15,
-        subtotal: amount / 1.15,
-        taxAmount: amount - (amount / 1.15),
-        grandTotal: amount,
-        currency: currentCurrency,
+        partyCode: e.accountCode, partyName: acc.name,
+        payMethod: 'credit', taxRate: 15, subtotal: amount / 1.15, taxAmount: amount - (amount / 1.15),
+        grandTotal: amount, currency: currentCurrency,
         items: [{ itemName: e.desc, qty: 1, unitPrice: amount / 1.15 }]
       };
     }
 
-    if (!inv) return showToast('تعذر العثور على بيانات الفاتورة للتعديل', true);
+    if (!inv) return showToast('تعذر العثور على بيانات الفاتورة', true);
 
     document.getElementById('editing-invoice-id').value = inv.id;
-    document.getElementById('invoice-form-title').innerHTML = `<i class="fa-solid fa-pen-to-square" style="color:var(--warning);"></i> تعديل الفاتورة: ${inv.id}`;
+    document.getElementById('invoice-form-title').innerHTML = `تعديل الفاتورة: ${inv.id}`;
     document.getElementById('btn-cancel-edit-inv').style.display = 'inline-block';
-    document.getElementById('btn-submit-invoice').innerHTML = '<i class="fa-solid fa-floppy-disk"></i> حفظ تعديلات الفاتورة والمستودع';
-    document.getElementById('btn-camera-trigger').style.display = 'none';
-
     document.getElementById('inv-type').value = inv.type;
     document.getElementById('inv-payment-method').value = inv.payMethod || 'credit';
     document.getElementById('inv-date').value = inv.date;
@@ -2300,19 +2091,465 @@
     const list = document.getElementById('invoice-items-list');
     list.innerHTML = '';
     if (inv.items && inv.items.length > 0) {
-      inv.items.forEach(it => {
-        addInvoiceItemRow(it.itemName, it.qty, it.unitPrice);
-      });
+      inv.items.forEach(it => addInvoiceItemRow(it.itemName, it.qty, it.unitPrice));
     } else {
       addInvoiceItemRow();
     }
 
     calculateInvoiceTotals();
     switchTab('tab-invoice');
-    showToast('تم تحميل بنود الفاتورة في وضع التعديل');
   }
 
   function cancelEditInvoiceMode() {
     document.getElementById('editing-invoice-id').value = '';
     document.getElementById('invoice-form-title').innerText = 'إصدار فاتورة ذكية';
-    document.getElementById('btn-cancel-edit
+    document.getElementById('btn-cancel-edit-inv').style.display = 'none';
+    document.getElementById('invoice-items-list').innerHTML = '';
+    addInvoiceItemRow();
+    calculateInvoiceTotals();
+  }
+
+  window.openInvoicePopup = function(invId, entryIndex) {
+    let inv = smartInvoices.find(x => x.id === invId);
+    if (!inv) return showToast('لا توجد تفاصيل لهذه الفاتورة', true);
+
+    const curr = inv.currency || currentCurrency;
+    let itemsRows = '';
+    inv.items.forEach((it, idx) => {
+      itemsRows += `
+        <tr>
+          <td>${idx + 1}</td><td><strong>${it.itemName}</strong></td>
+          <td style="text-align:center;">${it.qty}</td>
+          <td style="text-align:left;">${Number(it.unitPrice).toFixed(2)}</td>
+          <td style="text-align:left; font-weight:700;">${(Number(it.qty) * Number(it.unitPrice)).toFixed(2)}</td>
+        </tr>
+      `;
+    });
+
+    document.getElementById('digital-invoice-body').innerHTML = `
+      <div class="digital-invoice">
+        <div style="font-weight:800; margin-bottom:8px;">${inv.type === 'sales' ? 'فاتورة مبيعات' : 'فاتورة مشتريات'} #${inv.id}</div>
+        <div style="font-size:12px; margin-bottom:10px;">الطرف: <strong>${inv.partyName}</strong></div>
+        <table class="digital-inv-table">
+          <thead><tr><th>#</th><th>الصنف</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th></tr></thead>
+          <tbody>${itemsRows}</tbody>
+        </table>
+        <div style="font-weight:800; font-size:15px; text-align:left; color:var(--primary); margin-top:10px;">
+          الصافي: ${Number(inv.grandTotal).toFixed(2)} ${curr}
+        </div>
+      </div>
+    `;
+    document.getElementById('modal-view-invoice').classList.add('open');
+  };
+
+  window.closeViewInvoiceModal = function() {
+    document.getElementById('modal-view-invoice').classList.remove('open');
+  };
+
+  function loadStatementData() {
+    const sel = document.getElementById('statement-account-selector');
+    if (!sel || !sel.value) return;
+    const code = sel.value;
+    const acc = chartOfAccounts.find(a => a.code === code) || { name: sel.options[sel.selectedIndex].text, nature: "مدين" };
+    const dateFrom = document.getElementById('date-from').value;
+    const dateTo = document.getElementById('date-to').value;
+
+    document.getElementById('active-acc-label').innerHTML = `الحساب: <strong>${code} - ${acc.name}</strong>`;
+    const tbody = document.getElementById('statement-rows');
+    tbody.innerHTML = '';
+
+    const filtered = [];
+    ledgerEntries.forEach((e, idx) => {
+      if (String(e.accountCode) === String(code) && (!dateFrom || e.date >= dateFrom) && (!dateTo || e.date <= dateTo)) {
+        filtered.push({ entry: e, index: idx });
+      }
+    });
+
+    if (filtered.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:20px; color:#64748b;">لا توجد حركات مسجلة لهذا الحساب</td></tr>`;
+      document.getElementById('final-balance').innerText = '0.00';
+      return;
+    }
+
+    let bal = 0;
+    filtered.forEach(obj => {
+      const item = obj.entry;
+      const originalIdx = obj.index;
+      bal += acc.nature === "مدين" ? (item.debit - item.credit) : (item.credit - item.debit);
+      const isInvoice = !!item.invoiceId || (item.desc && item.desc.includes('فاتورة'));
+      const invoiceIdVal = item.invoiceId || 'INV-PREV';
+      
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${item.date.substring(5)}</td>
+        <td>
+          <div>${item.desc}</div>
+          <div style="display:flex; flex-wrap:wrap; gap:4px; margin-top:4px;">
+            ${isInvoice ? `<button type="button" class="btn-inv-tag" onclick="openInvoicePopup('${invoiceIdVal}',${originalIdx})"><i class="fa-solid fa-file-invoice"></i> عرض</button>` : ''}
+            <button type="button" class="btn-edit-tag" onclick="startEditEntry(${originalIdx})"><i class="fa-solid fa-pencil"></i> تعديل</button>
+          </div>
+        </td>
+        <td style="${item.debit > 0 ? 'color: var(--success); font-weight:700;' : ''}">${item.debit > 0 ? item.debit.toLocaleString() : '-'}</td>
+        <td style="${item.credit > 0 ? 'color: var(--danger); font-weight:700;' : ''}">${item.credit > 0 ? item.credit.toLocaleString() : '-'}</td>
+        <td style="font-weight:700;">${bal.toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+    document.getElementById('final-balance').innerText = bal.toLocaleString(undefined, {minimumFractionDigits: 2});
+  }
+
+  function printLedgerStatement() {
+    window.print();
+  }
+
+  function startEditEntry(entryIndex) {
+    const target = ledgerEntries[entryIndex];
+    if (!target) return;
+
+    const entryNo = target.entryNo;
+    const relatedLines = entryNo ? ledgerEntries.filter(e => e.entryNo === entryNo) : [target];
+
+    document.getElementById('editing-entry-no').value = entryNo || ("TMP-" + entryIndex);
+    document.getElementById('entry-date').value = target.date;
+    document.getElementById('entry-memo').value = target.desc || '';
+    document.getElementById('entry-form-title').innerHTML = `تعديل القيد رقم: ${entryNo || ''}`;
+    document.getElementById('btn-cancel-edit').style.display = 'inline-block';
+
+    const list = document.getElementById('entries-list');
+    list.innerHTML = '';
+
+    relatedLines.forEach(line => {
+      const div = document.createElement('div');
+      div.className = 'entry-row';
+      div.innerHTML = `
+        <button class="btn-remove-row" onclick="this.parentElement.remove(); calculateBalance();">×</button>
+        <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 8px;">
+          <select class="account-selector"></select>
+          <input type="number" placeholder="مدين" class="input-debit" value="${line.debit || 0}" oninput="calculateBalance()">
+          <input type="number" placeholder="دائن" class="input-credit" value="${line.credit || 0}" oninput="calculateBalance()">
+        </div>
+      `;
+      list.appendChild(div);
+      populateSingleAccountSelect(div.querySelector('.account-selector'), line.accountCode);
+    });
+
+    calculateBalance();
+    switchTab('tab-entry');
+  }
+
+  function cancelEditEntryMode() {
+    document.getElementById('editing-entry-no').value = '';
+    document.getElementById('entry-memo').value = '';
+    document.getElementById('entry-form-title').innerText = 'تسجيل قيد يومية عام';
+    document.getElementById('btn-cancel-edit').style.display = 'none';
+
+    const list = document.getElementById('entries-list');
+    list.innerHTML = `
+      <div class="entry-row">
+        <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 8px;">
+          <select class="account-selector"></select>
+          <input type="number" placeholder="مدين" class="input-debit" value="0" oninput="calculateBalance()">
+          <input type="number" placeholder="دائن" class="input-credit" value="0" oninput="calculateBalance()">
+        </div>
+      </div>
+      <div class="entry-row">
+        <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 8px;">
+          <select class="account-selector"></select>
+          <input type="number" placeholder="مدين" class="input-debit" value="0" oninput="calculateBalance()">
+          <input type="number" placeholder="دائن" class="input-credit" value="0" oninput="calculateBalance()">
+        </div>
+      </div>
+    `;
+    populateAccountSelects();
+    calculateBalance();
+  }
+
+  function populateSingleAccountSelect(sel, selectedCode) {
+    let accHtml = '';
+    chartOfAccounts.forEach(a => accHtml += `<option value="${a.code}">${a.code} - ${a.name}</option>`);
+    sel.innerHTML = accHtml;
+    if (selectedCode) sel.value = selectedCode;
+  }
+
+  function addEntryRow() {
+    const list = document.getElementById('entries-list');
+    const div = document.createElement('div');
+    div.className = 'entry-row';
+    div.innerHTML = `
+      <button class="btn-remove-row" onclick="this.parentElement.remove(); calculateBalance();">×</button>
+      <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 8px;">
+        <select class="account-selector"></select>
+        <input type="number" placeholder="مدين" class="input-debit" value="0" oninput="calculateBalance()">
+        <input type="number" placeholder="دائن" class="input-credit" value="0" oninput="calculateBalance()">
+      </div>
+    `;
+    list.appendChild(div);
+    populateAccountSelects();
+  }
+
+  function calculateBalance() {
+    let deb = 0, crd = 0;
+    document.querySelectorAll('.input-debit').forEach(i => deb += parseFloat(i.value || 0));
+    document.querySelectorAll('.input-credit').forEach(i => crd += parseFloat(i.value || 0));
+    document.getElementById('total-debit').innerText = deb.toFixed(2);
+    document.getElementById('total-credit').innerText = crd.toFixed(2);
+
+    const b = document.getElementById('balance-status');
+    const btn = document.getElementById('btn-save-entry');
+    if (deb > 0 && Math.abs(deb - crd) < 0.01) {
+      b.className = 'status-badge balanced'; b.innerText = 'القيد متوازن ✓';
+      btn.disabled = false; btn.style.opacity = '1';
+    } else {
+      b.className = 'status-badge unbalanced'; b.innerText = deb === 0 ? 'أدخل أطراف القيد' : 'غير متوازن';
+      btn.disabled = true; btn.style.opacity = '0.5';
+    }
+  }
+
+  function saveEntryAction() {
+    const date = document.getElementById('entry-date').value;
+    const memo = document.getElementById('entry-memo').value || 'قيد يومية';
+    const editingNo = document.getElementById('editing-entry-no').value;
+    const isEditMode = !!editingNo;
+
+    const lines = [];
+    document.querySelectorAll('#entries-list .entry-row').forEach(r => {
+      const sel = r.querySelector('.account-selector');
+      const d = parseFloat(r.querySelector('.input-debit').value || 0);
+      const c = parseFloat(r.querySelector('.input-credit').value || 0);
+      if (d > 0 || c > 0) {
+        lines.push({
+          accountCode: sel.value,
+          accountName: sel.options[sel.selectedIndex].text.split(' - ')[1],
+          description: memo, debit: d, credit: c
+        });
+      }
+    });
+
+    if (lines.length < 2) return showToast('يجب إدخال طرفين على الأقل للقيد', true);
+
+    if (isEditMode) {
+      const targetNo = isNaN(editingNo) ? editingNo : Number(editingNo);
+      ledgerEntries = ledgerEntries.filter(e => e.entryNo !== targetNo);
+      lines.forEach(l => {
+        ledgerEntries.push({
+          entryNo: targetNo, date: date, refNo: "REF-" + targetNo,
+          accountCode: l.accountCode, accountName: l.accountName, desc: l.description,
+          debit: l.debit, credit: l.credit
+        });
+      });
+      persistData();
+      showToast('تم تعديل وحفظ القيد المحاسبي بنجاح ✅');
+      fetch(SCRIPT_URL, {
+        method: "POST",
+        body: JSON.stringify({ action: "EDIT_ENTRY", spreadsheetId: localStorage.getItem("user_sheet_id"), entryNo: targetNo, entryDate: date, lines: lines })
+      });
+      cancelEditEntryMode();
+      switchTab('tab-statement');
+    } else {
+      const generatedEntryNo = Date.now();
+      lines.forEach(l => {
+        ledgerEntries.push({
+          entryNo: generatedEntryNo, date: date, accountCode: l.accountCode,
+          accountName: l.accountName, desc: memo, debit: l.debit, credit: l.credit
+        });
+      });
+      persistData();
+      showToast('تم ترحيل القيد بنجاح');
+      document.getElementById('entry-memo').value = '';
+      document.querySelectorAll('.input-debit').forEach(i => i.value = 0);
+      document.querySelectorAll('.input-credit').forEach(i => i.value = 0);
+      calculateBalance();
+
+      fetch(SCRIPT_URL, {
+        method: "POST",
+        body: JSON.stringify({ action: "NEW_ENTRY", spreadsheetId: localStorage.getItem("user_sheet_id"), entryDate: date, lines: lines })
+      });
+    }
+  }
+
+  function updateDashboardStats() {
+    let cash = 0, cust = 0, vend = 0;
+    ledgerEntries.forEach(e => {
+      const accCodeStr = String(e.accountCode || "").trim();
+      const a = chartOfAccounts.find(x => String(x.code).trim() === accCodeStr);
+      const debitVal = Number(e.debit) || 0;
+      const creditVal = Number(e.credit) || 0;
+      const netMovement = debitVal - creditVal;
+
+      const isCashOrBank = (a && (a.base === 'cash' || a.base === 'bank')) ||
+                           accCodeStr.startsWith("111") ||
+                           (a && a.cat && (a.cat.includes("نقدية") || a.cat.includes("بنوك")));
+
+      const isCustomer = (a && a.base === 'customer') || accCodeStr.startsWith("112");
+      const isVendor = (a && a.base === 'vendor') || accCodeStr.startsWith("210");
+
+      if (isCashOrBank) cash += netMovement;
+      else if (isCustomer) cust += netMovement;
+      else if (isVendor) vend += (creditVal - debitVal);
+    });
+
+    document.getElementById('dash-cash').innerText = cash.toLocaleString(undefined, {minimumFractionDigits: 2});
+    document.getElementById('dash-customers').innerText = Math.max(0, cust).toLocaleString(undefined, {minimumFractionDigits: 2});
+    document.getElementById('dash-vendors').innerText = Math.max(0, vend).toLocaleString(undefined, {minimumFractionDigits: 2});
+  }
+
+  function openAddAccountModal() { 
+    document.getElementById('modal-add-account').classList.add('open'); 
+    toggleOpeningBalanceField();
+  }
+  function closeAddAccountModal() { document.getElementById('modal-add-account').classList.remove('open'); }
+  
+  async function confirmAddAccount() {
+    const name = document.getElementById('new-acc-name').value.trim();
+    const type = document.getElementById('new-acc-type').value;
+    const openingBal = parseFloat(document.getElementById('new-acc-opening-bal').value) || 0;
+
+    if (!name) return showToast('يرجى كتابة اسم الحساب أو الأصل', true);
+    
+    let prefix = (type === 'vendor') ? '210' : (type === 'customer' ? '112' : (type === 'expense' ? '520' : (type === 'asset' ? '120' : '111')));
+    let code = prefix + Math.floor(10 + Math.random() * 89);
+    let cat = (type === 'vendor') ? "الموردون والالتزامات" : (type === 'customer' ? "العملاء والمدينون" : (type === 'expense' ? "المصروفات التشغيلية" : (type === 'asset' ? "الأصول والممتلكات" : "النقدية والبنوك")));
+    let nature = (type === 'vendor') ? 'دائن' : 'مدين';
+
+    const newAcc = { code, name, cat, base: type, nature };
+    chartOfAccounts.push(newAcc);
+
+    if (openingBal > 0) {
+      const date = new Date().toISOString().split('T')[0];
+      const genNo = Date.now();
+      if (type === 'customer' || type === 'cash' || type === 'bank' || type === 'asset') {
+        const descText = (type === 'asset') ? ("قيمة أصل تأسيسي: " + name) : ("رصيد افتتاحي: " + name);
+        ledgerEntries.push({ entryNo: genNo, date: date, accountCode: code, accountName: name, desc: descText, debit: openingBal, credit: 0 });
+        ledgerEntries.push({ entryNo: genNo, date: date, accountCode: "3101", accountName: "رأس المال / الأرصدة الافتتاحية", desc: "تسوية افتتاحية: " + name, debit: 0, credit: openingBal });
+      } else if (type === 'vendor') {
+        ledgerEntries.push({ entryNo: genNo, date: date, accountCode: "3101", accountName: "رأس المال / الأرصدة الافتتاحية", desc: "تسوية مورد: " + name, debit: openingBal, credit: 0 });
+        ledgerEntries.push({ entryNo: genNo, date: date, accountCode: code, accountName: name, desc: "رصيد افتتاحي للمورد " + name, debit: 0, credit: openingBal });
+      }
+    }
+
+    persistData();
+    populateAccountSelects();
+    closeAddAccountModal();
+    showToast(`تمت إضافة ${name} برقم ${code}`);
+    document.getElementById('new-acc-name').value = '';
+    document.getElementById('new-acc-opening-bal').value = 0;
+
+    fetch(SCRIPT_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        action: "ADD_ACCOUNT",
+        spreadsheetId: localStorage.getItem("user_sheet_id"),
+        code: code, name: name, cat: cat, nature: nature, type: type, openingBalance: openingBal
+      })
+    });
+  }
+
+  let videoStream = null;
+
+  async function startLiveCamera() {
+    const modal = document.getElementById('live-camera-modal');
+    const video = document.getElementById('camera-video-stream');
+    try {
+      if (videoStream) stopLiveCamera();
+      videoStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: "environment" } }, audio: false
+      });
+      video.srcObject = videoStream;
+      modal.style.display = 'flex';
+      await video.play();
+    } catch (err) {
+      const fallbackInput = document.createElement('input');
+      fallbackInput.type = 'file';
+      fallbackInput.accept = 'image/*';
+      fallbackInput.capture = 'environment';
+      fallbackInput.onchange = () => handleSystemPhoto(fallbackInput);
+      fallbackInput.click();
+    }
+  }
+
+  function stopLiveCamera() {
+    if (videoStream) {
+      videoStream.getTracks().forEach(track => track.stop());
+      videoStream = null;
+    }
+    document.getElementById('live-camera-modal').style.display = 'none';
+  }
+
+  async function captureLiveInvoice() {
+    const video = document.getElementById('camera-video-stream');
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth || 1280;
+    canvas.height = video.videoHeight || 720;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    stopLiveCamera();
+    const base64Data = canvas.toDataURL('image/jpeg', 0.75).split(',')[1];
+    analyzeInvoiceWithAI(base64Data);
+  }
+
+  function handleSystemPhoto(input) {
+    if (!input.files || !input.files[0]) return;
+    const file = input.files[0];
+    stopLiveCamera();
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const img = new Image();
+      img.onload = function() {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width; canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        analyzeInvoiceWithAI(canvas.toDataURL('image/jpeg', 0.75).split(',')[1]);
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  async function analyzeInvoiceWithAI(base64Image) {
+    const loading = document.getElementById('ocr-loading-overlay');
+    loading.style.display = 'flex';
+    try {
+      const response = await fetch(SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action: "ANALYZE_INVOICE_AI", imageBase64: base64Image })
+      });
+      const res = await response.json();
+      if (res.status === "success" && res.data) {
+        const d = res.data;
+        if (d.date) document.getElementById('inv-date').value = d.date;
+        const list = document.getElementById('invoice-items-list');
+        list.innerHTML = '';
+        if (d.items && d.items.length > 0) {
+          d.items.forEach(it => addInvoiceItemRow(it.name || 'بضاعة', it.qty || 1, it.price || 10));
+        } else {
+          addInvoiceItemRow();
+        }
+        calculateInvoiceTotals();
+        showToast('تم تحليل الفاتورة بنجاح ✅');
+      } else {
+        throw new Error(res.message || "فشل التحليل");
+      }
+    } catch (err) {
+      showToast('خطأ: ' + err.message, true);
+    } finally {
+      loading.style.display = 'none';
+    }
+  }
+
+  window.addEventListener('DOMContentLoaded', function() {
+    const today = new Date().toISOString().split('T')[0];
+    if (document.getElementById('entry-date')) document.getElementById('entry-date').value = today;
+    if (document.getElementById('inv-date')) document.getElementById('inv-date').value = today;
+    if (document.getElementById('date-to')) document.getElementById('date-to').value = today;
+
+    applyCurrency(localStorage.getItem('smart_currency') || 'ر.س');
+    populateAccountSelects();
+    addInvoiceItemRow();
+    updateDashboardStats();
+    updateLicenseUI();
+  });
+</script>
+</body>
+</html>

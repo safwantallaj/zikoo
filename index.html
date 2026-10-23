@@ -400,6 +400,19 @@
     }
 
     .role-badge.admin { background: #fef3c7; color: #b45309; }
+    .role-badge.auditor { background: #e0f2fe; color: #0284c7; }
+    .role-badge.entry { background: #f1f5f9; color: #475569; }
+
+    .team-member-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      margin-bottom: 8px;
+    }
 
     nav {
       position: fixed;
@@ -456,13 +469,13 @@
       box-shadow: 0 -10px 40px rgba(0,0,0,0.2);
     }
 
-    #modal-onboarding, #modal-opening-wizard {
+    #modal-onboarding, #modal-opening-wizard, #modal-add-member {
       align-items: center;
       padding: 20px;
       background: rgba(15, 23, 42, 0.95);
     }
 
-    #modal-onboarding .modal-panel, #modal-opening-wizard .modal-panel {
+    #modal-onboarding .modal-panel, #modal-opening-wizard .modal-panel, #modal-add-member .modal-panel {
       border-radius: 24px;
       max-height: 90vh;
       animation: zoomIn 0.3s ease;
@@ -916,7 +929,6 @@
             <span id="bs-balance-status" class="status-badge balanced">متوازنة ✓</span>
           </div>
 
-          <!-- الأصول -->
           <div style="background:#f8fafc; padding:10px; border-radius:10px; border:1px solid #e2e8f0; margin-bottom:12px;">
             <div style="font-weight:800; font-size:13px; color:var(--primary); margin-bottom:6px;"><i class="fa-solid fa-box-archive"></i> أولاً: مجموع الأصول (الموجودات)</div>
             <div class="summary-row"><span>الأصول المتداولة (النقدية والبنوك والمخزون والعملاء):</span> <strong><span id="bs-current-assets">0.00</span> <span class="curr-symbol">ر.س</span></strong></div>
@@ -927,7 +939,6 @@
             </div>
           </div>
 
-          <!-- الالتزامات وحقوق الملكية -->
           <div style="background:#f8fafc; padding:10px; border-radius:10px; border:1px solid #e2e8f0;">
             <div style="font-weight:800; font-size:13px; color:var(--danger); margin-bottom:6px;"><i class="fa-solid fa-hand-holding-dollar"></i> ثانياً: الالتزامات وحقوق الملكية</div>
             <div class="summary-row"><span>الالتزامات المتداولة (الموردون والضرائب المستحقة):</span> <strong><span id="bs-liabilities">0.00</span> <span class="curr-symbol">ر.س</span></strong></div>
@@ -972,6 +983,7 @@
     <div id="tab-settings" class="tab-content">
       <h3 style="margin-bottom: 14px; font-size: 18px;"><i class="fa-solid fa-sliders" style="color: var(--primary);"></i> إعدادات النظام وفريق العمل</h3>
 
+      <!-- بطاقة الترخيص -->
       <div class="settings-card">
         <div style="font-weight: 700; font-size: 14px; margin-bottom: 10px; color: var(--primary); display: flex; align-items: center; justify-content: space-between;">
           <span><i class="fa-solid fa-key"></i> بيانات الترخيص والشيت المستقل</span>
@@ -992,10 +1004,21 @@
           <i class="fa-solid fa-wand-magic-sparkles"></i> إعادة فتح معالج الأرصدة الافتتاحية
         </button>
         <button class="btn btn-outline" style="border-style: solid; padding: 9px;" onclick="openOnboardingModal(true)">
-          <i class="fa-solid fa-arrows-rotate"></i> ربط حساب Gmail آخر
+          <i class="fa-solid fa-arrows-rotate"></i> ربط حساب Gmail آخر (شيت جديد)
         </button>
       </div>
 
+      <!-- بطاقة فريق العمل والصلاحيات -->
+      <div class="settings-card">
+        <div style="font-weight: 700; font-size: 14px; margin-bottom: 10px; color: var(--primary); display: flex; align-items: center; justify-content: space-between;">
+          <span><i class="fa-solid fa-users-gear"></i> فريق العمل والصلاحيات الرقابية</span>
+          <button style="border:none; background:none; color:var(--primary); font-weight:700; font-size:12px; cursor:pointer;" onclick="openAddMemberModal()">+ دعوة عضو</button>
+        </div>
+        <p style="font-size:11px; color:var(--text-muted); margin-bottom:10px;">إعطاء أذونات للمدققين والمحاسبين ومدخلي البيانات لمشاركة دفتر الحسابات.</p>
+        <div id="team-members-list"></div>
+      </div>
+
+      <!-- بطاقة النسخ الاحتياطي -->
       <div class="settings-card">
         <div style="font-weight: 700; font-size: 14px; margin-bottom: 10px; color: var(--primary); display: flex; align-items: center; gap: 6px;">
           <i class="fa-solid fa-cloud-arrow-up"></i> النسخ الاحتياطي والمزامنة والاسترجاع
@@ -1011,6 +1034,7 @@
         </button>
       </div>
 
+      <!-- بطاقة التفضيلات -->
       <div class="settings-card">
         <div style="font-weight: 700; font-size: 14px; margin-bottom: 10px; color: var(--primary); display: flex; align-items: center; gap: 6px;">
           <i class="fa-solid fa-gear"></i> التفضيلات العامة
@@ -1084,7 +1108,33 @@
   </div>
 </div>
 
-<!-- Modal 1: نافذة الترخيص (اختيارية وغير معطلة للواجهة) -->
+<!-- Modal: دعوة عضو جديد وتحديد الصلاحيات -->
+<div class="modal-overlay" id="modal-add-member">
+  <div class="modal-panel">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+      <h3 style="font-size: 16px;"><i class="fa-solid fa-user-plus" style="color:var(--primary);"></i> إضافة عضو لفريق العمل</h3>
+      <button style="border:none; background:none; font-size:22px; cursor:pointer;" onclick="closeAddMemberModal()">×</button>
+    </div>
+    <div class="form-group">
+      <label>بريد العضو (Gmail)</label>
+      <input type="email" id="new-member-email" placeholder="colleague@gmail.com">
+      <span style="font-size:10px; color:var(--text-muted);">سيتم منحه صلاحية الوصول إلى الشيت السحابي.</span>
+    </div>
+    <div class="form-group">
+      <label>الدور والصلاحية الرقابية</label>
+      <select id="new-member-role">
+        <option value="auditor">مدقق / مراجع مالي (اطلاع فقط على الكشوفات والتقارير والميزانية)</option>
+        <option value="data_entry">مدخل بيانات / كاشير (تسجيل فواتير ومصروفات وقيود فقط)</option>
+        <option value="admin">مدير كامل الصلاحيات (Admin)</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" onclick="confirmAddTeamMember()">
+      <i class="fa-solid fa-paper-plane"></i> إضافة العضو وتفعيل الصلاحية
+    </button>
+  </div>
+</div>
+
+<!-- Modal 1: نافذة الترخيص -->
 <div class="modal-overlay" id="modal-onboarding">
   <div class="modal-panel" style="text-align: center; position: relative;">
     <button id="btn-close-onboard" style="position: absolute; top: 15px; left: 15px; border: none; background: none; font-size: 20px; cursor: pointer; color: #94a3b8;" onclick="closeOnboardingModal()">×</button>
@@ -1093,11 +1143,11 @@
     </div>
     <h3 style="font-size: 20px; font-weight: 800; margin-bottom: 4px;">إعدادات مساحة العمل</h3>
     <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 18px;">
-      أدخل بريدك وكود الترخيص لربط أو استنساخ الشيت السحابي.
+      أدخل بريداً وكوداً آخرين لفتح واستنساخ شيت جديد مستقل.
     </p>
 
     <div class="form-group" style="text-align: right;">
-      <label style="font-size: 12px;"><i class="fa-solid fa-envelope" style="color: var(--primary);"></i> بريدك الإلكتروني (Gmail)</label>
+      <label style="font-size: 12px;"><i class="fa-solid fa-envelope" style="color: var(--primary);"></i> بريد Gmail الجديد</label>
       <input type="email" id="onboard-email" placeholder="name@gmail.com">
     </div>
 
@@ -1337,6 +1387,7 @@
   let chartOfAccounts = defaultAccounts;
   let ledgerEntries = [];
   let smartInvoices = [];
+  let teamMembers = [];
 
   try {
     const accData = localStorage.getItem('smart_accounts');
@@ -1347,6 +1398,9 @@
 
     const invData = localStorage.getItem('smart_invoices');
     if (invData) smartInvoices = JSON.parse(invData);
+
+    const tmData = localStorage.getItem('smart_team_members');
+    if (tmData) teamMembers = JSON.parse(tmData);
   } catch (parseErr) {
     console.warn("Storage parsing error, fallback to defaults", parseErr);
   }
@@ -1356,11 +1410,13 @@
       localStorage.setItem('smart_accounts', JSON.stringify(chartOfAccounts));
       localStorage.setItem('smart_entries', JSON.stringify(ledgerEntries));
       localStorage.setItem('smart_invoices', JSON.stringify(smartInvoices));
+      localStorage.setItem('smart_team_members', JSON.stringify(teamMembers));
     } catch (e) {
       console.warn("Persist error:", e);
     }
     updateDashboardStats();
     updateLicenseUI();
+    renderTeamMembersList();
   }
 
   function updateLicenseUI() {
@@ -1391,6 +1447,87 @@
     triggerCloudSync();
   }
 
+  // إدارة فريق العمل والأذونات
+  function openAddMemberModal() {
+    document.getElementById('new-member-email').value = '';
+    document.getElementById('modal-add-member').classList.add('open');
+  }
+
+  function closeAddMemberModal() {
+    document.getElementById('modal-add-member').classList.remove('open');
+  }
+
+  async function confirmAddTeamMember() {
+    const email = document.getElementById('new-member-email').value.trim().toLowerCase();
+    const role = document.getElementById('new-member-role').value;
+    const sheetId = localStorage.getItem('user_sheet_id');
+
+    if (!email || !email.includes('@')) return showToast('يرجى إدخال بريد Gmail صحيح', true);
+    if (teamMembers.some(m => m.email === email)) return showToast('هذا المستخدم مضاف مسبقاً', true);
+
+    const roleName = role === 'admin' ? 'مدير' : (role === 'auditor' ? 'مدقق ومراجع' : 'مدخل بيانات');
+    teamMembers.push({ email, role, roleName, addedDate: new Date().toISOString().split('T')[0] });
+    persistData();
+    closeAddMemberModal();
+    showToast(`تمت إضافة ${email} بصلاحية ${roleName} ✅`);
+
+    if (sheetId) {
+      fetch(SCRIPT_URL, {
+        method: "POST",
+        body: JSON.stringify({
+          action: "SHARE_SHEET_WITH_MEMBER",
+          spreadsheetId: sheetId,
+          memberEmail: email,
+          role: role
+        })
+      });
+    }
+  }
+
+  function removeTeamMember(email) {
+    if (!confirm(`هل أنت متأكد من إزالة صلاحية المستخدم (${email})؟`)) return;
+    teamMembers = teamMembers.filter(m => m.email !== email);
+    persistData();
+    showToast('تمت إزالة العضو بنجاح');
+  }
+
+  function renderTeamMembersList() {
+    const container = document.getElementById('team-members-list');
+    if (!container) return;
+
+    const ownerEmail = localStorage.getItem('user_owner_email') || 'مالك النظام';
+    let html = `
+      <div class="team-member-item" style="background:#f1f5f9; border-color:#cbd5e1;">
+        <div>
+          <div style="font-weight:700; font-size:12px;">${ownerEmail} <span style="font-size:10px; color:var(--text-muted);">(أنت)</span></div>
+          <div style="font-size:10px; color:var(--primary); font-weight:700;">المالك الأساسي (صلاحيات كاملة)</div>
+        </div>
+        <span class="role-badge admin">Owner</span>
+      </div>
+    `;
+
+    if (teamMembers.length === 0) {
+      html += `<div style="text-align:center; padding:12px; font-size:11px; color:var(--text-muted);">لا يوجد أعضاء إضافيون مضافون حالياً. اضغط على "+ دعوة عضو" لمنح صلاحيات للمدققين أو المحاسبين.</div>`;
+    } else {
+      teamMembers.forEach(m => {
+        const badgeClass = m.role === 'admin' ? 'admin' : (m.role === 'auditor' ? 'auditor' : 'entry');
+        html += `
+          <div class="team-member-item">
+            <div>
+              <div style="font-weight:700; font-size:12px;">${m.email}</div>
+              <div style="font-size:10px; color:var(--text-muted);">${m.roleName} • أضيف بتاريخ: ${m.addedDate}</div>
+            </div>
+            <div style="display:flex; align-items:center; gap:6px;">
+              <span class="role-badge ${badgeClass}">${m.roleName}</span>
+              <button style="border:none; background:none; color:var(--danger); font-size:14px; cursor:pointer;" onclick="removeTeamMember('${m.email}')" title="إزالة">×</button>
+            </div>
+          </div>
+        `;
+      });
+    }
+    container.innerHTML = html;
+  }
+
   function openOnboardingModal(allowClose = true) {
     const m = document.getElementById('modal-onboarding');
     if (m) m.classList.add('open');
@@ -1409,7 +1546,7 @@
     if (!email || !email.includes('@')) return showToast('يرجى إدخال بريد Gmail صحيح', true);
 
     btn.disabled = true;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري الاتصال...';
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري ربط واستنساخ الشيت الجديد...';
 
     try {
       const response = await fetch(SCRIPT_URL, {
@@ -1427,9 +1564,17 @@
         currentLicense = res.license;
         localStorage.setItem('user_owner_email', currentLicense.email);
         localStorage.setItem('user_sheet_id', currentLicense.sheetId);
+        
+        // تفريغ الأرصدة المحلية لتبدأ مساحة العمل الجديدة نظيفة ومطابقة للشيت المستنسخ
+        localStorage.removeItem('smart_entries');
+        localStorage.removeItem('smart_invoices');
+        ledgerEntries = [];
+        smartInvoices = [];
+
         closeOnboardingModal();
         updateLicenseUI();
-        showToast('تم ربط مساحة العمل بنجاح 🎉');
+        showToast('تم تجهيز وربط مساحة العمل المستقلة الجديدة بنجاح 🎉');
+        triggerCloudSync();
       } else {
         throw new Error(res.message || "فشل التحقق من الكود");
       }
@@ -1868,6 +2013,7 @@
     }
     if (tabId === 'tab-settings') {
       updateLicenseUI();
+      renderTeamMembersList();
     }
   }
 
@@ -1903,7 +2049,6 @@
     const grossProfit = salesRev - cogs;
     const netProfit = grossProfit - expenses;
 
-    // تحديث قائمة الدخل
     const sRevEl = document.getElementById('rep-sales-rev');
     if (sRevEl) {
       sRevEl.innerText = Math.max(0, salesRev).toLocaleString(undefined, {minimumFractionDigits: 2});
@@ -1913,7 +2058,6 @@
       document.getElementById('rep-net-profit').innerText = netProfit.toLocaleString(undefined, {minimumFractionDigits: 2});
     }
 
-    // تحديث الإقرار الضريبي
     const taxOutEl = document.getElementById('tax-out');
     if (taxOutEl) {
       taxOutEl.innerText = taxOut.toLocaleString(undefined, {minimumFractionDigits: 2});
@@ -1921,24 +2065,20 @@
       document.getElementById('tax-net').innerText = (taxOut - taxIn).toLocaleString(undefined, {minimumFractionDigits: 2});
     }
 
-    // احتساب وبناء الميزانية العمومية (قائمة المركز المالي)
-    let currentAssets = 0;
-    let fixedAssets = 0;
-    let liabilities = 0;
-    let capital = 0;
+    let currentAssets = 0, fixedAssets = 0, liabilities = 0, capital = 0;
 
     for (let code in accountBalances) {
       let item = accountBalances[code];
-      let netBal = item.debit - item.credit; // مدين موجب
+      let netBal = item.debit - item.credit;
 
       if (code.startsWith("111") || code.startsWith("112") || code.startsWith("113")) {
         currentAssets += netBal;
       } else if (code.startsWith("120")) {
         fixedAssets += netBal;
       } else if (code.startsWith("210")) {
-        liabilities += (item.credit - item.debit); // دائن موجب
+        liabilities += (item.credit - item.debit);
       } else if (code.startsWith("310")) {
-        capital += (item.credit - item.debit); // رأس المال دائن
+        capital += (item.credit - item.debit);
       }
     }
 
@@ -1970,7 +2110,6 @@
       }
     }
 
-    // بناء ميزان المراجعة
     const trialBody = document.getElementById('trial-balance-rows');
     if (trialBody) {
       trialBody.innerHTML = '';
@@ -2097,18 +2236,9 @@
     const grandTotal = subtotal + taxAmount;
 
     const fullInvoice = {
-      id: invId,
-      date: date,
-      type: type,
-      partyCode: partyCode,
-      partyName: partyName,
-      payMethod: payMethod,
-      taxRate: taxRate,
-      subtotal: subtotal,
-      taxAmount: taxAmount,
-      grandTotal: grandTotal,
-      currency: currentCurrency,
-      items: items
+      id: invId, date: date, type: type, partyCode: partyCode, partyName: partyName,
+      payMethod: payMethod, taxRate: taxRate, subtotal: subtotal, taxAmount: taxAmount,
+      grandTotal: grandTotal, currency: currentCurrency, items: items
     };
 
     if (isEditMode) {
@@ -2138,15 +2268,9 @@
       body: JSON.stringify({
         action: isEditMode ? "EDIT_INVOICE" : "CREATE_INVOICE",
         spreadsheetId: localStorage.getItem("user_sheet_id"),
-        invoiceId: invId,
-        invoiceType: type,
-        partyAccountCode: partyCode,
-        partyAccountName: partyName,
-        paymentMethod: payMethod,
-        applyTax: taxRate > 0,
-        taxRate: taxRate,
-        invoiceDate: date,
-        items: items
+        invoiceId: invId, invoiceType: type, partyAccountCode: partyCode,
+        partyAccountName: partyName, paymentMethod: payMethod, applyTax: taxRate > 0,
+        taxRate: taxRate, invoiceDate: date, items: items
       })
     });
 
@@ -2604,6 +2728,7 @@
     addInvoiceItemRow();
     updateDashboardStats();
     updateLicenseUI();
+    renderTeamMembersList();
   });
 </script>
 </body>

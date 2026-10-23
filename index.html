@@ -374,7 +374,7 @@
       border-bottom: 1px solid var(--border);
     }
 
-    .btn-inv-tag, .btn-edit-tag, .btn-inv-edit-tag {
+    .btn-inv-tag, .btn-edit-tag {
       display: inline-flex;
       align-items: center;
       gap: 4px;
@@ -389,7 +389,6 @@
 
     .btn-inv-tag { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
     .btn-edit-tag { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
-    .btn-inv-edit-tag { background: #f0fdf4; color: #047857; border: 1px solid #a7f3d0; }
 
     .role-badge {
       padding: 3px 8px;
@@ -617,7 +616,7 @@
     @media print {
       body { background-color: #fff !important; color: #000 !important; }
       .app-container { max-width: 100% !important; box-shadow: none !important; width: 100% !important; }
-      header, nav, #license-banner, .btn, .header-actions, .form-group, #date-from, #date-to, #statement-account-selector, .btn-inv-tag, .btn-edit-tag, .btn-inv-edit-tag { display: none !important; }
+      header, nav, #license-banner, .btn, .header-actions, .form-group, #date-from, #date-to, #statement-account-selector, .btn-inv-tag, .btn-edit-tag { display: none !important; }
       main { padding: 0 !important; overflow: visible !important; }
       .tab-content { display: none !important; }
       #tab-statement { display: block !important; }
@@ -843,15 +842,17 @@
       </button>
     </div>
 
-    <!-- Tab 4: Financial Reports -->
+    <!-- Tab 4: Financial Reports (شاملة الميزانية العمومية) -->
     <div id="tab-statement" class="tab-content">
       <div style="display: flex; gap: 6px; margin-bottom: 14px; overflow-x: auto; padding-bottom: 4px;">
         <button class="btn btn-secondary" style="flex:1; padding:8px; font-size:11px; white-space:nowrap;" onclick="switchSubReport('ledger')">كشف الحساب</button>
         <button class="btn btn-secondary" style="flex:1; padding:8px; font-size:11px; white-space:nowrap;" onclick="switchSubReport('income')">قائمة الدخل</button>
+        <button class="btn btn-secondary" style="flex:1; padding:8px; font-size:11px; white-space:nowrap;" onclick="switchSubReport('balance-sheet')">الميزانية العمومية</button>
         <button class="btn btn-secondary" style="flex:1; padding:8px; font-size:11px; white-space:nowrap;" onclick="switchSubReport('trial')">ميزان المراجعة</button>
         <button class="btn btn-secondary" style="flex:1; padding:8px; font-size:11px; white-space:nowrap;" onclick="switchSubReport('tax')">الإقرار الضريبي</button>
       </div>
 
+      <!-- كشف الحساب -->
       <div id="sub-report-ledger">
         <div class="form-group">
           <label>اختر الحساب</label>
@@ -892,6 +893,7 @@
         </table>
       </div>
 
+      <!-- قائمة الدخل -->
       <div id="sub-report-income" style="display: none;">
         <div class="report-card">
           <h4 style="margin-bottom: 12px; color: var(--primary);"><i class="fa-solid fa-chart-line"></i> قائمة الدخل (الأرباح والخسائر)</h4>
@@ -900,15 +902,49 @@
           <div class="summary-row" style="border-top:1px dashed #cbd5e1; padding-top:6px;"><span>مجمل الربح:</span> <strong><span id="rep-gross-profit">0.00</span> <span class="curr-symbol">ر.س</span></strong></div>
           <div class="summary-row"><span>المصروفات التشغيلية:</span> <strong style="color:var(--danger);">-<span id="rep-expenses">0.00</span> <span class="curr-symbol">ر.س</span></strong></div>
           <div class="summary-row total" style="background: #0f172a; padding: 12px; border-radius: 8px; color: #38bdf8; margin-top: 10px;">
-            <span>صافي الربح التشغيلي:</span>
+            <span>صافي الربح التشغيلي للفترة:</span>
             <span><span id="rep-net-profit">0.00</span> <span class="curr-symbol">ر.س</span></span>
           </div>
         </div>
       </div>
 
+      <!-- الميزانية العمومية (قائمة المركز المالي) -->
+      <div id="sub-report-balance-sheet" style="display: none;">
+        <div class="report-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <h4 style="color: var(--primary);"><i class="fa-solid fa-scale-balanced"></i> قائمة المركز المالي (الميزانية العمومية)</h4>
+            <span id="bs-balance-status" class="status-badge balanced">متوازنة ✓</span>
+          </div>
+
+          <!-- الأصول -->
+          <div style="background:#f8fafc; padding:10px; border-radius:10px; border:1px solid #e2e8f0; margin-bottom:12px;">
+            <div style="font-weight:800; font-size:13px; color:var(--primary); margin-bottom:6px;"><i class="fa-solid fa-box-archive"></i> أولاً: مجموع الأصول (الموجودات)</div>
+            <div class="summary-row"><span>الأصول المتداولة (النقدية والبنوك والمخزون والعملاء):</span> <strong><span id="bs-current-assets">0.00</span> <span class="curr-symbol">ر.س</span></strong></div>
+            <div class="summary-row"><span>الأصول الثابتة والمعدات:</span> <strong><span id="bs-fixed-assets">0.00</span> <span class="curr-symbol">ر.س</span></strong></div>
+            <div class="summary-row" style="border-top:1px solid #cbd5e1; padding-top:6px; font-weight:800;">
+              <span>إجمالي الأصول:</span>
+              <strong style="color:var(--primary); font-size:15px;"><span id="bs-total-assets">0.00</span> <span class="curr-symbol">ر.س</span></strong>
+            </div>
+          </div>
+
+          <!-- الالتزامات وحقوق الملكية -->
+          <div style="background:#f8fafc; padding:10px; border-radius:10px; border:1px solid #e2e8f0;">
+            <div style="font-weight:800; font-size:13px; color:var(--danger); margin-bottom:6px;"><i class="fa-solid fa-hand-holding-dollar"></i> ثانياً: الالتزامات وحقوق الملكية</div>
+            <div class="summary-row"><span>الالتزامات المتداولة (الموردون والضرائب المستحقة):</span> <strong><span id="bs-liabilities">0.00</span> <span class="curr-symbol">ر.س</span></strong></div>
+            <div class="summary-row"><span>رأس المال التأسيسي / الافتتاحي:</span> <strong><span id="bs-capital">0.00</span> <span class="curr-symbol">ر.س</span></strong></div>
+            <div class="summary-row"><span>أرباح (أو خسائر) الفترة المرحلة:</span> <strong id="bs-period-profit-box"><span id="bs-period-profit">0.00</span> <span class="curr-symbol">ر.س</span></strong></div>
+            <div class="summary-row" style="border-top:1px solid #cbd5e1; padding-top:6px; font-weight:800;">
+              <span>إجمالي الالتزامات وحقوق الملكية:</span>
+              <strong style="color:var(--danger); font-size:15px;"><span id="bs-total-liab-equity">0.00</span> <span class="curr-symbol">ر.س</span></strong>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ميزان المراجعة -->
       <div id="sub-report-trial" style="display: none;">
         <div class="report-card">
-          <h4 style="margin-bottom: 12px; color: var(--primary);"><i class="fa-solid fa-scale-balanced"></i> ميزان المراجعة بالأرصدة</h4>
+          <h4 style="margin-bottom: 12px; color: var(--primary);"><i class="fa-solid fa-table-list"></i> ميزان المراجعة بالأرصدة</h4>
           <table class="statement-table">
             <thead>
               <tr><th>الحساب</th><th>مدين</th><th>دائن</th></tr>
@@ -918,6 +954,7 @@
         </div>
       </div>
 
+      <!-- الإقرار الضريبي -->
       <div id="sub-report-tax" style="display: none;">
         <div class="report-card">
           <h4 style="margin-bottom: 12px; color: var(--primary);"><i class="fa-solid fa-file-shield"></i> ملخص الإقرار الضريبي (VAT)</h4>
@@ -1289,7 +1326,6 @@
     { code: "5205", name: "صيانة وإصلاحات", cat: "المصروفات التشغيلية", base: "expense", nature: "مدين" }
   ];
 
-  // تفعيل دائم افتراضي آمن لتجاوز أي تعليق
   let currentLicense = {
     key: "PRO-2026",
     type: "PRO",
@@ -1836,23 +1872,24 @@
   }
 
   function switchSubReport(subId) {
-    ['ledger', 'income', 'trial', 'tax'].forEach(id => {
-      document.getElementById('sub-report-' + id).style.display = (id === subId) ? 'block' : 'none';
+    ['ledger', 'income', 'balance-sheet', 'trial', 'tax'].forEach(id => {
+      const el = document.getElementById('sub-report-' + id);
+      if (el) el.style.display = (id === subId) ? 'block' : 'none';
     });
-    if (subId !== 'ledger') calculateFinancialReports();
+    calculateFinancialReports();
   }
 
   function calculateFinancialReports() {
     let salesRev = 0, cogs = 0, expenses = 0, taxOut = 0, taxIn = 0;
     let accountBalances = {};
-    chartOfAccounts.forEach(a => { accountBalances[a.code] = { name: a.name, debit: 0, credit: 0, cat: a.cat }; });
+    chartOfAccounts.forEach(a => { accountBalances[a.code] = { name: a.name, debit: 0, credit: 0, cat: a.cat, base: a.base }; });
 
     ledgerEntries.forEach(e => {
       let d = Number(e.debit) || 0;
       let c = Number(e.credit) || 0;
 
       if (!accountBalances[e.accountCode]) {
-        accountBalances[e.accountCode] = { name: e.accountName || e.accountCode, debit: 0, credit: 0, cat: "" };
+        accountBalances[e.accountCode] = { name: e.accountName || e.accountCode, debit: 0, credit: 0, cat: "", base: "other" };
       }
       accountBalances[e.accountCode].debit += d;
       accountBalances[e.accountCode].credit += c;
@@ -1866,33 +1903,92 @@
     const grossProfit = salesRev - cogs;
     const netProfit = grossProfit - expenses;
 
-    document.getElementById('rep-sales-rev').innerText = Math.max(0, salesRev).toLocaleString(undefined, {minimumFractionDigits: 2});
-    document.getElementById('rep-cogs').innerText = Math.max(0, cogs).toLocaleString(undefined, {minimumFractionDigits: 2});
-    document.getElementById('rep-gross-profit').innerText = grossProfit.toLocaleString(undefined, {minimumFractionDigits: 2});
-    document.getElementById('rep-expenses').innerText = Math.max(0, expenses).toLocaleString(undefined, {minimumFractionDigits: 2});
-    document.getElementById('rep-net-profit').innerText = netProfit.toLocaleString(undefined, {minimumFractionDigits: 2});
+    // تحديث قائمة الدخل
+    const sRevEl = document.getElementById('rep-sales-rev');
+    if (sRevEl) {
+      sRevEl.innerText = Math.max(0, salesRev).toLocaleString(undefined, {minimumFractionDigits: 2});
+      document.getElementById('rep-cogs').innerText = Math.max(0, cogs).toLocaleString(undefined, {minimumFractionDigits: 2});
+      document.getElementById('rep-gross-profit').innerText = grossProfit.toLocaleString(undefined, {minimumFractionDigits: 2});
+      document.getElementById('rep-expenses').innerText = Math.max(0, expenses).toLocaleString(undefined, {minimumFractionDigits: 2});
+      document.getElementById('rep-net-profit').innerText = netProfit.toLocaleString(undefined, {minimumFractionDigits: 2});
+    }
 
-    document.getElementById('tax-out').innerText = taxOut.toLocaleString(undefined, {minimumFractionDigits: 2});
-    document.getElementById('tax-in').innerText = taxIn.toLocaleString(undefined, {minimumFractionDigits: 2});
-    document.getElementById('tax-net').innerText = (taxOut - taxIn).toLocaleString(undefined, {minimumFractionDigits: 2});
+    // تحديث الإقرار الضريبي
+    const taxOutEl = document.getElementById('tax-out');
+    if (taxOutEl) {
+      taxOutEl.innerText = taxOut.toLocaleString(undefined, {minimumFractionDigits: 2});
+      document.getElementById('tax-in').innerText = taxIn.toLocaleString(undefined, {minimumFractionDigits: 2});
+      document.getElementById('tax-net').innerText = (taxOut - taxIn).toLocaleString(undefined, {minimumFractionDigits: 2});
+    }
 
-    const trialBody = document.getElementById('trial-balance-rows');
-    trialBody.innerHTML = '';
+    // احتساب وبناء الميزانية العمومية (قائمة المركز المالي)
+    let currentAssets = 0;
+    let fixedAssets = 0;
+    let liabilities = 0;
+    let capital = 0;
 
     for (let code in accountBalances) {
       let item = accountBalances[code];
-      let netBal = item.debit - item.credit;
-      let dCol = netBal > 0 ? netBal : 0;
-      let cCol = netBal < 0 ? Math.abs(netBal) : 0;
+      let netBal = item.debit - item.credit; // مدين موجب
 
-      if (dCol > 0 || cCol > 0) {
-        let tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td><strong>${item.name}</strong> (${code})</td>
-          <td style="${dCol > 0 ? 'color:var(--success);font-weight:700;' : ''}">${dCol > 0 ? dCol.toLocaleString(undefined, {minimumFractionDigits:2}) : '-'}</td>
-          <td style="${cCol > 0 ? 'color:var(--danger);font-weight:700;' : ''}">${cCol > 0 ? cCol.toLocaleString(undefined, {minimumFractionDigits:2}) : '-'}</td>
-        `;
-        trialBody.appendChild(tr);
+      if (code.startsWith("111") || code.startsWith("112") || code.startsWith("113")) {
+        currentAssets += netBal;
+      } else if (code.startsWith("120")) {
+        fixedAssets += netBal;
+      } else if (code.startsWith("210")) {
+        liabilities += (item.credit - item.debit); // دائن موجب
+      } else if (code.startsWith("310")) {
+        capital += (item.credit - item.debit); // رأس المال دائن
+      }
+    }
+
+    const totalAssets = currentAssets + fixedAssets;
+    const totalLiabAndEquity = liabilities + capital + netProfit;
+
+    const bsCurEl = document.getElementById('bs-current-assets');
+    if (bsCurEl) {
+      bsCurEl.innerText = currentAssets.toLocaleString(undefined, {minimumFractionDigits: 2});
+      document.getElementById('bs-fixed-assets').innerText = fixedAssets.toLocaleString(undefined, {minimumFractionDigits: 2});
+      document.getElementById('bs-total-assets').innerText = totalAssets.toLocaleString(undefined, {minimumFractionDigits: 2});
+
+      document.getElementById('bs-liabilities').innerText = liabilities.toLocaleString(undefined, {minimumFractionDigits: 2});
+      document.getElementById('bs-capital').innerText = capital.toLocaleString(undefined, {minimumFractionDigits: 2});
+      
+      const pProfitEl = document.getElementById('bs-period-profit');
+      pProfitEl.innerText = netProfit.toLocaleString(undefined, {minimumFractionDigits: 2});
+      pProfitEl.style.color = netProfit >= 0 ? 'var(--success)' : 'var(--danger)';
+
+      document.getElementById('bs-total-liab-equity').innerText = totalLiabAndEquity.toLocaleString(undefined, {minimumFractionDigits: 2});
+
+      const bsStatus = document.getElementById('bs-balance-status');
+      if (Math.abs(totalAssets - totalLiabAndEquity) < 0.1) {
+        bsStatus.className = 'status-badge balanced';
+        bsStatus.innerText = 'متوازنة ✓';
+      } else {
+        bsStatus.className = 'status-badge unbalanced';
+        bsStatus.innerText = 'غير متوازنة (' + (totalAssets - totalLiabAndEquity).toFixed(2) + ')';
+      }
+    }
+
+    // بناء ميزان المراجعة
+    const trialBody = document.getElementById('trial-balance-rows');
+    if (trialBody) {
+      trialBody.innerHTML = '';
+      for (let code in accountBalances) {
+        let item = accountBalances[code];
+        let netBal = item.debit - item.credit;
+        let dCol = netBal > 0 ? netBal : 0;
+        let cCol = netBal < 0 ? Math.abs(netBal) : 0;
+
+        if (dCol > 0 || cCol > 0) {
+          let tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td><strong>${item.name}</strong> (${code})</td>
+            <td style="${dCol > 0 ? 'color:var(--success);font-weight:700;' : ''}">${dCol > 0 ? dCol.toLocaleString(undefined, {minimumFractionDigits:2}) : '-'}</td>
+            <td style="${cCol > 0 ? 'color:var(--danger);font-weight:700;' : ''}">${cCol > 0 ? cCol.toLocaleString(undefined, {minimumFractionDigits:2}) : '-'}</td>
+          `;
+          trialBody.appendChild(tr);
+        }
       }
     }
   }
@@ -2057,47 +2153,6 @@
     cancelEditInvoiceMode();
     const stmtSel = document.getElementById('statement-account-selector');
     if (stmtSel) { stmtSel.value = partyCode; switchTab('tab-statement'); }
-  }
-
-  function startEditInvoice(invId, entryIndex) {
-    let inv = smartInvoices.find(x => x.id === invId);
-    if (!inv && entryIndex !== undefined && ledgerEntries[entryIndex]) {
-      const e = ledgerEntries[entryIndex];
-      const acc = chartOfAccounts.find(a => a.code === e.accountCode) || { name: 'حساب مسجل' };
-      const amount = Number(e.debit || e.credit || 0);
-      inv = {
-        id: invId, date: e.date,
-        type: (e.desc && e.desc.includes('مبيعات')) ? 'sales' : 'purchase',
-        partyCode: e.accountCode, partyName: acc.name,
-        payMethod: 'credit', taxRate: 15, subtotal: amount / 1.15, taxAmount: amount - (amount / 1.15),
-        grandTotal: amount, currency: currentCurrency,
-        items: [{ itemName: e.desc, qty: 1, unitPrice: amount / 1.15 }]
-      };
-    }
-
-    if (!inv) return showToast('تعذر العثور على بيانات الفاتورة', true);
-
-    document.getElementById('editing-invoice-id').value = inv.id;
-    document.getElementById('invoice-form-title').innerHTML = `تعديل الفاتورة: ${inv.id}`;
-    document.getElementById('btn-cancel-edit-inv').style.display = 'inline-block';
-    document.getElementById('inv-type').value = inv.type;
-    document.getElementById('inv-payment-method').value = inv.payMethod || 'credit';
-    document.getElementById('inv-date').value = inv.date;
-    document.getElementById('inv-tax-mode').value = String(inv.taxRate !== undefined ? inv.taxRate : 15);
-
-    handleInvoiceTypeChange();
-    if (inv.partyCode) document.getElementById('inv-party-select').value = inv.partyCode;
-
-    const list = document.getElementById('invoice-items-list');
-    list.innerHTML = '';
-    if (inv.items && inv.items.length > 0) {
-      inv.items.forEach(it => addInvoiceItemRow(it.itemName, it.qty, it.unitPrice));
-    } else {
-      addInvoiceItemRow();
-    }
-
-    calculateInvoiceTotals();
-    switchTab('tab-invoice');
   }
 
   function cancelEditInvoiceMode() {

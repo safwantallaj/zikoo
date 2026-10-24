@@ -28,259 +28,46 @@
       --radius: 16px;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Cairo', sans-serif;
-      -webkit-tap-highlight-color: transparent;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { background-color: var(--bg); color: var(--text); display: flex; justify-content: center; min-height: 100vh; }
+    .app-container { width: 100%; max-width: 480px; min-height: 100vh; background: var(--card); position: relative; display: flex; flex-direction: column; box-shadow: 0 0 40px rgba(0,0,0,0.06); }
+    
+    #license-banner { background: var(--success-light); border-bottom: 1px solid #a7f3d0; padding: 8px 14px; font-size: 11px; font-weight: 700; color: #065f46; display: flex; justify-content: space-between; align-items: center; }
+    header { padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); z-index: 50; }
+    .brand { display: flex; align-items: center; gap: 10px; }
+    .brand-icon { width: 38px; height: 38px; background: linear-gradient(135deg, var(--primary), #3b82f6); color: white; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+    .brand-title { font-size: 18px; font-weight: 800; }
+    .header-actions { display: flex; align-items: center; gap: 8px; }
+    .currency-badge { display: flex; align-items: center; gap: 4px; background: var(--primary-light); padding: 5px 10px; border-radius: 20px; font-size: 12px; color: var(--primary-dark); font-weight: 700; cursor: pointer; border: 1px solid #bfdbfe; }
+    
+    main { flex: 1; padding: 20px; padding-bottom: 95px; overflow-y: auto; }
+    .tab-content { display: none; animation: fadeIn 0.2s ease-in-out; }
+    .tab-content.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
-    body {
-      background-color: var(--bg);
-      color: var(--text);
-      display: flex;
-      justify-content: center;
-      min-height: 100vh;
-    }
+    .hero-balance { background: linear-gradient(135deg, #1e293b, #0f172a); color: white; padding: 22px; border-radius: var(--radius); margin-bottom: 18px; }
+    .hero-title { font-size: 13px; color: #94a3b8; margin-bottom: 6px; }
+    .hero-value { font-size: 28px; font-weight: 800; }
 
-    .app-container {
-      width: 100%;
-      max-width: 480px;
-      min-height: 100vh;
-      background: var(--card);
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      box-shadow: 0 0 40px rgba(0,0,0,0.06);
-    }
+    .stat-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 18px; }
+    .stat-card { background: var(--bg); padding: 14px; border-radius: 14px; border: 1px solid var(--border); }
+    .stat-label { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+    .stat-val { font-size: 16px; font-weight: 700; }
 
-    #license-banner {
-      background: var(--success-light);
-      border-bottom: 1px solid #a7f3d0;
-      padding: 8px 14px;
-      font-size: 11px;
-      font-weight: 700;
-      color: #065f46;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
+    .form-group { margin-bottom: 14px; }
+    label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text); }
+    input, select, textarea { width: 100%; padding: 11px 13px; border: 1px solid var(--border); border-radius: 10px; font-size: 13px; background: white; color: var(--text); outline: none; transition: border 0.2s; }
+    input:focus, select:focus, textarea:focus { border-color: var(--primary); }
 
-    header {
-      padding: 14px 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-bottom: 1px solid var(--border);
-      position: sticky;
-      top: 0;
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(10px);
-      z-index: 50;
-    }
+    .entry-row, .inv-item-row, .wizard-item-row { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-bottom: 12px; position: relative; }
+    .btn-remove-row { position: absolute; top: -8px; left: -8px; background: var(--danger); color: white; border: none; width: 22px; height: 22px; border-radius: 50%; font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .brand-icon {
-      width: 38px;
-      height: 38px;
-      background: linear-gradient(135deg, var(--primary), #3b82f6);
-      color: white;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-    }
-
-    .brand-title {
-      font-size: 18px;
-      font-weight: 800;
-    }
-
-    .header-actions {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .currency-badge {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      background: var(--primary-light);
-      padding: 5px 10px;
-      border-radius: 20px;
-      font-size: 12px;
-      color: var(--primary-dark);
-      font-weight: 700;
-      cursor: pointer;
-      border: 1px solid #bfdbfe;
-    }
-
-    main {
-      flex: 1;
-      padding: 20px;
-      padding-bottom: 95px;
-      overflow-y: auto;
-    }
-
-    .tab-content {
-      display: none;
-      animation: fadeIn 0.2s ease-in-out;
-    }
-
-    .tab-content.active {
-      display: block;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(4px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .hero-balance {
-      background: linear-gradient(135deg, #1e293b, #0f172a);
-      color: white;
-      padding: 22px;
-      border-radius: var(--radius);
-      margin-bottom: 18px;
-    }
-
-    .hero-title {
-      font-size: 13px;
-      color: #94a3b8;
-      margin-bottom: 6px;
-    }
-
-    .hero-value {
-      font-size: 28px;
-      font-weight: 800;
-    }
-
-    .stat-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-bottom: 18px;
-    }
-
-    .stat-card {
-      background: var(--bg);
-      padding: 14px;
-      border-radius: 14px;
-      border: 1px solid var(--border);
-    }
-
-    .stat-label {
-      font-size: 11px;
-      color: var(--text-muted);
-      margin-bottom: 4px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .stat-val {
-      font-size: 16px;
-      font-weight: 700;
-    }
-
-    .form-group {
-      margin-bottom: 14px;
-    }
-
-    label {
-      display: block;
-      font-size: 13px;
-      font-weight: 600;
-      margin-bottom: 6px;
-      color: var(--text);
-    }
-
-    input, select, textarea {
-      width: 100%;
-      padding: 11px 13px;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      font-size: 13px;
-      background: white;
-      color: var(--text);
-      outline: none;
-      transition: border 0.2s;
-    }
-
-    input:focus, select:focus, textarea:focus {
-      border-color: var(--primary);
-    }
-
-    .entry-row, .inv-item-row, .wizard-item-row {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 12px;
-      margin-bottom: 12px;
-      position: relative;
-    }
-
-    .btn-remove-row {
-      position: absolute;
-      top: -8px;
-      left: -8px;
-      background: var(--danger);
-      color: white;
-      border: none;
-      width: 22px;
-      height: 22px;
-      border-radius: 50%;
-      font-size: 11px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .balance-box {
-      background: #f1f5f9;
-      padding: 14px;
-      border-radius: 12px;
-      margin: 16px 0;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 13px;
-      font-weight: 700;
-    }
-
-    .status-badge {
-      padding: 4px 10px;
-      border-radius: 20px;
-      font-size: 12px;
-    }
-
+    .balance-box { background: #f1f5f9; padding: 14px; border-radius: 12px; margin: 16px 0; display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 700; }
+    .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 12px; }
     .status-badge.balanced { background: var(--success-light); color: var(--success); }
     .status-badge.unbalanced { background: var(--danger-light); color: var(--danger); }
 
-    .btn {
-      width: 100%;
-      padding: 13px;
-      border: none;
-      border-radius: 12px;
-      font-size: 14px;
-      font-weight: 700;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      transition: background 0.2s, transform 0.1s;
-    }
-
+    .btn { width: 100%; padding: 13px; border: none; border-radius: 12px; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.2s, transform 0.1s; }
     .btn:active { transform: scale(0.98); }
     .btn-primary { background: var(--primary); color: white; }
     .btn-secondary { background: #334155; color: white; }
@@ -290,393 +77,72 @@
     .btn-scan { background: linear-gradient(135deg, #10b981, #059669); color: white; margin-bottom: 14px; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.25); }
     .btn-outline { background: transparent; border: 1px dashed var(--primary); color: var(--primary); margin-bottom: 14px; padding: 10px; font-size: 13px; }
 
-    .invoice-card, .settings-card, .report-card {
-      background: white;
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 14px;
-      margin-bottom: 14px;
-    }
+    .invoice-card, .settings-card, .report-card { background: white; border: 1px solid var(--border); border-radius: 14px; padding: 14px; margin-bottom: 14px; }
+    .tax-switch-box { background: var(--primary-light); border: 1px solid rgba(37, 99, 235, 0.2); border-radius: 12px; padding: 12px; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; }
+    .switch-label { font-size: 13px; font-weight: 700; color: var(--primary-dark); display: flex; align-items: center; gap: 8px; }
 
-    .tax-switch-box {
-      background: var(--primary-light);
-      border: 1px solid rgba(37, 99, 235, 0.2);
-      border-radius: 12px;
-      padding: 12px;
-      margin-bottom: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
+    .invoice-summary-box { background: #0f172a; color: white; padding: 16px; border-radius: 14px; margin: 16px 0; }
+    .summary-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px; }
+    .summary-row.total { border-top: 1px solid #334155; padding-top: 10px; margin-top: 10px; font-size: 17px; font-weight: 800; color: #38bdf8; }
 
-    .switch-label {
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--primary-dark);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
+    .statement-table { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 13px; }
+    .statement-table th { background: #f1f5f9; padding: 10px; text-align: right; color: var(--text-muted); font-weight: 600; }
+    .statement-table td { padding: 12px 10px; border-bottom: 1px solid var(--border); }
 
-    .invoice-summary-box {
-      background: #0f172a;
-      color: white;
-      padding: 16px;
-      border-radius: 14px;
-      margin: 16px 0;
-    }
-
-    .summary-row {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 8px;
-      font-size: 13px;
-    }
-
-    .summary-row.total {
-      border-top: 1px solid #334155;
-      padding-top: 10px;
-      margin-top: 10px;
-      font-size: 17px;
-      font-weight: 800;
-      color: #38bdf8;
-    }
-
-    .statement-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 14px;
-      font-size: 13px;
-    }
-
-    .statement-table th {
-      background: #f1f5f9;
-      padding: 10px;
-      text-align: right;
-      color: var(--text-muted);
-      font-weight: 600;
-    }
-
-    .statement-table td {
-      padding: 12px 10px;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .btn-inv-tag, .btn-edit-tag {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      margin-top: 4px;
-      margin-left: 4px;
-      padding: 4px 8px;
-      border-radius: 6px;
-      font-size: 11px;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
+    .btn-inv-tag, .btn-edit-tag { display: inline-flex; align-items: center; gap: 4px; margin-top: 4px; margin-left: 4px; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; }
     .btn-inv-tag { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
     .btn-edit-tag { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
 
-    .role-badge {
-      padding: 3px 8px;
-      border-radius: 12px;
-      font-size: 11px;
-      font-weight: 700;
-      background: #e2e8f0;
-      color: #334155;
-    }
-
+    .role-badge { padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 700; background: #e2e8f0; color: #334155; }
     .role-badge.admin { background: #fef3c7; color: #b45309; }
     .role-badge.auditor { background: #e0f2fe; color: #0284c7; }
     .role-badge.entry { background: #f1f5f9; color: #475569; }
 
-    .team-member-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      margin-bottom: 8px;
-    }
+    .team-member-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 8px; }
 
-    .kpi-indicator-card {
-      background: linear-gradient(135deg, #1e293b, #0f172a);
-      color: white;
-      padding: 18px;
-      border-radius: 14px;
-      margin: 14px 0;
-      text-align: center;
-    }
+    .kpi-indicator-card { background: linear-gradient(135deg, #1e293b, #0f172a); color: white; padding: 18px; border-radius: 14px; margin: 14px 0; text-align: center; }
+    .kpi-value-display { font-size: 32px; font-weight: 800; margin: 8px 0; color: #38bdf8; }
+    .kpi-verdict-box { padding: 12px; border-radius: 10px; margin-top: 10px; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .kpi-explanation-box { background: #ffffff; border: 1px solid var(--border); border-radius: 12px; padding: 16px; font-size: 13px; line-height: 1.7; color: #334155; }
 
-    .kpi-value-display {
-      font-size: 32px;
-      font-weight: 800;
-      margin: 8px 0;
-      color: #38bdf8;
-    }
-
-    .kpi-verdict-box {
-      padding: 12px;
-      border-radius: 10px;
-      margin-top: 10px;
-      font-size: 12px;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-    }
-
-    .kpi-explanation-box {
-      background: #ffffff;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 16px;
-      font-size: 13px;
-      line-height: 1.7;
-      color: #334155;
-    }
-
-    .stock-badge {
-      display: inline-block;
-      font-size: 10px;
-      padding: 2px 6px;
-      border-radius: 6px;
-      font-weight: 700;
-      margin-top: 4px;
-    }
+    .stock-badge { display: inline-block; font-size: 10px; padding: 2px 6px; border-radius: 6px; font-weight: 700; margin-top: 4px; }
     .stock-badge.ok { background: #dcfce7; color: #15803d; }
     .stock-badge.low { background: #fef3c7; color: #b45309; }
     .stock-badge.out { background: #fee2e2; color: #b91c1c; }
 
-    .asset-item-card {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 14px;
-      margin-bottom: 12px;
-    }
+    .asset-item-card { background: var(--bg); border: 1px solid var(--border); border-radius: 14px; padding: 14px; margin-bottom: 12px; }
+    .asset-progress-bar { width: 100%; height: 6px; background: #e2e8f0; border-radius: 4px; overflow: hidden; margin: 6px 0; }
+    .asset-progress-fill { height: 100%; background: var(--warning); border-radius: 4px; }
 
-    .asset-progress-bar {
-      width: 100%;
-      height: 6px;
-      background: #e2e8f0;
-      border-radius: 4px;
-      overflow: hidden;
-      margin: 6px 0;
-    }
-
-    .asset-progress-fill {
-      height: 100%;
-      background: var(--warning);
-      border-radius: 4px;
-    }
-
-    nav {
-      position: fixed;
-      bottom: 0;
-      width: 100%;
-      max-width: 480px;
-      height: 68px;
-      background: white;
-      border-top: 1px solid var(--border);
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      z-index: 50;
-    }
-
-    .nav-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 3px;
-      color: var(--text-muted);
-      font-size: 10px;
-      font-weight: 600;
-      cursor: pointer;
-      flex: 1;
-      padding: 6px 0;
-      transition: color 0.2s;
-    }
-
+    nav { position: fixed; bottom: 0; width: 100%; max-width: 480px; height: 68px; background: white; border-top: 1px solid var(--border); display: flex; justify-content: space-around; align-items: center; z-index: 50; }
+    .nav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; color: var(--text-muted); font-size: 10px; font-weight: 600; cursor: pointer; flex: 1; padding: 6px 0; transition: color 0.2s; }
     .nav-item i { font-size: 17px; }
     .nav-item.active { color: var(--primary); }
 
-    .modal-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(15, 23, 42, 0.7);
-      z-index: 2147483647;
-      align-items: flex-end;
-      justify-content: center;
-      backdrop-filter: blur(4px);
-    }
-
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); z-index: 2147483647; align-items: flex-end; justify-content: center; backdrop-filter: blur(4px); }
     .modal-overlay.open { display: flex !important; }
+    .modal-panel { background: white; width: 100%; max-width: 480px; border-radius: 20px 20px 0 0; padding: 22px; max-height: 88vh; overflow-y: auto; box-shadow: 0 -10px 40px rgba(0,0,0,0.2); }
+    #modal-onboarding, #modal-opening-wizard, #modal-add-member, #modal-item-card, #modal-edit-asset, #modal-other-income, #modal-add-account, #modal-restore-backups, #modal-view-invoice, #modal-print-preview { align-items: center; padding: 20px; background: rgba(15, 23, 42, 0.95); }
+    #modal-onboarding .modal-panel, #modal-opening-wizard .modal-panel, #modal-add-member .modal-panel, #modal-item-card .modal-panel, #modal-edit-asset .modal-panel, #modal-other-income .modal-panel, #modal-add-account .modal-panel, #modal-restore-backups .modal-panel, #modal-view-invoice .modal-panel, #modal-print-preview .modal-panel { border-radius: 24px; max-height: 90vh; }
 
-    .modal-panel {
-      background: white;
-      width: 100%;
-      max-width: 480px;
-      border-radius: 20px 20px 0 0;
-      padding: 22px;
-      max-height: 88vh;
-      overflow-y: auto;
-      box-shadow: 0 -10px 40px rgba(0,0,0,0.2);
-    }
-
-    #modal-onboarding, #modal-opening-wizard, #modal-add-member, #modal-item-card, #modal-edit-asset, #modal-other-income, #modal-add-account, #modal-restore-backups, #modal-view-invoice {
-      align-items: center;
-      padding: 20px;
-      background: rgba(15, 23, 42, 0.95);
-    }
-
-    #modal-onboarding .modal-panel, #modal-opening-wizard .modal-panel, #modal-add-member .modal-panel, #modal-item-card .modal-panel, #modal-edit-asset .modal-panel, #modal-other-income .modal-panel, #modal-add-account .modal-panel, #modal-restore-backups .modal-panel, #modal-view-invoice .modal-panel {
-      border-radius: 24px;
-      max-height: 90vh;
-    }
-
-    .digital-invoice {
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 16px;
-      background: #f8fafc;
-      margin-top: 10px;
-    }
-
-    .digital-inv-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 12px 0;
-      font-size: 12px;
-    }
-
+    .digital-invoice { border: 1px solid var(--border); border-radius: 12px; padding: 16px; background: #f8fafc; margin-top: 10px; }
+    .digital-inv-table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 12px; }
     .digital-inv-table th { background: #e2e8f0; padding: 6px 8px; text-align: right; }
     .digital-inv-table td { padding: 6px 8px; border-bottom: 1px solid #e2e8f0; }
 
-    .currency-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin: 15px 0;
-    }
+    .currency-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0; }
+    .currency-btn { padding: 12px; border: 1.5px solid var(--border); border-radius: 12px; background: white; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: space-between; }
 
-    .currency-btn {
-      padding: 12px;
-      border: 1.5px solid var(--border);
-      border-radius: 12px;
-      background: white;
-      font-weight: 700;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
+    #live-camera-modal { display: none; position: fixed; inset: 0; background: #000; z-index: 2147483648; flex-direction: column; justify-content: space-between; }
+    #camera-video-stream { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; }
+    .camera-overlay-frame { position: absolute; inset: 15% 10% 25% 10%; border: 2px dashed #10b981; border-radius: 16px; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5); pointer-events: none; display: flex; align-items: center; justify-content: center; }
+    .camera-overlay-frame span { background: rgba(0,0,0,0.6); color: #fff; padding: 6px 14px; border-radius: 20px; font-size: 13px; }
+    .camera-controls { position: absolute; bottom: 25px; left: 0; right: 0; display: flex; justify-content: space-around; align-items: center; padding: 0 20px; z-index: 10; }
+    .btn-capture-shutter { width: 72px; height: 72px; border-radius: 50%; background: #fff; border: 6px solid rgba(255, 255, 255, 0.4); cursor: pointer; }
+    .btn-camera-close { background: rgba(0,0,0,0.6); color: white; border: 1px solid rgba(255,255,255,0.3); width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; }
 
-    #live-camera-modal {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: #000;
-      z-index: 2147483648;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-
-    #camera-video-stream {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      position: absolute;
-      top: 0;
-      left: 0;
-    }
-
-    .camera-overlay-frame {
-      position: absolute;
-      inset: 15% 10% 25% 10%;
-      border: 2px dashed #10b981;
-      border-radius: 16px;
-      box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
-      pointer-events: none;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .camera-overlay-frame span {
-      background: rgba(0,0,0,0.6);
-      color: #fff;
-      padding: 6px 14px;
-      border-radius: 20px;
-      font-size: 13px;
-    }
-
-    .camera-controls {
-      position: absolute;
-      bottom: 25px;
-      left: 0;
-      right: 0;
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      padding: 0 20px;
-      z-index: 10;
-    }
-
-    .btn-capture-shutter {
-      width: 72px;
-      height: 72px;
-      border-radius: 50%;
-      background: #fff;
-      border: 6px solid rgba(255, 255, 255, 0.4);
-      cursor: pointer;
-    }
-
-    .btn-camera-close {
-      background: rgba(0,0,0,0.6);
-      color: white;
-      border: 1px solid rgba(255,255,255,0.3);
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 20px;
-      cursor: pointer;
-    }
-
-    #ocr-loading-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(15, 23, 42, 0.85);
-      z-index: 2147483649;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      color: white;
-      text-align: center;
-      padding: 20px;
-      backdrop-filter: blur(5px);
-    }
-
-    .backup-item-card {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 12px;
-      margin-bottom: 10px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
+    #ocr-loading-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.85); z-index: 2147483649; align-items: center; justify-content: center; flex-direction: column; color: white; text-align: center; padding: 20px; backdrop-filter: blur(5px); }
+    .backup-item-card { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
 
     @media print {
       body { background-color: #fff !important; color: #000 !important; }
@@ -685,7 +151,6 @@
       main { padding: 0 !important; overflow: visible !important; }
       .tab-content { display: none !important; }
       #tab-statement { display: block !important; }
-      #sub-report-ledger { display: block !important; }
       .statement-table { border: 1px solid #000 !important; font-size: 12px !important; }
       .statement-table th, .statement-table td { border: 1px solid #ccc !important; padding: 8px !important; color: #000 !important; }
       .statement-table th { background: #f1f5f9 !important; }
@@ -807,6 +272,21 @@
           </div>
         </div>
 
+        <!-- خيار العملة وسعر الصرف اللحظي للفاتورة -->
+        <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 10px; margin-bottom: 10px; background:#f8fafc; padding:8px; border-radius:10px; border:1px solid #e2e8f0;">
+          <div>
+            <label style="font-size:11px;">عملة الفاتورة</label>
+            <select id="inv-currency" onchange="toggleInvoiceExchangeRate()">
+              <option value="LOCAL">العملة المحلية الأساسية</option>
+              <option value="USD">دولار أمريكي ($ USD)</option>
+            </select>
+          </div>
+          <div id="box-inv-rate" style="display:none;">
+            <label style="font-size:11px;">سعر صرف الدولار اليوم</label>
+            <input type="number" id="inv-exchange-rate" value="3.75" step="any" min="0.01" oninput="calculateInvoiceTotals()">
+          </div>
+        </div>
+
         <div class="form-group">
           <label id="inv-party-label">الجهة / الحساب</label>
           <select id="inv-party-select" class="account-selector"></select>
@@ -850,15 +330,18 @@
       <div class="invoice-summary-box">
         <div class="summary-row">
           <span>المجموع قبل الضريبة:</span>
-          <span><span id="inv-sum-subtotal">0.00</span> <span class="curr-symbol">ر.س</span></span>
+          <span><span id="inv-sum-subtotal">0.00</span> <span class="curr-symbol" id="inv-sym-1">ر.س</span></span>
         </div>
         <div class="summary-row">
           <span>قيمة الضريبة:</span>
-          <span><span id="inv-sum-tax">0.00</span> <span class="curr-symbol">ر.س</span></span>
+          <span><span id="inv-sum-tax">0.00</span> <span class="curr-symbol" id="inv-sym-2">ر.س</span></span>
         </div>
         <div class="summary-row total">
           <span>الصافي الإجمالي:</span>
-          <span><span id="inv-sum-grand">0.00</span> <span class="curr-symbol">ر.س</span></span>
+          <span><span id="inv-sum-grand">0.00</span> <span class="curr-symbol" id="inv-sym-3">ر.س</span></span>
+        </div>
+        <div id="inv-equiv-local" style="font-size:11px; color:#94a3b8; text-align:left; margin-top:4px; display:none;">
+          المعادل بالعملة المحلية: <span id="inv-equiv-val">0.00</span> <span class="curr-symbol">ر.س</span>
         </div>
       </div>
 
@@ -945,8 +428,8 @@
           <input type="date" id="date-to" onchange="loadStatementData()">
         </div>
 
-        <button class="btn btn-primary" style="margin-bottom: 12px; font-size: 13px;" onclick="window.print()">
-          <i class="fa-solid fa-print"></i> طباعة كشف الحساب / تصدير PDF
+        <button class="btn btn-primary" style="margin-bottom: 12px; font-size: 13px;" onclick="triggerUniversalPrint('ledger')">
+          <i class="fa-solid fa-print"></i> طباعة كشف الحساب / تصدير PDF (للموبايل)
         </button>
 
         <div style="background: var(--bg); padding: 10px 14px; border-radius: 8px; margin-bottom: 10px; font-size: 13px; display: flex; justify-content: space-between;">
@@ -959,10 +442,13 @@
         </table>
       </div>
 
-      <!-- قائمة الدخل -->
+      <!-- قائمة الدخل المعيارية -->
       <div id="sub-report-income" style="display: none;">
         <div class="report-card">
-          <h4 style="margin-bottom: 12px; color: var(--primary);"><i class="fa-solid fa-chart-line"></i> قائمة الدخل (وفق المعايير المحاسبية)</h4>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <h4 style="color: var(--primary); margin:0;"><i class="fa-solid fa-chart-line"></i> قائمة الدخل (المعايير المحاسبية)</h4>
+            <button class="btn btn-primary" style="width:auto; padding:5px 10px; font-size:11px;" onclick="triggerUniversalPrint('income')"><i class="fa-solid fa-print"></i> طباعة</button>
+          </div>
           
           <div class="summary-row"><span>1. إيرادات المبيعات الرئيسية:</span> <strong><span id="rep-sales-rev">0.00</span> <span class="curr-symbol">ر.س</span></strong></div>
           <div class="summary-row"><span>2. تكلفة البضاعة المباعة (WAC):</span> <strong style="color:var(--danger);">-<span id="rep-cogs">0.00</span> <span class="curr-symbol">ر.س</span></strong></div>
@@ -995,8 +481,11 @@
       <div id="sub-report-balance-sheet" style="display: none;">
         <div class="report-card">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-            <h4 style="color: var(--primary);"><i class="fa-solid fa-scale-balanced"></i> قائمة المركز المالي (الميزانية العمومية)</h4>
-            <span id="bs-balance-status" class="status-badge balanced">متوازنة ✓</span>
+            <h4 style="color: var(--primary); margin:0;"><i class="fa-solid fa-scale-balanced"></i> قائمة المركز المالي (الميزانية)</h4>
+            <div style="display:flex; gap:6px; align-items:center;">
+              <span id="bs-balance-status" class="status-badge balanced">متوازنة ✓</span>
+              <button class="btn btn-primary" style="width:auto; padding:5px 10px; font-size:11px;" onclick="triggerUniversalPrint('balance_sheet')"><i class="fa-solid fa-print"></i> طباعة</button>
+            </div>
           </div>
 
           <div style="background:#f8fafc; padding:10px; border-radius:10px; border:1px solid #e2e8f0; margin-bottom:12px;">
@@ -1032,7 +521,10 @@
         <div class="report-card">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
             <h4 style="color: var(--warning); margin:0;"><i class="fa-solid fa-landmark"></i> سجل الأصول الثابتة والتحليل الرقابي</h4>
-            <button class="btn btn-primary" style="width:auto; padding:6px 12px; font-size:11px;" onclick="openAddAccountModal('asset')">+ تسجيل أصل جديد</button>
+            <div style="display:flex; gap:6px;">
+              <button class="btn btn-primary" style="width:auto; padding:6px 12px; font-size:11px;" onclick="triggerUniversalPrint('assets')"><i class="fa-solid fa-print"></i> طباعة السجل</button>
+              <button class="btn btn-success" style="width:auto; padding:6px 12px; font-size:11px;" onclick="openAddAccountModal('asset')">+ تسجيل أصل</button>
+            </div>
           </div>
 
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;">
@@ -1094,7 +586,10 @@
         <div class="report-card">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
             <h4 style="color: var(--primary); margin:0;"><i class="fa-solid fa-boxes-stacked"></i> جرد المستودع وبطاقات الأصناف</h4>
-            <button class="btn btn-primary" style="width:auto; padding:6px 12px; font-size:11px;" onclick="openItemCardModal()">+ إضافة صنف</button>
+            <div style="display:flex; gap:6px;">
+              <button class="btn btn-secondary" style="width:auto; padding:6px 10px; font-size:11px;" onclick="triggerUniversalPrint('inventory')"><i class="fa-solid fa-print"></i> طباعة الجرد</button>
+              <button class="btn btn-primary" style="width:auto; padding:6px 12px; font-size:11px;" onclick="openItemCardModal()">+ إضافة صنف</button>
+            </div>
           </div>
           <table class="statement-table">
             <thead>
@@ -1113,7 +608,10 @@
       <!-- ميزان المراجعة -->
       <div id="sub-report-trial" style="display: none;">
         <div class="report-card">
-          <h4 style="margin-bottom: 12px; color: var(--primary);"><i class="fa-solid fa-table-list"></i> ميزان المراجعة بالأرصدة</h4>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <h4 style="color: var(--primary); margin:0;"><i class="fa-solid fa-table-list"></i> ميزان المراجعة بالأرصدة</h4>
+            <button class="btn btn-primary" style="width:auto; padding:5px 10px; font-size:11px;" onclick="triggerUniversalPrint('trial')"><i class="fa-solid fa-print"></i> طباعة الميزان</button>
+          </div>
           <table class="statement-table">
             <thead>
               <tr><th>الحساب</th><th>مدين</th><th>دائن</th></tr>
@@ -1160,6 +658,18 @@
         <button class="btn btn-outline" style="border-style: solid; padding: 9px;" onclick="openOnboardingModal(true)">
           <i class="fa-solid fa-arrows-rotate"></i> ربط حساب Gmail آخر (شيت جديد)
         </button>
+      </div>
+
+      <!-- ميزة إعادة تقييم العملات الأجنبية (فروق العملة IAS 21) -->
+      <div class="settings-card" style="border-color:#bfdbfe;">
+        <div style="font-weight: 700; font-size: 14px; margin-bottom: 8px; color: var(--primary); display: flex; align-items: center; gap: 6px;">
+          <i class="fa-solid fa-arrow-right-arrow-left"></i> تسوية وإعادة تقييم العملات الأجنبية (IAS 21)
+        </div>
+        <p style="font-size:11px; color:var(--text-muted); margin-bottom:10px;">إعادة تقييم أرصدة العملاء والموردين بالدولار لإقفال فروق العملة تلقائياً في قائمة الدخل.</p>
+        <div style="display:flex; gap:8px;">
+          <input type="number" id="reval-closing-rate" placeholder="سعر صرف الإقفال الحالي" step="any" min="0.01">
+          <button class="btn btn-primary" style="width:auto; white-space:nowrap; padding:0 14px; font-size:12px;" onclick="executeCurrencyRevaluation()">إجراء التسوية</button>
+        </div>
       </div>
 
       <div class="settings-card">
@@ -1213,6 +723,21 @@
 
 </div>
 
+<!-- Modal: معاينة وتصدير الطباعة للموبايل والأبليكيشن (Universal Print) -->
+<div class="modal-overlay" id="modal-print-preview">
+  <div class="modal-panel" style="max-height:92vh;">
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:8px; margin-bottom:12px;">
+      <h3 id="print-doc-title" style="font-size:15px; color:var(--primary);"><i class="fa-solid fa-file-pdf"></i> معاينة التقرير الجاهز للطباعة</h3>
+      <button style="border:none; background:none; font-size:22px; cursor:pointer;" onclick="closePrintPreviewModal()">×</button>
+    </div>
+    <div id="print-doc-content" style="background:#fff; border:1px solid #cbd5e1; padding:16px; border-radius:10px; font-size:12px; max-height:60vh; overflow-y:auto;"></div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:14px;">
+      <button class="btn btn-primary" onclick="executeNativeShareOrPrint()"><i class="fa-solid fa-share-nodes"></i> مشاركة / حفظ PDF</button>
+      <button class="btn btn-secondary" onclick="closePrintPreviewModal()">إغلاق</button>
+    </div>
+  </div>
+</div>
+
 <!-- Modal: تسجيل سند صرف / مصروف -->
 <div class="modal-overlay" id="modal-quick-expense">
   <div class="modal-panel">
@@ -1224,7 +749,7 @@
     <div class="form-group">
       <label>نوع المصروف والتبويب المحاسبي</label>
       <select id="quick-exp-category" onchange="filterExpenseAccountsByCategory()">
-        <option value="operating">مصروف تشغيلي وعمومي (OPEX - يؤثر في ربح التشغيل)</option>
+        <option value="operating">مصروف تشغيلي وعمومي (OPEX - يخص التشغيل)</option>
         <option value="non_operating">مصروف غير تشغيلي وأخرى (فوائد، غرامات، خسائر...)</option>
       </select>
     </div>
@@ -1321,11 +846,11 @@
   </div>
 </div>
 
-<!-- Modal: بطاقة صنف جديدة -->
+<!-- Modal: بطاقة صنف جديدة مع مرونة التعديل المباشر -->
 <div class="modal-overlay" id="modal-item-card">
   <div class="modal-panel">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-      <h3 style="font-size: 16px; color: var(--success);"><i class="fa-solid fa-boxes-stacked"></i> بطاقة تعريف صنف جديد</h3>
+      <h3 style="font-size: 16px; color: var(--success);"><i class="fa-solid fa-boxes-stacked"></i> بطاقة تعريف / تعديل صنف</h3>
       <button style="border:none; background:none; font-size:22px; cursor:pointer;" onclick="closeItemCardModal()">×</button>
     </div>
     <div class="form-group">
@@ -1338,7 +863,7 @@
     </div>
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
       <div class="form-group">
-        <label>سعر التكلفة (الشراء)</label>
+        <label>سعر التكلفة (الشراء WAC)</label>
         <input type="number" id="item-card-cost" placeholder="0.00" min="0" step="any">
       </div>
       <div class="form-group">
@@ -1348,21 +873,21 @@
     </div>
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
       <div class="form-group">
-        <label>الكمية الافتتاحية</label>
+        <label>الكمية المتوفرة حالياً بالمخزن</label>
         <input type="number" id="item-card-qty" placeholder="0" min="0" value="0">
       </div>
       <div class="form-group">
-        <label>حد الطلب (تنبيه)</label>
+        <label>حد الطلب (تنبيه النقص)</label>
         <input type="number" id="item-card-reorder" placeholder="مثال: 5" min="0" value="5">
       </div>
     </div>
     <button class="btn btn-success" id="btn-save-item-card" onclick="saveItemCardAction()">
-      <i class="fa-solid fa-check"></i> حفظ الصنف وترحيله إلى الشيت السحابي
+      <i class="fa-solid fa-check"></i> حفظ الصنف وترحيله وتحديث رصيد المخزون دفترياً
     </button>
   </div>
 </div>
 
-<!-- Modal: إضافة حساب أو أصل ثابت -->
+<!-- Modal: إضافة حساب جديد -->
 <div class="modal-overlay" id="modal-add-account">
   <div class="modal-panel">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
@@ -1471,63 +996,7 @@
   </div>
 </div>
 
-<!-- Modal: معالج الأرصدة الافتتاحية -->
-<div class="modal-overlay" id="modal-opening-wizard">
-  <div class="modal-panel">
-    <div style="text-align: center; margin-bottom: 16px;">
-      <div style="width: 52px; height: 52px; background: var(--primary-light); color: var(--primary); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 8px;">
-        <i class="fa-solid fa-wand-magic-sparkles"></i>
-      </div>
-      <h3 style="font-size: 18px; font-weight: 800;">معالج الأرصدة الافتتاحية وبدء النشاط</h3>
-      <p style="font-size: 12px; color: var(--text-muted);">أدخل أرصدتك وبضائعك الحالية وسيقوم النظام بموازنة رأس المال وتأسيس دفاترك تلقائياً.</p>
-    </div>
-
-    <div class="settings-card" style="background:#f8fafc;">
-      <div style="font-weight:700; font-size:13px; margin-bottom:8px; color:var(--primary);"><i class="fa-solid fa-money-bill-wave"></i> 1. السيولة المتوفرة حالياً</div>
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-        <div>
-          <label style="font-size:11px;">نقدية في الصندوق</label>
-          <input type="number" id="wiz-cash" value="0" min="0">
-        </div>
-        <div>
-          <label style="font-size:11px;">أرصدة في البنك</label>
-          <input type="number" id="wiz-bank" value="0" min="0">
-        </div>
-      </div>
-    </div>
-
-    <div class="settings-card" style="background:#f8fafc;">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-        <div style="font-weight:700; font-size:13px; color:var(--primary);"><i class="fa-solid fa-users"></i> 2. ديون عند الزبائن (لك)</div>
-        <button type="button" style="border:none; background:none; color:var(--primary); font-weight:700; font-size:12px; cursor:pointer;" onclick="addWizardCustomerRow()">+ إضافة زبون</button>
-      </div>
-      <div id="wiz-customers-container"></div>
-    </div>
-
-    <div class="settings-card" style="background:#f8fafc;">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-        <div style="font-weight:700; font-size:13px; color:var(--danger);"><i class="fa-solid fa-truck"></i> 3. ديون للموردين (عليك)</div>
-        <button type="button" style="border:none; background:none; color:var(--danger); font-weight:700; font-size:12px; cursor:pointer;" onclick="addWizardVendorRow()">+ إضافة مورد</button>
-      </div>
-      <div id="wiz-vendors-container"></div>
-    </div>
-
-    <div class="settings-card" style="background:#f8fafc;">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-        <div style="font-weight:700; font-size:13px; color:var(--success);"><i class="fa-solid fa-boxes-stacked"></i> 4. بضاعة أول المدة بالمستودع</div>
-        <button type="button" style="border:none; background:none; color:var(--success); font-weight:700; font-size:12px; cursor:pointer;" onclick="addWizardStockRow()">+ إضافة بضاعة</button>
-      </div>
-      <div id="wiz-stocks-container"></div>
-    </div>
-
-    <button class="btn btn-primary" id="btn-submit-wizard" onclick="submitOpeningBalancesWizard()">
-      <i class="fa-solid fa-check-double"></i> ترحيل الأرصدة وبدء العمل
-    </button>
-    <button class="btn btn-outline" style="border-style:solid; margin-top:8px;" onclick="closeOpeningWizardModal()">تخطي والبدء بأرصدة صفرية</button>
-  </div>
-</div>
-
-<!-- Modal: الكاميرا الحية للذكاء الاصطناعي -->
+<!-- Modal: الكاميرا الحية -->
 <div id="live-camera-modal">
   <video id="camera-video-stream" autoplay playsinline webkit-playsinline muted></video>
   <div class="camera-overlay-frame"><span>ضع الفاتورة داخل الإطار</span></div>
@@ -1577,7 +1046,7 @@
     </div>
     <div id="digital-invoice-body"></div>
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px;">
-      <button class="btn btn-primary" onclick="window.print()"><i class="fa-solid fa-print"></i> طباعة / PDF</button>
+      <button class="btn btn-primary" onclick="triggerUniversalPrint('invoice_current')"><i class="fa-solid fa-print"></i> طباعة / PDF</button>
       <button class="btn btn-secondary" onclick="closeViewInvoiceModal()">إغلاق</button>
     </div>
   </div>
@@ -1599,7 +1068,7 @@
   </div>
 </div>
 
-<!-- شاشة انتظار قراءة الذكاء الاصطناعي -->
+<!-- شاشة انتظار الذكاء الاصطناعي -->
 <div id="ocr-loading-overlay">
   <i class="fa-solid fa-brain fa-fade" style="font-size: 45px; margin-bottom: 16px; color: #38bdf8;"></i>
   <h3 style="font-size: 18px; margin-bottom: 6px;">جارٍ معالجة البيانات عبر الذكاء الاصطناعي...</h3>
@@ -1696,17 +1165,13 @@
   }
 
   function updateLicenseUI() {
-    try {
-      const own = document.getElementById('set-owner-email');
-      const sht = document.getElementById('set-sheet-id');
-      const savedEmail = localStorage.getItem('user_owner_email') || '';
-      const savedSheet = localStorage.getItem('user_sheet_id') || '';
+    const own = document.getElementById('set-owner-email');
+    const sht = document.getElementById('set-sheet-id');
+    const savedEmail = localStorage.getItem('user_owner_email') || '';
+    const savedSheet = localStorage.getItem('user_sheet_id') || '';
 
-      if (own) own.value = savedEmail;
-      if (sht) sht.value = savedSheet;
-    } catch (err) {
-      console.error(err);
-    }
+    if (own) own.value = savedEmail;
+    if (sht) sht.value = savedSheet;
   }
 
   function saveSheetIdManually() {
@@ -1727,7 +1192,7 @@
     return new Date().toISOString().split('T')[0];
   }
 
-  // فلترة بنود المصروفات (تشغيلي أم غير تشغيلي)
+  // فلترة بنود المصروفات (تشغيلي / غير تشغيلي)
   function filterExpenseAccountsByCategory() {
     const cat = document.getElementById('quick-exp-category').value;
     const expSel = document.getElementById('quick-exp-acc');
@@ -1799,12 +1264,7 @@
       fetch(SCRIPT_URL, {
         method: "POST",
         headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({
-          action: "NEW_ENTRY",
-          spreadsheetId: sheetId,
-          entryDate: date,
-          lines: lines
-        })
+        body: JSON.stringify({ action: "NEW_ENTRY", spreadsheetId: sheetId, entryDate: date, lines: lines })
       });
     }
   }
@@ -1875,7 +1335,7 @@
     let totalPendingDepr = 0;
 
     if (fixedAssetsList.length === 0) {
-      container.innerHTML = `<div style="text-align:center; padding:15px; color:#64748b; font-size:12px;">لا توجد أصول مسجلة بعد. يمكنك إضافة سيارات أو تجهيزات عبر زر "تسجيل أصل جديد".</div>`;
+      container.innerHTML = `<div style="text-align:center; padding:15px; color:#64748b; font-size:12px;">لا توجد أصول مسجلة بعد. يمكنك إضافة سيارات أو تجهيزات عبر زر "تسجيل أصل".</div>`;
       document.getElementById('kpi-asset-total-cost').innerText = '0.00';
       document.getElementById('kpi-asset-net-book').innerText = '0.00';
       document.getElementById('depr-total-pending').innerText = '0.00';
@@ -2054,8 +1514,21 @@
     }
   }
 
-  // دوال بطاقة الصنف والمخزون
-  function openItemCardModal() {
+  // دوال بطاقة الصنف والمخزون والتعديل المباشر
+  function openItemCardModal(itemCode = "") {
+    if (itemCode) {
+      const it = inventoryItems.find(x => x.code === itemCode);
+      if (it) {
+        document.getElementById('item-card-code').value = it.code;
+        document.getElementById('item-card-name').value = it.name;
+        document.getElementById('item-card-cost').value = it.cost;
+        document.getElementById('item-card-price').value = it.price;
+        document.getElementById('item-card-qty').value = it.qty;
+        document.getElementById('item-card-reorder').value = it.reorder;
+        document.getElementById('modal-item-card').classList.add('open');
+        return;
+      }
+    }
     document.getElementById('item-card-code').value = 'SKU-' + Math.floor(1000 + Math.random() * 9000);
     document.getElementById('item-card-name').value = '';
     document.getElementById('item-card-cost').value = '';
@@ -2080,23 +1553,35 @@
     if (!name) return showToast('يرجى كتابة اسم الصنف', true);
 
     const existingIdx = inventoryItems.findIndex(it => it.code === code || it.name === name);
+    let oldVal = 0;
     if (existingIdx !== -1) {
+      oldVal = (Number(inventoryItems[existingIdx].qty) || 0) * (Number(inventoryItems[existingIdx].cost) || 0);
       inventoryItems[existingIdx] = { code, name, unit: "حبة", cost, price, qty, reorder };
     } else {
       inventoryItems.push({ code, name, unit: "حبة", cost, price, qty, reorder });
     }
 
-    if (qty > 0 && cost > 0 && existingIdx === -1) {
-      const totalVal = qty * cost;
+    // الربط المحاسبي المباشر مع حساب المخزون 1131
+    const newVal = qty * cost;
+    const diffVal = newVal - oldVal;
+
+    if (Math.abs(diffVal) > 0.01) {
       const date = Utilities_getTodayStr();
       const genNo = Date.now();
-      ledgerEntries.push({ entryNo: genNo, date, accountCode: "1131", accountName: "مخزون بضاعة المستودع الرئيسي", desc: `رصيد افتتاحي لصنف: ${name}`, debit: totalVal, credit: 0 });
-      ledgerEntries.push({ entryNo: genNo, date, accountCode: "3101", accountName: "رأس المال / الأرصدة الافتتاحية", desc: `تسوية بضاعة افتتاحية: ${name}`, debit: 0, credit: totalVal });
+      const memo = `تسوية مخزنية دفترياً للصنف: ${name}`;
+
+      if (diffVal > 0) {
+        ledgerEntries.push({ entryNo: genNo, date, accountCode: "1131", accountName: "مخزون بضاعة المستودع الرئيسي", desc: memo, debit: diffVal, credit: 0 });
+        ledgerEntries.push({ entryNo: genNo, date, accountCode: "3101", accountName: "رأس المال / الأرصدة الافتتاحية", desc: memo, debit: 0, credit: diffVal });
+      } else {
+        ledgerEntries.push({ entryNo: genNo, date, accountCode: "3101", accountName: "رأس المال / الأرصدة الافتتاحية", desc: memo, debit: Math.abs(diffVal), credit: 0 });
+        ledgerEntries.push({ entryNo: genNo, date, accountCode: "1131", accountName: "مخزون بضاعة المستودع الرئيسي", desc: memo, debit: 0, credit: Math.abs(diffVal) });
+      }
     }
 
     persistData();
     closeItemCardModal();
-    showToast(`تم حفظ الصنف (${name}) وترحيله للسحابة ✅`);
+    showToast(`تم حفظ الصنف وتحديث حساب المخزون دفترياً بنجاح ✅`);
     populateItemSelectors();
 
     const sheetId = localStorage.getItem("user_sheet_id");
@@ -2133,7 +1618,7 @@
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td>
-          <strong>${it.name}</strong>
+          <strong style="cursor:pointer; color:var(--primary);" onclick="openItemCardModal('${it.code}')">${it.name} ✏️</strong>
           <div style="font-size:10px; color:var(--text-muted);">${it.code}</div>
           <span class="stock-badge ${statusClass}">${statusText}</span>
         </td>
@@ -2155,6 +1640,196 @@
       sel.innerHTML = optHtml;
       if (cur) sel.value = cur;
     });
+  }
+
+  // تعدد العملات وفروق الصرف (IAS 21)
+  function toggleInvoiceExchangeRate() {
+    const curr = document.getElementById('inv-currency').value;
+    const rateBox = document.getElementById('box-inv-rate');
+    const isUSD = (curr === 'USD');
+    rateBox.style.display = isUSD ? 'block' : 'none';
+    document.getElementById('inv-sym-1').innerText = isUSD ? '$' : currentCurrency;
+    document.getElementById('inv-sym-2').innerText = isUSD ? '$' : currentCurrency;
+    document.getElementById('inv-sym-3').innerText = isUSD ? '$' : currentCurrency;
+    document.getElementById('inv-equiv-local').style.display = isUSD ? 'block' : 'none';
+    calculateInvoiceTotals();
+  }
+
+  function executeCurrencyRevaluation() {
+    const rate = parseFloat(document.getElementById('reval-closing-rate').value);
+    if (!rate || rate <= 0) return showToast('يرجى إدخال سعر صرف صحيح للإقفال', true);
+
+    const todayStr = Utilities_getTodayStr();
+    let totalGain = 0;
+    let totalLoss = 0;
+    const lines = [];
+
+    // فحص أرصدة العملاء والموردين الذين لديهم تعاملات بالدولار
+    smartInvoices.forEach(inv => {
+      if (inv.currency === 'USD') {
+        const origUSD = inv.grandTotal;
+        const oldRate = inv.exchangeRate || 3.75;
+        const currentEquivalent = origUSD * rate;
+        const oldEquivalent = origUSD * oldRate;
+        const diff = currentEquivalent - oldEquivalent;
+
+        if (Math.abs(diff) > 0.01) {
+          if (inv.type === 'sales') {
+            // عميل: إذا ارتفع السعر نحقق ربح فروق عملة، وإذا انخفض نحقق خسارة
+            if (diff > 0) {
+              totalGain += diff;
+              lines.push({ accountCode: inv.partyCode, accountName: inv.partyName, description: `أرباح فروق صرف غير محققة (فاتورة #${inv.id})`, debit: diff, credit: 0 });
+              lines.push({ accountCode: "4201", accountName: "إيرادات أخرى ومتنوعة", description: `أرباح فروق عملة تقييم الدولار`, debit: 0, credit: diff });
+            } else {
+              totalLoss += Math.abs(diff);
+              lines.push({ accountCode: "5301", accountName: "فوائد وخسائر فروق عملة", description: `خسائر فروق صرف تقييم الدولار`, debit: Math.abs(diff), credit: 0 });
+              lines.push({ accountCode: inv.partyCode, accountName: inv.partyName, description: `تسوية فروق صرف (فاتورة #${inv.id})`, debit: 0, credit: Math.abs(diff) });
+            }
+          } else {
+            // مورد: إذا ارتفع السعر نتحمل خسارة، وإذا انخفض نحقق ربح
+            if (diff > 0) {
+              totalLoss += diff;
+              lines.push({ accountCode: "5301", accountName: "فوائد وخسائر فروق عملة", description: `خسائر فروق صرف التزام مورد`, debit: diff, credit: 0 });
+              lines.push({ accountCode: inv.partyCode, accountName: inv.partyName, description: `تسوية فروق صرف التزام مورد (فاتورة #${inv.id})`, debit: 0, credit: diff });
+            } else {
+              totalGain += Math.abs(diff);
+              lines.push({ accountCode: inv.partyCode, accountName: inv.partyName, description: `أرباح فروق صرف تخفيض التزام مورد`, debit: Math.abs(diff), credit: 0 });
+              lines.push({ accountCode: "4201", accountName: "إيرادات أخرى ومتنوعة", description: `أرباح فروق عملة التزام مورد`, debit: 0, credit: Math.abs(diff) });
+            }
+          }
+          inv.exchangeRate = rate; // تحديث السعر التقييمي
+        }
+      }
+    });
+
+    if (lines.length === 0) return showToast('لا توجد فواتير بالدولار تحتاج لإعادة تقييم حالياً ✅');
+
+    const genNo = Date.now();
+    lines.forEach(l => {
+      ledgerEntries.push({ entryNo: genNo, date: todayStr, accountCode: l.accountCode, accountName: l.accountName, desc: l.description, debit: l.debit, credit: l.credit });
+    });
+
+    persistData();
+    calculateFinancialReports();
+    showToast(`تمت إعادة التقييم بنجاح: أرباح (${totalGain.toFixed(2)}) | خسائر (${totalLoss.toFixed(2)}) ✅`);
+  }
+
+  // منظومة الطباعة والتصدير الشاملة المتوافقة 100% مع الموبايل والأبليكيشن
+  let currentPrintDocumentData = { title: "", htmlContent: "" };
+
+  function triggerUniversalPrint(reportType) {
+    let title = "";
+    let content = "";
+    const today = Utilities_getTodayStr();
+
+    if (reportType === 'ledger') {
+      const sel = document.getElementById('statement-account-selector');
+      const accName = sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text : "الحساب";
+      const bal = document.getElementById('final-balance').innerText;
+      title = `كشف حساب - ${accName}`;
+      content = `
+        <div style="text-align:center; border-bottom:2px solid #000; padding-bottom:8px; margin-bottom:12px;">
+          <h2 style="font-size:16px; margin:0;">المحاسب الذكي | كشف حساب رسمي</h2>
+          <div style="font-size:11px; margin-top:4px;">الحساب: <strong>${accName}</strong> | التاريخ: ${today} | الرصيد: <strong>${bal} ${currentCurrency}</strong></div>
+        </div>
+        <table style="width:100%; border-collapse:collapse; font-size:11px;">
+          ${document.querySelector('.statement-table').innerHTML}
+        </table>
+      `;
+    } else if (reportType === 'income') {
+      title = `قائمة الدخل - ${today}`;
+      content = `
+        <div style="text-align:center; border-bottom:2px solid #000; padding-bottom:8px; margin-bottom:12px;">
+          <h2 style="font-size:16px; margin:0;">قائمة الدخل والأرباح والخسائر</h2>
+          <div style="font-size:11px; margin-top:4px;">عن الفترة المنتهية في: ${today} (${currentCurrency})</div>
+        </div>
+        ${document.getElementById('sub-report-income').innerHTML}
+      `;
+    } else if (reportType === 'balance_sheet') {
+      title = `الميزانية العمومية - ${today}`;
+      content = `
+        <div style="text-align:center; border-bottom:2px solid #000; padding-bottom:8px; margin-bottom:12px;">
+          <h2 style="font-size:16px; margin:0;">قائمة المركز المالي (الميزانية العمومية)</h2>
+          <div style="font-size:11px; margin-top:4px;">كما في تاريخ: ${today} (${currentCurrency})</div>
+        </div>
+        ${document.getElementById('sub-report-balance-sheet').innerHTML}
+      `;
+    } else if (reportType === 'assets') {
+      title = `سجل الأصول الثابتة - ${today}`;
+      content = `
+        <div style="text-align:center; border-bottom:2px solid #000; padding-bottom:8px; margin-bottom:12px;">
+          <h2 style="font-size:16px; margin:0;">سجل الأصول الثابتة ومجمعات الإهلاك (IAS 16)</h2>
+          <div style="font-size:11px; margin-top:4px;">تاريخ الجرد والتقييم: ${today}</div>
+        </div>
+        ${document.getElementById('sub-report-depreciation').innerHTML}
+      `;
+    } else if (reportType === 'inventory') {
+      title = `جرد المستودع - ${today}`;
+      content = `
+        <div style="text-align:center; border-bottom:2px solid #000; padding-bottom:8px; margin-bottom:12px;">
+          <h2 style="font-size:16px; margin:0;">تقرير جرد بضاعة المستودع بالمتوسط المرجح (WAC)</h2>
+          <div style="font-size:11px; margin-top:4px;">التاريخ: ${today}</div>
+        </div>
+        <table style="width:100%; border-collapse:collapse; font-size:11px;">
+          ${document.getElementById('sub-report-inventory').querySelector('.statement-table').innerHTML}
+        </table>
+      `;
+    } else if (reportType === 'invoice_current') {
+      title = `فاتورة رقمية`;
+      content = document.getElementById('digital-invoice-body').innerHTML;
+    }
+
+    currentPrintDocumentData = { title, htmlContent: content };
+    document.getElementById('print-doc-title').innerText = title;
+    document.getElementById('print-doc-content').innerHTML = content;
+    document.getElementById('modal-print-preview').classList.add('open');
+  }
+
+  function closePrintPreviewModal() {
+    document.getElementById('modal-print-preview').classList.remove('open');
+  }
+
+  function executeNativeShareOrPrint() {
+    const docData = currentPrintDocumentData;
+    const cleanHtml = `
+      <!DOCTYPE html>
+      <html lang="ar" dir="rtl">
+      <head>
+        <meta charset="UTF-8">
+        <title>${docData.title}</title>
+        <style>
+          body { font-family: 'Cairo', sans-serif; padding: 20px; color: #000; }
+          table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+          th, td { border: 1px solid #000; padding: 6px; text-align: right; font-size: 12px; }
+          th { background: #f1f5f9; }
+          .btn, button, .btn-inv-tag, .btn-edit-tag { display: none !important; }
+        </style>
+      </head>
+      <body>
+        ${docData.htmlContent}
+      </body>
+      </html>
+    `;
+
+    const blob = new Blob([cleanHtml], { type: 'text/html;charset=utf-8' });
+    const file = new File([blob], `${docData.title}.html`, { type: 'text/html' });
+
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      navigator.share({
+        files: [file],
+        title: docData.title,
+        text: `مستند محاسبي رسمي صادر من المحاسب الذكي: ${docData.title}`
+      }).catch(err => {
+        window.print();
+      });
+    } else {
+      // للمتصفح المكتبي أو الأجهزة التي لا تدعم share
+      const win = window.open('', '_blank');
+      win.document.write(cleanHtml);
+      win.document.close();
+      win.focus();
+      setTimeout(() => { win.print(); }, 400);
+    }
   }
 
   // دوال فريق العمل
@@ -2213,7 +1888,7 @@
     `;
 
     if (teamMembers.length === 0) {
-      html += `<div style="text-align:center; padding:12px; font-size:11px; color:var(--text-muted);">لا يوجد أعضاء إضافيون مضافون حالياً. اضغط على "+ دعوة عضو" لمنح صلاحيات للمدققين أو المحاسبين.</div>`;
+      html += `<div style="text-align:center; padding:12px; font-size:11px; color:var(--text-muted);">لا يوجد أعضاء إضافيون حالياً. اضغط على "+ دعوة عضو" لمنح صلاحيات للمدققين أو المحاسبين.</div>`;
     } else {
       teamMembers.forEach(m => {
         const badgeClass = m.role === 'admin' ? 'admin' : (m.role === 'auditor' ? 'auditor' : 'entry');
@@ -2375,159 +2050,6 @@
     populateAccountSelects();
     closeAddAccountModal();
     showToast(`تمت إضافة ${name} برقم ${code} بنجاح ✅`);
-  }
-
-  // معالج الأرصدة الافتتاحية
-  function openOpeningWizardModal() {
-    document.getElementById('modal-opening-wizard').classList.add('open');
-    if (document.getElementById('wiz-customers-container').children.length === 0) addWizardCustomerRow();
-    if (document.getElementById('wiz-vendors-container').children.length === 0) addWizardVendorRow();
-    if (document.getElementById('wiz-stocks-container').children.length === 0) addWizardStockRow();
-  }
-
-  function closeOpeningWizardModal() {
-    document.getElementById('modal-opening-wizard').classList.remove('open');
-  }
-
-  function addWizardCustomerRow() {
-    const container = document.getElementById('wiz-customers-container');
-    const div = document.createElement('div');
-    div.className = 'wizard-item-row';
-    div.innerHTML = `
-      <button class="btn-remove-row" onclick="this.parentElement.remove()">×</button>
-      <div style="display:grid; grid-template-columns: 2fr 1fr; gap:6px;">
-        <input type="text" class="wiz-cust-name" placeholder="اسم الزبون / العميل">
-        <input type="number" class="wiz-cust-bal" placeholder="المبلغ عليه" min="0">
-      </div>
-    `;
-    container.appendChild(div);
-  }
-
-  function addWizardVendorRow() {
-    const container = document.getElementById('wiz-vendors-container');
-    const div = document.createElement('div');
-    div.className = 'wizard-item-row';
-    div.innerHTML = `
-      <button class="btn-remove-row" onclick="this.parentElement.remove()">×</button>
-      <div style="display:grid; grid-template-columns: 2fr 1fr; gap:6px;">
-        <input type="text" class="wiz-vend-name" placeholder="اسم المورد">
-        <input type="number" class="wiz-vend-bal" placeholder="المبلغ له" min="0">
-      </div>
-    `;
-    container.appendChild(div);
-  }
-
-  function addWizardStockRow() {
-    const container = document.getElementById('wiz-stocks-container');
-    const div = document.createElement('div');
-    div.className = 'wizard-item-row';
-    div.innerHTML = `
-      <button class="btn-remove-row" onclick="this.parentElement.remove()">×</button>
-      <div style="display:grid; grid-template-columns: 2fr 1fr 1fr; gap:6px;">
-        <input type="text" class="wiz-stock-name" placeholder="اسم الصنف">
-        <input type="number" class="wiz-stock-qty" placeholder="الكمية" min="1" value="1">
-        <input type="number" class="wiz-stock-cost" placeholder="سعر التكلفة" min="0">
-      </div>
-    `;
-    container.appendChild(div);
-  }
-
-  async function submitOpeningBalancesWizard() {
-    const cash = parseFloat(document.getElementById('wiz-cash').value) || 0;
-    const bank = parseFloat(document.getElementById('wiz-bank').value) || 0;
-    const date = Utilities_getTodayStr();
-
-    const lines = [];
-    const stockItems = [];
-    let totalAssets = cash + bank;
-    let totalLiabilities = 0;
-
-    if (cash > 0) lines.push({ accountCode: "1111", accountName: "الصندوق الرئيسي (الخزينة)", category: "النقدية والبنوك", nature: "مدين", debit: cash, credit: 0, description: "رصيد نقدية افتتاحي" });
-    if (bank > 0) lines.push({ accountCode: "1113", accountName: "الحساب البنكي الجاري", category: "النقدية والبنوك", nature: "مدين", debit: bank, credit: 0, description: "رصيد بنكي افتتاحي" });
-
-    document.querySelectorAll('#wiz-customers-container .wizard-item-row').forEach(row => {
-      const name = row.querySelector('.wiz-cust-name').value.trim();
-      const bal = parseFloat(row.querySelector('.wiz-cust-bal').value) || 0;
-      if (name && bal > 0) {
-        const code = "112" + Math.floor(10 + Math.random() * 89);
-        chartOfAccounts.push({ code: code, name: name, cat: "العملاء والمدينون", base: "customer", nature: "مدين" });
-        lines.push({ accountCode: code, accountName: name, category: "العملاء والمدينون", nature: "مدين", debit: bal, credit: 0, description: "رصيد افتتاحي مستحق على العميل" });
-        totalAssets += bal;
-      }
-    });
-
-    document.querySelectorAll('#wiz-vendors-container .wizard-item-row').forEach(row => {
-      const name = row.querySelector('.wiz-vend-name').value.trim();
-      const bal = parseFloat(row.querySelector('.wiz-vend-bal').value) || 0;
-      if (name && bal > 0) {
-        const code = "210" + Math.floor(10 + Math.random() * 89);
-        chartOfAccounts.push({ code: code, name: name, cat: "الموردون والالتزامات", base: "vendor", nature: "دائن" });
-        lines.push({ accountCode: code, accountName: name, category: "الموردون والالتزامات", nature: "دائن", debit: 0, credit: bal, description: "رصيد افتتاحي مستحق للمورد" });
-        totalLiabilities += bal;
-      }
-    });
-
-    let stockTotalVal = 0;
-    document.querySelectorAll('#wiz-stocks-container .wizard-item-row').forEach(row => {
-      const name = row.querySelector('.wiz-stock-name').value.trim();
-      const qty = parseFloat(row.querySelector('.wiz-stock-qty').value) || 0;
-      const cost = parseFloat(row.querySelector('.wiz-stock-cost').value) || 0;
-      if (name && qty > 0) {
-        stockItems.push({ name: name, qty: qty, cost: cost, price: cost * 1.3 });
-        stockTotalVal += (qty * cost);
-
-        inventoryItems.push({
-          code: 'SKU-' + Math.floor(1000 + Math.random() * 9000),
-          name: name,
-          unit: 'حبة',
-          cost: cost,
-          price: cost * 1.3,
-          qty: qty,
-          reorder: 5
-        });
-      }
-    });
-
-    if (stockTotalVal > 0) {
-      lines.push({ accountCode: "1131", accountName: "مخزون بضاعة المستودع الرئيسي", category: "المخزون والأصول", nature: "مدين", debit: stockTotalVal, credit: 0, description: "بضاعة أول المدة" });
-      totalAssets += stockTotalVal;
-    }
-
-    const equityVal = totalAssets - totalLiabilities;
-    if (equityVal > 0) {
-      lines.push({ accountCode: "3101", accountName: "رأس المال / الأرصدة الافتتاحية", category: "حقوق الملكية", nature: "دائن", debit: 0, credit: equityVal, description: "رأس المال الافتتاحي التأسيسي" });
-    }
-
-    if (lines.length === 0) {
-      closeOpeningWizardModal();
-      return;
-    }
-
-    const genNo = Date.now();
-    lines.forEach(l => {
-      ledgerEntries.push({
-        entryNo: genNo, date: date, accountCode: l.accountCode, accountName: l.accountName,
-        desc: l.description, debit: l.debit, credit: l.credit
-      });
-    });
-
-    persistData();
-    populateAccountSelects();
-    populateItemSelectors();
-    closeOpeningWizardModal();
-    showToast('تم تأسيس الأرصدة وبطاقات المخزون بنجاح ✅');
-
-    fetch(SCRIPT_URL, {
-      method: "POST",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify({
-        action: "SETUP_OPENING_BALANCES",
-        spreadsheetId: localStorage.getItem("user_sheet_id"),
-        entryDate: date,
-        lines: lines,
-        inventoryItems: stockItems
-      })
-    });
   }
 
   // المزامنة والنسخ الاحتياطي السحابي
@@ -2782,7 +2304,7 @@
     if (val) selectCurrency(val, val);
   }
 
-  // الحسابات والتقارير المالية
+  // الحسابات والتقارير المالية المعيارية
   function calculateFinancialReports() {
     let salesRev = 0, cogs = 0, deprExpense = 0, operatingExp = 0, nonOperatingExp = 0, otherRev = 0, taxOut = 0, taxIn = 0;
     let accountBalances = {};
@@ -3149,6 +2671,8 @@
   function calculateInvoiceTotals() {
     let subtotal = 0;
     const taxRate = parseFloat(document.getElementById('inv-tax-mode').value) || 0;
+    const curr = document.getElementById('inv-currency').value;
+    const rate = parseFloat(document.getElementById('inv-exchange-rate').value) || 1;
 
     document.querySelectorAll('.inv-item-row').forEach(row => {
       const q = parseFloat(row.querySelector('.inv-item-qty').value) || 0;
@@ -3162,6 +2686,11 @@
     document.getElementById('inv-sum-subtotal').innerText = subtotal.toFixed(2);
     document.getElementById('inv-sum-tax').innerText = taxAmount.toFixed(2);
     document.getElementById('inv-sum-grand').innerText = grandTotal.toFixed(2);
+
+    if (curr === 'USD') {
+      const localEquiv = grandTotal * rate;
+      document.getElementById('inv-equiv-val').innerText = localEquiv.toLocaleString(undefined, {minimumFractionDigits: 2});
+    }
   }
 
   async function submitInvoiceAction() {
@@ -3207,6 +2736,9 @@
     const taxRate = parseFloat(document.getElementById('inv-tax-mode').value) || 0;
     const date = document.getElementById('inv-date').value || Utilities_getTodayStr();
 
+    const invCurrency = document.getElementById('inv-currency').value;
+    const exchangeRate = invCurrency === 'USD' ? (parseFloat(document.getElementById('inv-exchange-rate').value) || 1) : 1;
+
     const editingId = document.getElementById('editing-invoice-id').value;
     const isEditMode = !!editingId;
     const invId = isEditMode ? editingId : ("INV-" + (invType === 'sales' ? 'SAL-' : 'PUR-') + Math.floor(100 + Math.random() * 900));
@@ -3224,9 +2756,9 @@
           targetItem.qty = Math.max(0, targetItem.qty - it.qty);
         } else {
           const oldTotalCost = targetItem.qty * targetItem.cost;
-          const newBuyCost = it.qty * it.unitPrice;
+          const newBuyCost = it.qty * (it.unitPrice * exchangeRate);
           const newTotalQty = targetItem.qty + it.qty;
-          targetItem.cost = newTotalQty > 0 ? ((oldTotalCost + newBuyCost) / newTotalQty) : it.unitPrice;
+          targetItem.cost = newTotalQty > 0 ? ((oldTotalCost + newBuyCost) / newTotalQty) : (it.unitPrice * exchangeRate);
           targetItem.qty = newTotalQty;
         }
       } else if (invType === 'purchase') {
@@ -3234,8 +2766,8 @@
           code: 'SKU-' + Math.floor(1000 + Math.random() * 9000),
           name: it.itemName,
           unit: 'حبة',
-          cost: it.unitPrice,
-          price: it.unitPrice * 1.3,
+          cost: it.unitPrice * exchangeRate,
+          price: (it.unitPrice * exchangeRate) * 1.3,
           qty: it.qty,
           reorder: 5
         });
@@ -3245,9 +2777,14 @@
     const taxAmount = subtotal * (taxRate / 100);
     const grandTotal = subtotal + taxAmount;
 
+    // ترجمة المبالغ دفترياً بالعملة المحلية
+    const grandTotalLocal = grandTotal * exchangeRate;
+    const subtotalLocal = subtotal * exchangeRate;
+    const taxAmountLocal = taxAmount * exchangeRate;
+
     const fullInvoice = {
       id: invId, date, type: invType, partyCode, partyName, payMethod, taxRate,
-      subtotal, taxAmount, grandTotal, currency: currentCurrency, items
+      subtotal, taxAmount, grandTotal, currency: invCurrency, exchangeRate: exchangeRate, items
     };
 
     if (isEditMode) {
@@ -3258,20 +2795,22 @@
       smartInvoices.push(fullInvoice);
     }
 
-    const memo = (invType === 'sales' ? 'فاتورة مبيعات ' : 'فاتورة مشتريات ') + (payMethod === 'credit' ? '(آجل)' : '(نقدي)') + ' #' + invId;
+    const currTag = invCurrency === 'USD' ? ` ($${grandTotal.toFixed(2)})` : '';
+    const memo = (invType === 'sales' ? 'فاتورة مبيعات ' : 'فاتورة مشتريات ') + (payMethod === 'credit' ? '(آجل)' : '(نقدي)') + ' #' + invId + currTag;
+
     if (invType === 'sales') {
-      ledgerEntries.push({ date, accountCode: partyCode, desc: memo, debit: grandTotal, credit: 0, invoiceId: invId });
-      ledgerEntries.push({ date, accountCode: "4101", desc: memo, debit: 0, credit: subtotal, invoiceId: invId });
-      if (taxAmount > 0) ledgerEntries.push({ date, accountCode: "2103", desc: "ضريبة القيمة المضافة", debit: 0, credit: taxAmount, invoiceId: invId });
+      ledgerEntries.push({ date, accountCode: partyCode, desc: memo, debit: grandTotalLocal, credit: 0, invoiceId: invId });
+      ledgerEntries.push({ date, accountCode: "4101", desc: memo, debit: 0, credit: subtotalLocal, invoiceId: invId });
+      if (taxAmountLocal > 0) ledgerEntries.push({ date, accountCode: "2103", desc: "ضريبة القيمة المضافة", debit: 0, credit: taxAmountLocal, invoiceId: invId });
 
       if (totalCogsVal > 0) {
         ledgerEntries.push({ date, accountCode: "5101", desc: `تكلفة بضاعة مباعة بالفاتورة #${invId}`, debit: totalCogsVal, credit: 0, invoiceId: invId });
         ledgerEntries.push({ date, accountCode: "1131", desc: `إخراج مخزني بالفاتورة #${invId}`, debit: 0, credit: totalCogsVal, invoiceId: invId });
       }
     } else {
-      ledgerEntries.push({ date, accountCode: "1131", desc: memo, debit: subtotal, credit: 0, invoiceId: invId });
-      if (taxAmount > 0) ledgerEntries.push({ date, accountCode: "2103", desc: "ضريبة مدخلات مشتريات", debit: taxAmount, credit: 0, invoiceId: invId });
-      ledgerEntries.push({ date, accountCode: partyCode, desc: memo, debit: 0, credit: grandTotal, invoiceId: invId });
+      ledgerEntries.push({ date, accountCode: "1131", desc: memo, debit: subtotalLocal, credit: 0, invoiceId: invId });
+      if (taxAmountLocal > 0) ledgerEntries.push({ date, accountCode: "2103", desc: "ضريبة مدخلات مشتريات", debit: taxAmountLocal, credit: 0, invoiceId: invId });
+      ledgerEntries.push({ date, accountCode: partyCode, desc: memo, debit: 0, credit: grandTotalLocal, invoiceId: invId });
     }
 
     persistData();
@@ -3308,7 +2847,7 @@
     let inv = smartInvoices.find(x => x.id === invId);
     if (!inv) return showToast('لا توجد تفاصيل لهذه الفاتورة', true);
 
-    const curr = inv.currency || currentCurrency;
+    const curr = inv.currency === 'USD' ? '$' : currentCurrency;
     let itemsRows = '';
     inv.items.forEach((it, idx) => {
       itemsRows += `

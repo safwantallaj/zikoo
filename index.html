@@ -105,6 +105,11 @@
     .kpi-verdict-box { padding: 12px; border-radius: 10px; margin-top: 10px; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px; }
     .kpi-explanation-box { background: #ffffff; border: 1px solid var(--border); border-radius: 12px; padding: 16px; font-size: 13px; line-height: 1.7; color: #334155; }
 
+    .stock-badge { display: inline-block; font-size: 10px; padding: 2px 6px; border-radius: 6px; font-weight: 700; margin-top: 4px; }
+    .stock-badge.ok { background: #dcfce7; color: #15803d; }
+    .stock-badge.low { background: #fef3c7; color: #b45309; }
+    .stock-badge.out { background: #fee2e2; color: #b91c1c; }
+
     .asset-item-card { background: var(--bg); border: 1px solid var(--border); border-radius: 14px; padding: 14px; margin-bottom: 12px; }
     .asset-progress-bar { width: 100%; height: 6px; background: #e2e8f0; border-radius: 4px; overflow: hidden; margin: 6px 0; }
     .asset-progress-fill { height: 100%; background: var(--warning); border-radius: 4px; }
@@ -137,7 +142,6 @@
     .btn-camera-close { background: rgba(0,0,0,0.6); color: white; border: 1px solid rgba(255,255,255,0.3); width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; }
 
     #ocr-loading-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.85); z-index: 2147483649; align-items: center; justify-content: center; flex-direction: column; color: white; text-align: center; padding: 20px; backdrop-filter: blur(5px); }
-
     .backup-item-card { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
 
     @media print {
@@ -421,7 +425,7 @@
         </table>
       </div>
 
-      <!-- قائمة الدخل -->
+      <!-- قائمة الدخل المعيارية -->
       <div id="sub-report-income" style="display: none;">
         <div class="report-card">
           <h4 style="margin-bottom: 12px; color: var(--primary);"><i class="fa-solid fa-chart-line"></i> قائمة الدخل (وفق المعايير المحاسبية)</h4>
@@ -618,9 +622,6 @@
         </div>
         <button class="btn btn-primary" style="padding: 9px; margin-bottom: 8px; font-size: 13px;" onclick="saveSheetIdManually()">
           <i class="fa-solid fa-floppy-disk"></i> حفظ معرّف الشيت يدوياً
-        </button>
-        <button class="btn btn-outline" style="border-style: solid; padding: 9px; margin-bottom: 8px;" onclick="openOpeningWizardModal()">
-          <i class="fa-solid fa-wand-magic-sparkles"></i> إعادة فتح معالج الأرصدة الافتتاحية
         </button>
         <button class="btn btn-outline" style="border-style: solid; padding: 9px;" onclick="openOnboardingModal(true)">
           <i class="fa-solid fa-arrows-rotate"></i> ربط حساب Gmail آخر (شيت جديد)
@@ -1263,6 +1264,7 @@
     if (sheetId) {
       fetch(SCRIPT_URL, {
         method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify({
           action: "NEW_ENTRY",
           spreadsheetId: sheetId,
@@ -1314,6 +1316,7 @@
     if (sheetId) {
       fetch(SCRIPT_URL, {
         method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify({
           action: "NEW_ENTRY",
           spreadsheetId: sheetId,
@@ -1503,6 +1506,7 @@
     if (sheetId) {
       fetch(SCRIPT_URL, {
         method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify({
           action: "NEW_ENTRY",
           spreadsheetId: sheetId,
@@ -1565,6 +1569,7 @@
     if (sheetId) {
       fetch(SCRIPT_URL, {
         method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify({
           action: "ADD_INVENTORY_ITEM",
           spreadsheetId: sheetId,
@@ -1645,6 +1650,7 @@
     if (sheetId) {
       fetch(SCRIPT_URL, {
         method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify({ action: "SHARE_SHEET_WITH_MEMBER", spreadsheetId: sheetId, memberEmail: email, role })
       });
     }
@@ -1837,6 +1843,159 @@
     showToast(`تمت إضافة ${name} برقم ${code} بنجاح ✅`);
   }
 
+  // معالج الأرصدة الافتتاحية
+  function openOpeningWizardModal() {
+    document.getElementById('modal-opening-wizard').classList.add('open');
+    if (document.getElementById('wiz-customers-container').children.length === 0) addWizardCustomerRow();
+    if (document.getElementById('wiz-vendors-container').children.length === 0) addWizardVendorRow();
+    if (document.getElementById('wiz-stocks-container').children.length === 0) addWizardStockRow();
+  }
+
+  function closeOpeningWizardModal() {
+    document.getElementById('modal-opening-wizard').classList.remove('open');
+  }
+
+  function addWizardCustomerRow() {
+    const container = document.getElementById('wiz-customers-container');
+    const div = document.createElement('div');
+    div.className = 'wizard-item-row';
+    div.innerHTML = `
+      <button class="btn-remove-row" onclick="this.parentElement.remove()">×</button>
+      <div style="display:grid; grid-template-columns: 2fr 1fr; gap:6px;">
+        <input type="text" class="wiz-cust-name" placeholder="اسم الزبون / العميل">
+        <input type="number" class="wiz-cust-bal" placeholder="المبلغ عليه" min="0">
+      </div>
+    `;
+    container.appendChild(div);
+  }
+
+  function addWizardVendorRow() {
+    const container = document.getElementById('wiz-vendors-container');
+    const div = document.createElement('div');
+    div.className = 'wizard-item-row';
+    div.innerHTML = `
+      <button class="btn-remove-row" onclick="this.parentElement.remove()">×</button>
+      <div style="display:grid; grid-template-columns: 2fr 1fr; gap:6px;">
+        <input type="text" class="wiz-vend-name" placeholder="اسم المورد">
+        <input type="number" class="wiz-vend-bal" placeholder="المبلغ له" min="0">
+      </div>
+    `;
+    container.appendChild(div);
+  }
+
+  function addWizardStockRow() {
+    const container = document.getElementById('wiz-stocks-container');
+    const div = document.createElement('div');
+    div.className = 'wizard-item-row';
+    div.innerHTML = `
+      <button class="btn-remove-row" onclick="this.parentElement.remove()">×</button>
+      <div style="display:grid; grid-template-columns: 2fr 1fr 1fr; gap:6px;">
+        <input type="text" class="wiz-stock-name" placeholder="اسم الصنف">
+        <input type="number" class="wiz-stock-qty" placeholder="الكمية" min="1" value="1">
+        <input type="number" class="wiz-stock-cost" placeholder="سعر التكلفة" min="0">
+      </div>
+    `;
+    container.appendChild(div);
+  }
+
+  async function submitOpeningBalancesWizard() {
+    const cash = parseFloat(document.getElementById('wiz-cash').value) || 0;
+    const bank = parseFloat(document.getElementById('wiz-bank').value) || 0;
+    const date = Utilities_getTodayStr();
+
+    const lines = [];
+    const stockItems = [];
+    let totalAssets = cash + bank;
+    let totalLiabilities = 0;
+
+    if (cash > 0) lines.push({ accountCode: "1111", accountName: "الصندوق الرئيسي (الخزينة)", category: "النقدية والبنوك", nature: "مدين", debit: cash, credit: 0, description: "رصيد نقدية افتتاحي" });
+    if (bank > 0) lines.push({ accountCode: "1113", accountName: "الحساب البنكي الجاري", category: "النقدية والبنوك", nature: "مدين", debit: bank, credit: 0, description: "رصيد بنكي افتتاحي" });
+
+    document.querySelectorAll('#wiz-customers-container .wizard-item-row').forEach(row => {
+      const name = row.querySelector('.wiz-cust-name').value.trim();
+      const bal = parseFloat(row.querySelector('.wiz-cust-bal').value) || 0;
+      if (name && bal > 0) {
+        const code = "112" + Math.floor(10 + Math.random() * 89);
+        chartOfAccounts.push({ code: code, name: name, cat: "العملاء والمدينون", base: "customer", nature: "مدين" });
+        lines.push({ accountCode: code, accountName: name, category: "العملاء والمدينون", nature: "مدين", debit: bal, credit: 0, description: "رصيد افتتاحي مستحق على العميل" });
+        totalAssets += bal;
+      }
+    });
+
+    document.querySelectorAll('#wiz-vendors-container .wizard-item-row').forEach(row => {
+      const name = row.querySelector('.wiz-vend-name').value.trim();
+      const bal = parseFloat(row.querySelector('.wiz-vend-bal').value) || 0;
+      if (name && bal > 0) {
+        const code = "210" + Math.floor(10 + Math.random() * 89);
+        chartOfAccounts.push({ code: code, name: name, cat: "الموردون والالتزامات", base: "vendor", nature: "دائن" });
+        lines.push({ accountCode: code, accountName: name, category: "الموردون والالتزامات", nature: "دائن", debit: 0, credit: bal, description: "رصيد افتتاحي مستحق للمورد" });
+        totalLiabilities += bal;
+      }
+    });
+
+    let stockTotalVal = 0;
+    document.querySelectorAll('#wiz-stocks-container .wizard-item-row').forEach(row => {
+      const name = row.querySelector('.wiz-stock-name').value.trim();
+      const qty = parseFloat(row.querySelector('.wiz-stock-qty').value) || 0;
+      const cost = parseFloat(row.querySelector('.wiz-stock-cost').value) || 0;
+      if (name && qty > 0) {
+        stockItems.push({ name: name, qty: qty, cost: cost, price: cost * 1.3 });
+        stockTotalVal += (qty * cost);
+
+        inventoryItems.push({
+          code: 'SKU-' + Math.floor(1000 + Math.random() * 9000),
+          name: name,
+          unit: 'حبة',
+          cost: cost,
+          price: cost * 1.3,
+          qty: qty,
+          reorder: 5
+        });
+      }
+    });
+
+    if (stockTotalVal > 0) {
+      lines.push({ accountCode: "1131", accountName: "مخزون بضاعة المستودع الرئيسي", category: "المخزون والأصول", nature: "مدين", debit: stockTotalVal, credit: 0, description: "بضاعة أول المدة" });
+      totalAssets += stockTotalVal;
+    }
+
+    const equityVal = totalAssets - totalLiabilities;
+    if (equityVal > 0) {
+      lines.push({ accountCode: "3101", accountName: "رأس المال / الأرصدة الافتتاحية", category: "حقوق الملكية", nature: "دائن", debit: 0, credit: equityVal, description: "رأس المال الافتتاحي التأسيسي" });
+    }
+
+    if (lines.length === 0) {
+      closeOpeningWizardModal();
+      return;
+    }
+
+    const genNo = Date.now();
+    lines.forEach(l => {
+      ledgerEntries.push({
+        entryNo: genNo, date: date, accountCode: l.accountCode, accountName: l.accountName,
+        desc: l.description, debit: l.debit, credit: l.credit
+      });
+    });
+
+    persistData();
+    populateAccountSelects();
+    populateItemSelectors();
+    closeOpeningWizardModal();
+    showToast('تم تأسيس الأرصدة وبطاقات المخزون بنجاح ✅');
+
+    fetch(SCRIPT_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({
+        action: "SETUP_OPENING_BALANCES",
+        spreadsheetId: localStorage.getItem("user_sheet_id"),
+        entryDate: date,
+        lines: lines,
+        inventoryItems: stockItems
+      })
+    });
+  }
+
   // المزامنة والنسخ الاحتياطي السحابي
   async function triggerCloudSync() {
     const sheetId = localStorage.getItem('user_sheet_id');
@@ -1846,6 +2005,7 @@
     try {
       const response = await fetch(SCRIPT_URL, {
         method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify({ action: "SYNC_PULL_DATA", spreadsheetId: sheetId })
       });
 
@@ -1890,6 +2050,7 @@
     try {
       const response = await fetch(SCRIPT_URL, {
         method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify({ action: "CREATE_DRIVE_BACKUP", spreadsheetId: sheetId, email: email })
       });
       const res = await response.json();
@@ -1915,6 +2076,7 @@
     try {
       const res = await fetch(SCRIPT_URL, {
         method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify({ action: "LIST_BACKUPS", email: email })
       });
       const data = await res.json();
@@ -1952,6 +2114,7 @@
     try {
       const res = await fetch(SCRIPT_URL, {
         method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify({
           action: "RESTORE_BACKUP",
           spreadsheetId: localStorage.getItem('user_sheet_id'),
@@ -2064,23 +2227,772 @@
     }
   }
 
-  window.addEventListener('DOMContentLoaded', function() {
-    const today = Utilities_getTodayStr();
-    if (document.getElementById('entry-date')) document.getElementById('entry-date').value = today;
-    if (document.getElementById('inv-date')) document.getElementById('inv-date').value = today;
-    if (document.getElementById('date-to')) document.getElementById('date-to').value = today;
-    if (document.getElementById('asset-start-date')) document.getElementById('asset-start-date').value = today;
+  // إدارة العملات
+  let currentCurrency = localStorage.getItem('smart_currency') || 'ر.س';
 
-    applyCurrency(localStorage.getItem('smart_currency') || 'ر.س');
-    populateAccountSelects();
+  function applyCurrency(symbol) {
+    currentCurrency = symbol;
+    localStorage.setItem('smart_currency', symbol);
+    document.getElementById('header-curr-label').innerText = symbol;
+    document.querySelectorAll('.curr-symbol').forEach(el => el.innerText = symbol);
+  }
+
+  function openCurrencyModal() { document.getElementById('modal-currency-setup').classList.add('open'); }
+  function selectCurrency(symbol, name) {
+    applyCurrency(symbol);
+    document.getElementById('modal-currency-setup').classList.remove('open');
+    showToast(`تم اعتماد ${name} كعملة رئيسية`);
+  }
+  function applyCustomCurrency() {
+    const val = document.getElementById('custom-currency-input').value.trim();
+    if (val) selectCurrency(val, val);
+  }
+
+  // الحسابات والتقارير المالية
+  function calculateFinancialReports() {
+    let salesRev = 0, cogs = 0, deprExpense = 0, operatingExp = 0, nonOperatingExp = 0, otherRev = 0, taxOut = 0, taxIn = 0;
+    let accountBalances = {};
+    chartOfAccounts.forEach(a => { accountBalances[a.code] = { name: a.name, debit: 0, credit: 0, cat: a.cat, base: a.base }; });
+
+    ledgerEntries.forEach(e => {
+      let d = Number(e.debit) || 0;
+      let c = Number(e.credit) || 0;
+
+      if (!accountBalances[e.accountCode]) {
+        accountBalances[e.accountCode] = { name: e.accountName || e.accountCode, debit: 0, credit: 0, cat: "", base: "other" };
+      }
+      accountBalances[e.accountCode].debit += d;
+      accountBalances[e.accountCode].credit += c;
+
+      if (e.accountCode === "4101") salesRev += (c - d);
+      if (e.accountCode === "4201") otherRev += (c - d);
+      if (e.accountCode === "5101") cogs += (d - c);
+      if (e.accountCode === "5206") deprExpense += (d - c);
+
+      if (e.accountCode.startsWith("52") && e.accountCode !== "5206") operatingExp += (d - c);
+      if (e.accountCode.startsWith("53")) nonOperatingExp += (d - c);
+      if (e.accountCode === "2103") { taxOut += c; taxIn += d; }
+    });
+
+    const grossProfit = salesRev - cogs;
+    const operatingProfit = grossProfit - (operatingExp + deprExpense);
+    const netProfit = operatingProfit + otherRev - nonOperatingExp;
+
+    const sRevEl = document.getElementById('rep-sales-rev');
+    if (sRevEl) {
+      sRevEl.innerText = Math.max(0, salesRev).toLocaleString(undefined, {minimumFractionDigits: 2});
+      document.getElementById('rep-cogs').innerText = Math.max(0, cogs).toLocaleString(undefined, {minimumFractionDigits: 2});
+      document.getElementById('rep-gross-profit').innerText = grossProfit.toLocaleString(undefined, {minimumFractionDigits: 2});
+      
+      document.getElementById('rep-operating-expenses').innerText = Math.max(0, operatingExp).toLocaleString(undefined, {minimumFractionDigits: 2});
+      document.getElementById('rep-depr-expense').innerText = Math.max(0, deprExpense).toLocaleString(undefined, {minimumFractionDigits: 2});
+      document.getElementById('rep-operating-profit').innerText = operatingProfit.toLocaleString(undefined, {minimumFractionDigits: 2});
+
+      document.getElementById('rep-other-rev').innerText = Math.max(0, otherRev).toLocaleString(undefined, {minimumFractionDigits: 2});
+      document.getElementById('rep-non-operating-expenses').innerText = Math.max(0, nonOperatingExp).toLocaleString(undefined, {minimumFractionDigits: 2});
+      document.getElementById('rep-net-profit').innerText = netProfit.toLocaleString(undefined, {minimumFractionDigits: 2});
+    }
+
+    const taxOutEl = document.getElementById('tax-out');
+    if (taxOutEl) {
+      taxOutEl.innerText = taxOut.toLocaleString(undefined, {minimumFractionDigits: 2});
+      document.getElementById('tax-in').innerText = taxIn.toLocaleString(undefined, {minimumFractionDigits: 2});
+      document.getElementById('tax-net').innerText = (taxOut - taxIn).toLocaleString(undefined, {minimumFractionDigits: 2});
+    }
+
+    let currentAssets = 0, fixedAssetsCost = 0, accumDepr = 0, liabilities = 0, capital = 0;
+
+    for (let code in accountBalances) {
+      let item = accountBalances[code];
+      let netBal = item.debit - item.credit;
+
+      if (code.startsWith("111") || code.startsWith("112") || code.startsWith("113")) {
+        currentAssets += netBal;
+      } else if (code.startsWith("120") && code !== "1209") {
+        fixedAssetsCost += netBal;
+      } else if (code === "1209") {
+        accumDepr += (item.credit - item.debit);
+      } else if (code.startsWith("210")) {
+        liabilities += (item.credit - item.debit);
+      } else if (code.startsWith("310")) {
+        capital += (item.credit - item.debit);
+      }
+    }
+
+    const netFixedAssets = fixedAssetsCost - accumDepr;
+    const totalAssets = currentAssets + netFixedAssets;
+    const totalLiabAndEquity = liabilities + capital + netProfit;
+
+    const bsCurEl = document.getElementById('bs-current-assets');
+    if (bsCurEl) {
+      bsCurEl.innerText = currentAssets.toLocaleString(undefined, {minimumFractionDigits: 2});
+      document.getElementById('bs-fixed-assets-cost').innerText = fixedAssetsCost.toLocaleString(undefined, {minimumFractionDigits: 2});
+      document.getElementById('bs-accum-depr').innerText = accumDepr.toLocaleString(undefined, {minimumFractionDigits: 2});
+      document.getElementById('bs-net-fixed-assets').innerText = netFixedAssets.toLocaleString(undefined, {minimumFractionDigits: 2});
+      document.getElementById('bs-total-assets').innerText = totalAssets.toLocaleString(undefined, {minimumFractionDigits: 2});
+
+      document.getElementById('bs-liabilities').innerText = liabilities.toLocaleString(undefined, {minimumFractionDigits: 2});
+      document.getElementById('bs-capital').innerText = capital.toLocaleString(undefined, {minimumFractionDigits: 2});
+      document.getElementById('bs-period-profit').innerText = netProfit.toLocaleString(undefined, {minimumFractionDigits: 2});
+      document.getElementById('bs-total-liab-equity').innerText = totalLiabAndEquity.toLocaleString(undefined, {minimumFractionDigits: 2});
+
+      const bsStatus = document.getElementById('bs-balance-status');
+      if (Math.abs(totalAssets - totalLiabAndEquity) < 0.1) {
+        bsStatus.className = 'status-badge balanced'; bsStatus.innerText = 'متوازنة ✓';
+      } else {
+        bsStatus.className = 'status-badge unbalanced'; bsStatus.innerText = 'غير متوازنة (' + (totalAssets - totalLiabAndEquity).toFixed(2) + ')';
+      }
+    }
+
+    const trialBody = document.getElementById('trial-balance-rows');
+    if (trialBody) {
+      trialBody.innerHTML = '';
+      for (let code in accountBalances) {
+        let item = accountBalances[code];
+        let netBal = item.debit - item.credit;
+        let dCol = netBal > 0 ? netBal : 0;
+        let cCol = netBal < 0 ? Math.abs(netBal) : 0;
+
+        if (dCol > 0 || cCol > 0) {
+          let tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td><strong>${item.name}</strong> (${code})</td>
+            <td style="${dCol > 0 ? 'color:var(--success);font-weight:700;' : ''}">${dCol > 0 ? dCol.toLocaleString(undefined, {minimumFractionDigits:2}) : '-'}</td>
+            <td style="${cCol > 0 ? 'color:var(--danger);font-weight:700;' : ''}">${cCol > 0 ? cCol.toLocaleString(undefined, {minimumFractionDigits:2}) : '-'}</td>
+          `;
+          trialBody.appendChild(tr);
+        }
+      }
+    }
+
+    computedKPIs = { salesRev, grossProfit, netProfit, currentAssets, fixedAssets: netFixedAssets, totalAssets, liabilities, equity: capital + netProfit };
+  }
+
+  function renderSelectedKPI() {
+    const sel = document.getElementById('kpi-selector');
+    if (!sel) return;
+    const type = sel.value;
+
+    const kpi = computedKPIs;
+    const valEl = document.getElementById('kpi-value');
+    const titleEl = document.getElementById('kpi-title');
+    const verdictEl = document.getElementById('kpi-verdict');
+    const expEl = document.getElementById('kpi-explanation');
+
+    if (type === 'current_ratio') {
+      titleEl.innerText = "1. نسبة التداول والسيولة (Current Ratio)";
+      const ratio = kpi.liabilities > 0 ? (kpi.currentAssets / kpi.liabilities) : (kpi.currentAssets > 0 ? 99 : 1);
+      valEl.innerText = ratio >= 99 ? "تغطية كاملة (لا توجد ديون)" : ratio.toFixed(2) + " : 1";
+
+      if (ratio >= 1.5) {
+        verdictEl.style.background = "var(--success-light)"; verdictEl.style.color = "var(--success)";
+        verdictEl.innerHTML = '<i class="fa-solid fa-circle-check"></i> الوضع المالي ممتاز ومستقر جداً';
+        expEl.innerHTML = `تمتلك أصولاً متداولة كافية لتغطية التزاماتك بمقدار <strong>(${ratio.toFixed(2)})</strong> ضعف. هذا يعني استقراراً تاماً وملاءة قوية.`;
+      } else if (ratio >= 1.0) {
+        verdictEl.style.background = "var(--warning-light)"; verdictEl.style.color = "var(--warning)";
+        verdictEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> السيولة مقبولة ولكن تحت المراقبة';
+        expEl.innerHTML = `نسبة التداول <strong>(${ratio.toFixed(2)}:1)</strong> تكفي لسداد الالتزامات بالكاد. يوصى بمتابعة التحصيل.`;
+      } else {
+        verdictEl.style.background = "var(--danger-light)"; verdictEl.style.color = "var(--danger)";
+        verdictEl.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> عجز سيولة متداولة';
+        expEl.innerHTML = `الالتزامات تتجاوز أصولك المتداولة. يتوجب ضخ سيولة أو إعادة جدولة الديون.`;
+      }
+    } 
+    else if (type === 'net_profit_margin') {
+      titleEl.innerText = "2. هامش صافي الربح (Net Profit Margin)";
+      const margin = kpi.salesRev > 0 ? ((kpi.netProfit / kpi.salesRev) * 100) : 0;
+      valEl.innerText = margin.toFixed(1) + "%";
+
+      if (margin >= 15) {
+        verdictEl.style.background = "var(--success-light)"; verdictEl.style.color = "var(--success)";
+        verdictEl.innerHTML = '<i class="fa-solid fa-arrow-trend-up"></i> ربحية عالية وممتازة';
+        expEl.innerHTML = `تحقق عائداً صافياً قدره <strong>(${margin.toFixed(1)}%)</strong> من إجمالي المبيعات بعد كافة المصروفات التشغيلية وغير التشغيلية.`;
+      } else if (margin > 0) {
+        verdictEl.style.background = "var(--warning-light)"; verdictEl.style.color = "var(--warning)";
+        verdictEl.innerHTML = '<i class="fa-solid fa-chart-line"></i> أرباح إيجابية متواضعة';
+        expEl.innerHTML = `النشاط يولد أرباحاً بنسبة <strong>(${margin.toFixed(1)}%)</strong>، ويُفضل ترشيد المصاريف لتعظيم الهامش.`;
+      } else {
+        verdictEl.style.background = "var(--danger-light)"; verdictEl.style.color = "var(--danger)";
+        verdictEl.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> خسارة صافية';
+        expEl.innerHTML = `المصروفات الشاملة وتكلفة البضاعة تفوق الإيرادات. يتوجب مراجعة تكاليف التشغيل.`;
+      }
+    }
+    else if (type === 'gross_margin') {
+      titleEl.innerText = "3. هامش مجمل الربح (Gross Margin)";
+      const gMargin = kpi.salesRev > 0 ? ((kpi.grossProfit / kpi.salesRev) * 100) : 0;
+      valEl.innerText = gMargin.toFixed(1) + "%";
+
+      if (gMargin >= 25) {
+        verdictEl.style.background = "var(--success-light)"; verdictEl.style.color = "var(--success)";
+        verdictEl.innerHTML = '<i class="fa-solid fa-tag"></i> تسعير سليم وتكلفة بضاعة منضبطة';
+        expEl.innerHTML = `هامش مجمل الربح يبلغ <strong>(${gMargin.toFixed(1)}%)</strong> قبل خصم أي مصروفات أخرى، مما يعكس متانة التسعير.`;
+      } else {
+        verdictEl.style.background = "var(--warning-light)"; verdictEl.style.color = "var(--warning)";
+        verdictEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> هامش مجمل ربح ضعيف';
+        expEl.innerHTML = `هامش الربح الإجمالي يبلغ <strong>(${gMargin.toFixed(1)}%)</strong> فقط. تكلفة الشراء تأكل القسم الأكبر من الإيراد.`;
+      }
+    }
+    else if (type === 'debt_ratio') {
+      titleEl.innerText = "4. نسبة المديونية للأصول (Debt to Assets)";
+      const dRatio = kpi.totalAssets > 0 ? ((kpi.liabilities / kpi.totalAssets) * 100) : 0;
+      valEl.innerText = dRatio.toFixed(1) + "%";
+
+      if (dRatio <= 40) {
+        verdictEl.style.background = "var(--success-light)"; verdictEl.style.color = "var(--success)";
+        verdictEl.innerHTML = '<i class="fa-solid fa-shield-halved"></i> هيكل مالي متين واستقلالية عالية';
+        expEl.innerHTML = `الديون تمثل <strong>(${dRatio.toFixed(1)}%)</strong> فقط من الموجودات. الاعتماد الأساسي على رأس المال الذاتي.`;
+      } else {
+        verdictEl.style.background = "var(--warning-light)"; verdictEl.style.color = "var(--warning)";
+        verdictEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> مديونية مرتفعة';
+        expEl.innerHTML = `الديون تمثل <strong>(${dRatio.toFixed(1)}%)</strong> من أصول المنشأة. تجنب التوسع في الائتمان الآجل.`;
+      }
+    }
+    else if (type === 'roe') {
+      titleEl.innerText = "5. العائد على حقوق الملكية ورأس المال (ROE)";
+      const roe = kpi.equity > 0 ? ((kpi.netProfit / kpi.equity) * 100) : 0;
+      valEl.innerText = roe.toFixed(1) + "%";
+
+      if (roe >= 20) {
+        verdictEl.style.background = "var(--success-light)"; verdictEl.style.color = "var(--success)";
+        verdictEl.innerHTML = '<i class="fa-solid fa-gem"></i> كفاءة استثمارية عالية لأموال الشركاء';
+        expEl.innerHTML = `يحقق رأس المال وأموال الملاك عائداً صافياً قدره <strong>(${roe.toFixed(1)}%)</strong>.`;
+      } else {
+        verdictEl.style.background = "var(--warning-light)"; verdictEl.style.color = "var(--warning)";
+        verdictEl.innerHTML = '<i class="fa-solid fa-chart-line"></i> عائد معتدل';
+        expEl.innerHTML = `يحقق رأس المال عائداً إيجابياً قدره <strong>(${roe.toFixed(1)}%)</strong>.`;
+      }
+    }
+  }
+
+  function switchTab(tabId, el) {
+    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+    document.getElementById(tabId).classList.add('active');
+    if (el) {
+      document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+      el.classList.add('active');
+    }
+    if (tabId === 'tab-statement') {
+      loadStatementData();
+      calculateFinancialReports();
+    }
+    if (tabId === 'tab-settings') {
+      updateLicenseUI();
+      renderTeamMembersList();
+    }
+  }
+
+  function switchSubReport(subId) {
+    ['ledger', 'income', 'balance-sheet', 'depreciation', 'kpis', 'inventory', 'trial', 'tax'].forEach(id => {
+      const el = document.getElementById('sub-report-' + id);
+      if (el) el.style.display = (id === subId) ? 'block' : 'none';
+    });
+    calculateFinancialReports();
+    if (subId === 'depreciation') renderFixedAssetsDepreciationList();
+    if (subId === 'kpis') renderSelectedKPI();
+    if (subId === 'inventory') renderInventoryReport();
+  }
+
+  // دوال الفواتير
+  function populateAccountSelects() {
+    let accHtml = '';
+    chartOfAccounts.forEach(a => {
+      accHtml += `<option value="${a.code}">${a.code} - ${a.name}</option>`;
+    });
+    document.querySelectorAll('.account-selector').forEach(sel => {
+      const cur = sel.value;
+      sel.innerHTML = accHtml;
+      if (cur) sel.value = cur;
+    });
+    handleInvoiceTypeChange();
+  }
+
+  function handleInvoiceTypeChange() {
+    const type = document.getElementById('inv-type').value;
+    const partySel = document.getElementById('inv-party-select');
+    const partyLabel = document.getElementById('inv-party-label');
+    const payMethod = document.getElementById('inv-payment-method').value;
+
+    if (type === 'sales') {
+      partyLabel.innerText = payMethod === 'credit' ? 'العميل (ذمم مدينة)' : 'حساب الإيداع / الخزينة';
+      let options = chartOfAccounts.filter(a => payMethod === 'credit' ? a.base === 'customer' : (a.base === 'cash' || a.base === 'bank'));
+      partySel.innerHTML = options.map(a => `<option value="${a.code}">${a.code} - ${a.name}</option>`).join('');
+    } else {
+      partyLabel.innerText = payMethod === 'credit' ? 'المورد (ذمم دائنة)' : 'حساب الدفع / الخزينة';
+      let options = chartOfAccounts.filter(a => payMethod === 'credit' ? a.base === 'vendor' : (a.base === 'cash' || a.base === 'bank'));
+      partySel.innerHTML = options.map(a => `<option value="${a.code}">${a.code} - ${a.name}</option>`).join('');
+    }
+  }
+
+  function addInvoiceItemRow(name = "", qty = 1, price = 0, cost = 0, code = "") {
+    const container = document.getElementById('invoice-items-list');
+    const div = document.createElement('div');
+    div.className = 'inv-item-row';
+
+    let itemSelectHtml = `<select class="inv-item-select" onchange="onInvoiceItemChosen(this)">`;
+    itemSelectHtml += `<option value="">-- اختر صنف من المستودع --</option>`;
+    inventoryItems.forEach(it => {
+      const isSel = (code && it.code === code) || (name && it.name === name);
+      itemSelectHtml += `<option value="${it.code}" data-cost="${it.cost}" data-price="${it.price}" data-qty="${it.qty}" data-name="${it.name}" ${isSel ? 'selected' : ''}>${it.name} (المتوفر: ${it.qty})</option>`;
+    });
+    itemSelectHtml += `</select>`;
+
+    div.innerHTML = `
+      <button class="btn-remove-row" onclick="this.parentElement.remove(); calculateInvoiceTotals();">×</button>
+      <div style="margin-bottom:6px;">
+        <label style="font-size:11px;">الصنف المسجل بالمستودع</label>
+        ${itemSelectHtml}
+      </div>
+      <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 8px;">
+        <div>
+          <label style="font-size:11px;">البيان بالفاتورة</label>
+          <input type="text" class="inv-item-name" placeholder="اسم الصنف" value="${name || (inventoryItems[0] ? inventoryItems[0].name : 'بضاعة')}">
+          <input type="hidden" class="inv-item-code" value="${code}">
+          <input type="hidden" class="inv-item-cost" value="${cost}">
+        </div>
+        <div>
+          <label style="font-size:11px;">الكمية</label>
+          <input type="number" class="inv-item-qty" value="${qty}" min="1" oninput="validateRowQty(this); calculateInvoiceTotals();">
+        </div>
+        <div>
+          <label style="font-size:11px;">سعر الوحدة</label>
+          <input type="number" class="inv-item-price" value="${price || (inventoryItems[0] ? inventoryItems[0].price : 100)}" min="0" oninput="calculateInvoiceTotals()">
+        </div>
+      </div>
+      <div class="row-stock-warn" style="font-size:11px; margin-top:4px; font-weight:700;"></div>
+    `;
+    container.appendChild(div);
+    validateRowQty(div.querySelector('.inv-item-qty'));
+    calculateInvoiceTotals();
+  }
+
+  function onInvoiceItemChosen(sel) {
+    const row = sel.closest('.inv-item-row');
+    const opt = sel.options[sel.selectedIndex];
+    if (opt && opt.value) {
+      const code = opt.value;
+      const name = opt.getAttribute('data-name');
+      const cost = parseFloat(opt.getAttribute('data-cost')) || 0;
+      const price = parseFloat(opt.getAttribute('data-price')) || 0;
+      const invType = document.getElementById('inv-type').value;
+
+      row.querySelector('.inv-item-name').value = name;
+      row.querySelector('.inv-item-code').value = code;
+      row.querySelector('.inv-item-cost').value = cost;
+      row.querySelector('.inv-item-price').value = (invType === 'purchase') ? cost : price;
+
+      validateRowQty(row.querySelector('.inv-item-qty'));
+      calculateInvoiceTotals();
+    }
+  }
+
+  function validateRowQty(inputEl) {
+    const row = inputEl.closest('.inv-item-row');
+    const warnEl = row.querySelector('.row-stock-warn');
+    const invType = document.getElementById('inv-type').value;
+    const code = row.querySelector('.inv-item-code').value;
+    const qty = parseFloat(inputEl.value) || 0;
+
+    const it = inventoryItems.find(x => x.code === code);
+    if (!it) { warnEl.innerHTML = ''; return; }
+
+    if (invType === 'sales') {
+      if (qty > it.qty) {
+        inputEl.style.borderColor = 'var(--danger)';
+        warnEl.style.color = 'var(--danger)';
+        warnEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> الرصيد المتوفر (${it.qty}) غير كافٍ!`;
+      } else {
+        inputEl.style.borderColor = 'var(--border)';
+        warnEl.style.color = 'var(--success)';
+        warnEl.innerHTML = `<i class="fa-solid fa-circle-check"></i> متوفر بالمخزن: ${it.qty} حبة`;
+      }
+    } else {
+      inputEl.style.borderColor = 'var(--border)';
+      warnEl.style.color = 'var(--primary)';
+      warnEl.innerHTML = `الرصيد الحالي: ${it.qty} (ستتم إضافة ${qty} وحساب WAC)`;
+    }
+  }
+
+  function calculateInvoiceTotals() {
+    let subtotal = 0;
+    const taxRate = parseFloat(document.getElementById('inv-tax-mode').value) || 0;
+
+    document.querySelectorAll('.inv-item-row').forEach(row => {
+      const q = parseFloat(row.querySelector('.inv-item-qty').value) || 0;
+      const p = parseFloat(row.querySelector('.inv-item-price').value) || 0;
+      subtotal += (q * p);
+    });
+
+    const taxAmount = subtotal * (taxRate / 100);
+    const grandTotal = subtotal + taxAmount;
+
+    document.getElementById('inv-sum-subtotal').innerText = subtotal.toFixed(2);
+    document.getElementById('inv-sum-tax').innerText = taxAmount.toFixed(2);
+    document.getElementById('inv-sum-grand').innerText = grandTotal.toFixed(2);
+  }
+
+  async function submitInvoiceAction() {
+    const invType = document.getElementById('inv-type').value;
+    const items = [];
+    let hasNegativeStockError = false;
+    let errorItemName = "";
+
+    document.querySelectorAll('.inv-item-row').forEach(row => {
+      const name = row.querySelector('.inv-item-name').value.trim();
+      const code = row.querySelector('.inv-item-code').value.trim();
+      const qty = parseFloat(row.querySelector('.inv-item-qty').value) || 0;
+      const price = parseFloat(row.querySelector('.inv-item-price').value) || 0;
+      let cost = parseFloat(row.querySelector('.inv-item-cost').value) || 0;
+
+      const it = inventoryItems.find(x => x.code === code || x.name === name);
+      if (it && cost === 0) cost = it.cost;
+
+      if (invType === 'sales') {
+        const availableQty = it ? it.qty : 0;
+        if (qty > availableQty) {
+          hasNegativeStockError = true;
+          errorItemName = name;
+        }
+      }
+
+      if (qty > 0 && price > 0) {
+        items.push({ itemName: name, itemCode: code, qty, unitPrice: price, costPrice: cost || (price * 0.7), total: qty * price });
+      }
+    });
+
+    if (hasNegativeStockError) {
+      alert(`⛔ خطأ رقابي: لا يمكن ترحيل الفاتورة!\n\nالصنف (${errorItemName}) لا يتوفر منه رصيد كافٍ بالمستودع.\nيرجى تعديل الكمية.`);
+      return;
+    }
+
+    if (items.length === 0) return showToast('يرجى إضافة صنف وسعر صحيح للفاتورة', true);
+
+    const partySel = document.getElementById('inv-party-select');
+    const partyCode = partySel.value;
+    const partyName = partySel.options[partySel.selectedIndex] ? partySel.options[partySel.selectedIndex].text.split(' - ')[1] : partySel.value;
+    const payMethod = document.getElementById('inv-payment-method').value;
+    const taxRate = parseFloat(document.getElementById('inv-tax-mode').value) || 0;
+    const date = document.getElementById('inv-date').value || Utilities_getTodayStr();
+
+    const editingId = document.getElementById('editing-invoice-id').value;
+    const isEditMode = !!editingId;
+    const invId = isEditMode ? editingId : ("INV-" + (invType === 'sales' ? 'SAL-' : 'PUR-') + Math.floor(100 + Math.random() * 900));
+
+    let subtotal = 0;
+    let totalCogsVal = 0;
+
+    items.forEach(it => {
+      subtotal += (it.qty * it.unitPrice);
+      totalCogsVal += (it.qty * it.costPrice);
+
+      const targetItem = inventoryItems.find(x => (it.itemCode && x.code === it.itemCode) || x.name === it.itemName);
+      if (targetItem) {
+        if (invType === 'sales') {
+          targetItem.qty = Math.max(0, targetItem.qty - it.qty);
+        } else {
+          const oldTotalCost = targetItem.qty * targetItem.cost;
+          const newBuyCost = it.qty * it.unitPrice;
+          const newTotalQty = targetItem.qty + it.qty;
+          targetItem.cost = newTotalQty > 0 ? ((oldTotalCost + newBuyCost) / newTotalQty) : it.unitPrice;
+          targetItem.qty = newTotalQty;
+        }
+      } else if (invType === 'purchase') {
+        inventoryItems.push({
+          code: 'SKU-' + Math.floor(1000 + Math.random() * 9000),
+          name: it.itemName,
+          unit: 'حبة',
+          cost: it.unitPrice,
+          price: it.unitPrice * 1.3,
+          qty: it.qty,
+          reorder: 5
+        });
+      }
+    });
+
+    const taxAmount = subtotal * (taxRate / 100);
+    const grandTotal = subtotal + taxAmount;
+
+    const fullInvoice = {
+      id: invId, date, type: invType, partyCode, partyName, payMethod, taxRate,
+      subtotal, taxAmount, grandTotal, currency: currentCurrency, items
+    };
+
+    if (isEditMode) {
+      smartInvoices = smartInvoices.filter(x => x.id !== invId);
+      smartInvoices.push(fullInvoice);
+      ledgerEntries = ledgerEntries.filter(e => e.invoiceId !== invId && !(e.desc && e.desc.includes(invId)));
+    } else {
+      smartInvoices.push(fullInvoice);
+    }
+
+    const memo = (invType === 'sales' ? 'فاتورة مبيعات ' : 'فاتورة مشتريات ') + (payMethod === 'credit' ? '(آجل)' : '(نقدي)') + ' #' + invId;
+    if (invType === 'sales') {
+      ledgerEntries.push({ date, accountCode: partyCode, desc: memo, debit: grandTotal, credit: 0, invoiceId: invId });
+      ledgerEntries.push({ date, accountCode: "4101", desc: memo, debit: 0, credit: subtotal, invoiceId: invId });
+      if (taxAmount > 0) ledgerEntries.push({ date, accountCode: "2103", desc: "ضريبة القيمة المضافة", debit: 0, credit: taxAmount, invoiceId: invId });
+
+      if (totalCogsVal > 0) {
+        ledgerEntries.push({ date, accountCode: "5101", desc: `تكلفة بضاعة مباعة بالفاتورة #${invId}`, debit: totalCogsVal, credit: 0, invoiceId: invId });
+        ledgerEntries.push({ date, accountCode: "1131", desc: `إخراج مخزني بالفاتورة #${invId}`, debit: 0, credit: totalCogsVal, invoiceId: invId });
+      }
+    } else {
+      ledgerEntries.push({ date, accountCode: "1131", desc: memo, debit: subtotal, credit: 0, invoiceId: invId });
+      if (taxAmount > 0) ledgerEntries.push({ date, accountCode: "2103", desc: "ضريبة مدخلات مشتريات", debit: taxAmount, credit: 0, invoiceId: invId });
+      ledgerEntries.push({ date, accountCode: partyCode, desc: memo, debit: 0, credit: grandTotal, invoiceId: invId });
+    }
+
+    persistData();
     populateItemSelectors();
+    showToast(isEditMode ? 'تم حفظ التعديل وتحديث المخزون ✅' : 'تم ترحيل الفاتورة وتحديث المخزون بنجاح ✅');
+    
+    fetch(SCRIPT_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({
+        action: isEditMode ? "EDIT_INVOICE" : "CREATE_INVOICE",
+        spreadsheetId: localStorage.getItem("user_sheet_id"),
+        invoiceId: invId, invoiceType: invType, partyAccountCode: partyCode,
+        partyAccountName: partyName, paymentMethod: payMethod, applyTax: taxRate > 0,
+        taxRate: taxRate, invoiceDate: date, items: items
+      })
+    });
+
+    cancelEditInvoiceMode();
+    const stmtSel = document.getElementById('statement-account-selector');
+    if (stmtSel) { stmtSel.value = partyCode; switchTab('tab-statement'); }
+  }
+
+  function cancelEditInvoiceMode() {
+    document.getElementById('editing-invoice-id').value = '';
+    document.getElementById('invoice-form-title').innerText = 'إصدار فاتورة ذكية';
+    document.getElementById('btn-cancel-edit-inv').style.display = 'none';
+    document.getElementById('invoice-items-list').innerHTML = '';
     addInvoiceItemRow();
-    updateDashboardStats();
-    updateLicenseUI();
-    renderTeamMembersList();
-    renderInventoryReport();
-    renderFixedAssetsDepreciationList();
-  });
-</script>
-</body>
-</html>
+    calculateInvoiceTotals();
+  }
+
+  window.openInvoicePopup = function(invId, entryIndex) {
+    let inv = smartInvoices.find(x => x.id === invId);
+    if (!inv) return showToast('لا توجد تفاصيل لهذه الفاتورة', true);
+
+    const curr = inv.currency || currentCurrency;
+    let itemsRows = '';
+    inv.items.forEach((it, idx) => {
+      itemsRows += `
+        <tr>
+          <td>${idx + 1}</td><td><strong>${it.itemName}</strong></td>
+          <td style="text-align:center;">${it.qty}</td>
+          <td style="text-align:left;">${Number(it.unitPrice).toFixed(2)}</td>
+          <td style="text-align:left; font-weight:700;">${(Number(it.qty) * Number(it.unitPrice)).toFixed(2)}</td>
+        </tr>
+      `;
+    });
+
+    document.getElementById('digital-invoice-body').innerHTML = `
+      <div class="digital-invoice">
+        <div style="font-weight:800; margin-bottom:8px;">${inv.type === 'sales' ? 'فاتورة مبيعات' : 'فاتورة مشتريات'} #${inv.id}</div>
+        <div style="font-size:12px; margin-bottom:10px;">الطرف: <strong>${inv.partyName}</strong></div>
+        <table class="digital-inv-table">
+          <thead><tr><th>#</th><th>الصنف</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th></tr></thead>
+          <tbody>${itemsRows}</tbody>
+        </table>
+        <div style="font-weight:800; font-size:15px; text-align:left; color:var(--primary); margin-top:10px;">
+          الصافي: ${Number(inv.grandTotal).toFixed(2)} ${curr}
+        </div>
+      </div>
+    `;
+    document.getElementById('modal-view-invoice').classList.add('open');
+  };
+
+  window.closeViewInvoiceModal = function() {
+    document.getElementById('modal-view-invoice').classList.remove('open');
+  };
+
+  // دوال كشف الحساب والقيود
+  function loadStatementData() {
+    const sel = document.getElementById('statement-account-selector');
+    if (!sel || !sel.value) return;
+    const code = sel.value;
+    const acc = chartOfAccounts.find(a => a.code === code) || { name: sel.options[sel.selectedIndex].text, nature: "مدين" };
+    const dateFrom = document.getElementById('date-from').value;
+    const dateTo = document.getElementById('date-to').value;
+
+    document.getElementById('active-acc-label').innerHTML = `الحساب: <strong>${code} - ${acc.name}</strong>`;
+    const tbody = document.getElementById('statement-rows');
+    tbody.innerHTML = '';
+
+    const filtered = [];
+    ledgerEntries.forEach((e, idx) => {
+      if (String(e.accountCode) === String(code) && (!dateFrom || e.date >= dateFrom) && (!dateTo || e.date <= dateTo)) {
+        filtered.push({ entry: e, index: idx });
+      }
+    });
+
+    if (filtered.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:20px; color:#64748b;">لا توجد حركات مسجلة لهذا الحساب</td></tr>`;
+      document.getElementById('final-balance').innerText = '0.00';
+      return;
+    }
+
+    let bal = 0;
+    filtered.forEach(obj => {
+      const item = obj.entry;
+      const originalIdx = obj.index;
+      bal += acc.nature === "مدين" ? (item.debit - item.credit) : (item.credit - item.debit);
+      const isInvoice = !!item.invoiceId || (item.desc && item.desc.includes('فاتورة'));
+      const invoiceIdVal = item.invoiceId || 'INV-PREV';
+      
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${item.date.substring(5)}</td>
+        <td>
+          <div>${item.desc}</div>
+          <div style="display:flex; flex-wrap:wrap; gap:4px; margin-top:4px;">
+            ${isInvoice ? `<button type="button" class="btn-inv-tag" onclick="openInvoicePopup('${invoiceIdVal}',${originalIdx})"><i class="fa-solid fa-file-invoice"></i> عرض</button>` : ''}
+            <button type="button" class="btn-edit-tag" onclick="startEditEntry(${originalIdx})"><i class="fa-solid fa-pencil"></i> تعديل</button>
+          </div>
+        </td>
+        <td style="${item.debit > 0 ? 'color: var(--success); font-weight:700;' : ''}">${item.debit > 0 ? item.debit.toLocaleString() : '-'}</td>
+        <td style="${item.credit > 0 ? 'color: var(--danger); font-weight:700;' : ''}">${item.credit > 0 ? item.credit.toLocaleString() : '-'}</td>
+        <td style="font-weight:700;">${bal.toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+    document.getElementById('final-balance').innerText = bal.toLocaleString(undefined, {minimumFractionDigits: 2});
+  }
+
+  function startEditEntry(entryIndex) {
+    const target = ledgerEntries[entryIndex];
+    if (!target) return;
+
+    const entryNo = target.entryNo;
+    const relatedLines = entryNo ? ledgerEntries.filter(e => e.entryNo === entryNo) : [target];
+
+    document.getElementById('editing-entry-no').value = entryNo || ("TMP-" + entryIndex);
+    document.getElementById('entry-date').value = target.date;
+    document.getElementById('entry-memo').value = target.desc || '';
+    document.getElementById('entry-form-title').innerHTML = `تعديل القيد رقم: ${entryNo || ''}`;
+    document.getElementById('btn-cancel-edit').style.display = 'inline-block';
+
+    const list = document.getElementById('entries-list');
+    list.innerHTML = '';
+
+    relatedLines.forEach(line => {
+      const div = document.createElement('div');
+      div.className = 'entry-row';
+      div.innerHTML = `
+        <button class="btn-remove-row" onclick="this.parentElement.remove(); calculateBalance();">×</button>
+        <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 8px;">
+          <select class="account-selector"></select>
+          <input type="number" placeholder="مدين" class="input-debit" value="${line.debit || 0}" oninput="calculateBalance()">
+          <input type="number" placeholder="دائن" class="input-credit" value="${line.credit || 0}" oninput="calculateBalance()">
+        </div>
+      `;
+      list.appendChild(div);
+      populateSingleAccountSelect(div.querySelector('.account-selector'), line.accountCode);
+    });
+
+    calculateBalance();
+    switchTab('tab-entry');
+  }
+
+  function cancelEditEntryMode() {
+    document.getElementById('editing-entry-no').value = '';
+    document.getElementById('entry-memo').value = '';
+    document.getElementById('entry-form-title').innerText = 'تسجيل قيد يومية عام';
+    document.getElementById('btn-cancel-edit').style.display = 'none';
+
+    const list = document.getElementById('entries-list');
+    list.innerHTML = `
+      <div class="entry-row">
+        <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 8px;">
+          <select class="account-selector"></select>
+          <input type="number" placeholder="مدين" class="input-debit" value="0" oninput="calculateBalance()">
+          <input type="number" placeholder="دائن" class="input-credit" value="0" oninput="calculateBalance()">
+        </div>
+      </div>
+      <div class="entry-row">
+        <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 8px;">
+          <select class="account-selector"></select>
+          <input type="number" placeholder="مدين" class="input-debit" value="0" oninput="calculateBalance()">
+          <input type="number" placeholder="دائن" class="input-credit" value="0" oninput="calculateBalance()">
+        </div>
+      </div>
+    `;
+    populateAccountSelects();
+    calculateBalance();
+  }
+
+  function populateSingleAccountSelect(sel, selectedCode) {
+    let accHtml = '';
+    chartOfAccounts.forEach(a => accHtml += `<option value="${a.code}">${a.code} - ${a.name}</option>`);
+    sel.innerHTML = accHtml;
+    if (selectedCode) sel.value = selectedCode;
+  }
+
+  function addEntryRow() {
+    const list = document.getElementById('entries-list');
+    const div = document.createElement('div');
+    div.className = 'entry-row';
+    div.innerHTML = `
+      <button class="btn-remove-row" onclick="this.parentElement.remove(); calculateBalance();">×</button>
+      <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 8px;">
+        <select class="account-selector"></select>
+        <input type="number" placeholder="مدين" class="input-debit" value="0" oninput="calculateBalance()">
+        <input type="number" placeholder="دائن" class="input-credit" value="0" oninput="calculateBalance()">
+      </div>
+    `;
+    list.appendChild(div);
+    populateAccountSelects();
+  }
+
+  function calculateBalance() {
+    let deb = 0, crd = 0;
+    document.querySelectorAll('.input-debit').forEach(i => deb += parseFloat(i.value || 0));
+    document.querySelectorAll('.input-credit').forEach(i => crd += parseFloat(i.value || 0));
+    document.getElementById('total-debit').innerText = deb.toFixed(2);
+    document.getElementById('total-credit').innerText = crd.toFixed(2);
+
+    const b = document.getElementById('balance-status');
+    const btn = document.getElementById('btn-save-entry');
+    if (deb > 0 && Math.abs(deb - crd) < 0.01) {
+      b.className = 'status-badge balanced'; b.innerText = 'القيد متوازن ✓';
+      btn.disabled = false; btn.style.opacity = '1';
+    } else {
+      b.className = 'status-badge unbalanced'; b.innerText = deb === 0 ? 'أدخل أطراف القيد' : 'غير متوازن';
+      btn.disabled = true; btn.style.opacity = '0.5';
+    }
+  }
+
+  function saveEntryAction() {
+    const date = document.getElementById('entry-date').value;
+    const memo = document.getElementById('entry-memo').value || 'قيد يومية';
+    const editingNo = document.getElementById('editing-entry-no').value;
+    const isEditMode = !!editingNo;
+
+    const lines = [];
+    document.querySelectorAll('#entries-list .entry-row').forEach(r => {
+      const sel = r.querySelector('.account-selector');
+      const d = parseFloat(r.querySelector('.input-debit').value || 0);
+      const c = parseFloat(r.querySelector('.input-credit').value || 0);
+      if (d > 0 || c > 0) {
+        lines.push({
+          accountCode: sel.value,
+          accountName: sel.options[sel.selectedIndex].text.split(' - ')[1],
+          description: memo, debit: d, credit: c
+        });
+      }
+    });
+
+    if (lines.length < 2) return showToast('يجب إدخال طرفين على الأقل للقيد', true);
+
+    if (isEditMode) {
+      const targetNo = isNaN(editingNo) ? editingNo : Number(editingNo);
+      ledgerEntries = ledgerEntries.filter(e => e.entryNo !== targetNo);
+      lines.forEach(l => {
+        ledgerEntries.push({
+          entryNo: targetNo, date, refNo: "REF-" + targetNo,
+          accountCode: l.accountCode, accountName: l.accountName, desc: l.description,
+          debit: l.debit, credit: l.credit
+        });
+      });
+      persistData();

@@ -105,13 +105,7 @@
     .kpi-verdict-box { padding: 12px; border-radius: 10px; margin-top: 10px; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px; }
     .kpi-explanation-box { background: #ffffff; border: 1px solid var(--border); border-radius: 12px; padding: 16px; font-size: 13px; line-height: 1.7; color: #334155; }
 
-    .stock-badge { display: inline-block; font-size: 10px; padding: 2px 6px; border-radius: 6px; font-weight: 700; margin-top: 4px; }
-    .stock-badge.ok { background: #dcfce7; color: #15803d; }
-    .stock-badge.low { background: #fef3c7; color: #b45309; }
-    .stock-badge.out { background: #fee2e2; color: #b91c1c; }
-
-    /* سجل وبطاقة الأصل المتقدمة */
-    .asset-item-card { background: var(--bg); border: 1px solid var(--border); border-radius: 14px; padding: 14px; margin-bottom: 12px; position: relative; }
+    .asset-item-card { background: var(--bg); border: 1px solid var(--border); border-radius: 14px; padding: 14px; margin-bottom: 12px; }
     .asset-progress-bar { width: 100%; height: 6px; background: #e2e8f0; border-radius: 4px; overflow: hidden; margin: 6px 0; }
     .asset-progress-fill { height: 100%; background: var(--warning); border-radius: 4px; }
 
@@ -123,15 +117,15 @@
     .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); z-index: 2147483647; align-items: flex-end; justify-content: center; backdrop-filter: blur(4px); }
     .modal-overlay.open { display: flex !important; }
     .modal-panel { background: white; width: 100%; max-width: 480px; border-radius: 20px 20px 0 0; padding: 22px; max-height: 88vh; overflow-y: auto; box-shadow: 0 -10px 40px rgba(0,0,0,0.2); }
-    #modal-onboarding, #modal-opening-wizard, #modal-add-member, #modal-item-card, #modal-edit-asset, #modal-other-income { align-items: center; padding: 20px; background: rgba(15, 23, 42, 0.95); }
-    #modal-onboarding .modal-panel, #modal-opening-wizard .modal-panel, #modal-add-member .modal-panel, #modal-item-card .modal-panel, #modal-edit-asset .modal-panel, #modal-other-income .modal-panel { border-radius: 24px; max-height: 90vh; }
+    #modal-onboarding, #modal-opening-wizard, #modal-add-member, #modal-item-card, #modal-edit-asset, #modal-other-income, #modal-add-account, #modal-restore-backups, #modal-view-invoice { align-items: center; padding: 20px; background: rgba(15, 23, 42, 0.95); }
+    #modal-onboarding .modal-panel, #modal-opening-wizard .modal-panel, #modal-add-member .modal-panel, #modal-item-card .modal-panel, #modal-edit-asset .modal-panel, #modal-other-income .modal-panel, #modal-add-account .modal-panel, #modal-restore-backups .modal-panel, #modal-view-invoice .modal-panel { border-radius: 24px; max-height: 90vh; }
 
     .digital-invoice { border: 1px solid var(--border); border-radius: 12px; padding: 16px; background: #f8fafc; margin-top: 10px; }
     .digital-inv-table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 12px; }
     .digital-inv-table th { background: #e2e8f0; padding: 6px 8px; text-align: right; }
     .digital-inv-table td { padding: 6px 8px; border-bottom: 1px solid #e2e8f0; }
 
-    .currency-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-15px 0; }
+    .currency-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0; }
     .currency-btn { padding: 12px; border: 1.5px solid var(--border); border-radius: 12px; background: white; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: space-between; }
 
     #live-camera-modal { display: none; position: fixed; inset: 0; background: #000; z-index: 2147483648; flex-direction: column; justify-content: space-between; }
@@ -238,7 +232,7 @@
           <i class="fa-solid fa-box-open"></i> بطاقة صنف جديدة
         </button>
         <button class="btn btn-outline" style="border-style: solid; margin-bottom:0;" onclick="openAddAccountModal()">
-          <i class="fa-solid fa-folder-plus"></i> إضافة حساب / أصل ثابت
+          <i class="fa-solid fa-folder-plus"></i> إضافة حساب / أصل
         </button>
       </div>
     </div>
@@ -389,7 +383,7 @@
       </button>
     </div>
 
-    <!-- Tab 4: Financial Reports (شاملة سجل الأصول والعرض السريع والمؤشرات) -->
+    <!-- Tab 4: Financial Reports -->
     <div id="tab-statement" class="tab-content">
       <div style="display: flex; gap: 6px; margin-bottom: 14px; overflow-x: auto; padding-bottom: 4px;">
         <button class="btn btn-secondary" style="flex:1; padding:8px; font-size:11px; white-space:nowrap;" onclick="switchSubReport('ledger')">كشف الحساب</button>
@@ -430,15 +424,30 @@
       <!-- قائمة الدخل -->
       <div id="sub-report-income" style="display: none;">
         <div class="report-card">
-          <h4 style="margin-bottom: 12px; color: var(--primary);"><i class="fa-solid fa-chart-line"></i> قائمة الدخل (الأرباح والخسائر)</h4>
-          <div class="summary-row"><span>إيرادات المبيعات الرئيسية:</span> <strong><span id="rep-sales-rev">0.00</span> <span class="curr-symbol">ر.س</span></strong></div>
-          <div class="summary-row"><span>تكلفة البضاعة المباعة (WAC):</span> <strong style="color:var(--danger);">-<span id="rep-cogs">0.00</span> <span class="curr-symbol">ر.س</span></strong></div>
-          <div class="summary-row" style="border-top:1px dashed #cbd5e1; padding-top:6px;"><span>مجمل الربح التجاري:</span> <strong><span id="rep-gross-profit">0.00</span> <span class="curr-symbol">ر.س</span></strong></div>
-          <div class="summary-row" style="color:var(--success); font-weight:700;"><span>يُضاف: إيرادات أخرى ومتنوعة:</span> <strong>+<span id="rep-other-rev">0.00</span> <span class="curr-symbol">ر.س</span></strong></div>
-          <div class="summary-row"><span>مصروفات إهلاك الأصول الثابتة:</span> <strong style="color:var(--danger);">-<span id="rep-depr-expense">0.00</span> <span class="curr-symbol">ر.س</span></strong></div>
-          <div class="summary-row"><span>المصروفات التشغيلية والإدارية الأخرى:</span> <strong style="color:var(--danger);">-<span id="rep-expenses">0.00</span> <span class="curr-symbol">ر.س</span></strong></div>
+          <h4 style="margin-bottom: 12px; color: var(--primary);"><i class="fa-solid fa-chart-line"></i> قائمة الدخل (وفق المعايير المحاسبية)</h4>
+          
+          <div class="summary-row"><span>1. إيرادات المبيعات الرئيسية:</span> <strong><span id="rep-sales-rev">0.00</span> <span class="curr-symbol">ر.س</span></strong></div>
+          <div class="summary-row"><span>2. تكلفة البضاعة المباعة (WAC):</span> <strong style="color:var(--danger);">-<span id="rep-cogs">0.00</span> <span class="curr-symbol">ر.س</span></strong></div>
+          <div class="summary-row" style="background:#eff6ff; padding:8px; border-radius:8px; font-weight:800; border:1px solid #bfdbfe;">
+            <span style="color:var(--primary-dark);">= مجمل الربح (Gross Profit):</span>
+            <strong style="color:var(--primary-dark); font-size:15px;"><span id="rep-gross-profit">0.00</span> <span class="curr-symbol">ر.س</span></strong>
+          </div>
+
+          <div style="margin-top:10px; font-weight:700; font-size:12px; color:#475569;">يُطرح: المصروفات التشغيلية (OPEX):</div>
+          <div class="summary-row" style="padding-right:10px;"><span>• مصروفات عمومية وإدارية وتشغيلية:</span> <strong style="color:var(--danger);">-<span id="rep-operating-expenses">0.00</span> <span class="curr-symbol">ر.س</span></strong></div>
+          <div class="summary-row" style="padding-right:10px;"><span>• مصروف إهلاك الأصول الثابتة:</span> <strong style="color:var(--danger);">-<span id="rep-depr-expense">0.00</span> <span class="curr-symbol">ر.س</span></strong></div>
+          
+          <div class="summary-row" style="background:#f8fafc; padding:8px; border-radius:8px; font-weight:800; border:1px solid #e2e8f0;">
+            <span>= صافي الربح التشغيلي (Operating Profit):</span>
+            <strong style="color:var(--primary); font-size:14px;"><span id="rep-operating-profit">0.00</span> <span class="curr-symbol">ر.س</span></strong>
+          </div>
+
+          <div style="margin-top:10px; font-weight:700; font-size:12px; color:#475569;">الإيرادات والمصروفات غير التشغيلية:</div>
+          <div class="summary-row" style="padding-right:10px; color:var(--success);"><span>+ إيرادات أخرى ومتنوعة:</span> <strong>+<span id="rep-other-rev">0.00</span> <span class="curr-symbol">ر.س</span></strong></div>
+          <div class="summary-row" style="padding-right:10px; color:var(--danger);"><span>- مصاريف أخرى غير تشغيلية (تمويل، غرامات...):</span> <strong>-<span id="rep-non-operating-expenses">0.00</span> <span class="curr-symbol">ر.س</span></strong></div>
+
           <div class="summary-row total" style="background: #0f172a; padding: 12px; border-radius: 8px; color: #38bdf8; margin-top: 10px;">
-            <span>صافي الربح التشغيلي الشامل للفترة:</span>
+            <span>الصافي النهائي الشامل للفترة:</span>
             <span><span id="rep-net-profit">0.00</span> <span class="curr-symbol">ر.س</span></span>
           </div>
         </div>
@@ -488,7 +497,6 @@
             <button class="btn btn-primary" style="width:auto; padding:6px 12px; font-size:11px;" onclick="openAddAccountModal('asset')">+ تسجيل أصل جديد</button>
           </div>
 
-          <!-- بطاقات العرض السريع لمؤشرات الأصول -->
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;">
             <div style="background:#f1f5f9; padding:10px; border-radius:10px; border:1px solid var(--border);">
               <div style="font-size:10px; color:var(--text-muted);">إجمالي تكلفة الأصول</div>
@@ -500,7 +508,6 @@
             </div>
           </div>
 
-          <!-- قائمة بطاقات الأصول الثابتة التفصيلية مع إمكانية التعديل -->
           <div id="fixed-assets-list-container"></div>
 
           <div class="invoice-summary-box" style="margin-top:14px; background:#1e293b;">
@@ -612,6 +619,9 @@
         <button class="btn btn-primary" style="padding: 9px; margin-bottom: 8px; font-size: 13px;" onclick="saveSheetIdManually()">
           <i class="fa-solid fa-floppy-disk"></i> حفظ معرّف الشيت يدوياً
         </button>
+        <button class="btn btn-outline" style="border-style: solid; padding: 9px; margin-bottom: 8px;" onclick="openOpeningWizardModal()">
+          <i class="fa-solid fa-wand-magic-sparkles"></i> إعادة فتح معالج الأرصدة الافتتاحية
+        </button>
         <button class="btn btn-outline" style="border-style: solid; padding: 9px;" onclick="openOnboardingModal(true)">
           <i class="fa-solid fa-arrows-rotate"></i> ربط حساب Gmail آخر (شيت جديد)
         </button>
@@ -634,6 +644,9 @@
         </button>
         <button class="btn btn-secondary" style="margin-bottom: 8px; font-size: 13px;" onclick="exportLocalBackup()">
           <i class="fa-solid fa-shield-halved"></i> إنشاء نسخة احتياطية سحابية على Google Drive
+        </button>
+        <button class="btn btn-outline" style="border-style: solid; font-size: 13px;" onclick="openRestoreBackupsModal()">
+          <i class="fa-solid fa-clock-rotate-left"></i> استرجاع نسخة احتياطية سابقة من Google Drive
         </button>
       </div>
     </div>
@@ -665,7 +678,54 @@
 
 </div>
 
-<!-- Modal: تسجيل إيرادات أخرى / سند قبض غير تشغيلي -->
+<!-- Modal: تسجيل سند صرف / مصروف -->
+<div class="modal-overlay" id="modal-quick-expense">
+  <div class="modal-panel">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+      <h3 style="font-size: 16px; color: var(--danger);"><i class="fa-solid fa-receipt"></i> تسجيل سند صرف / مصروف</h3>
+      <button style="border:none; background:none; font-size:22px; cursor:pointer;" onclick="closeQuickExpenseModal()">×</button>
+    </div>
+    
+    <div class="form-group">
+      <label>نوع المصروف والتبويب المحاسبي</label>
+      <select id="quick-exp-category" onchange="filterExpenseAccountsByCategory()">
+        <option value="operating">مصروف تشغيلي وعمومي (OPEX - يؤثر في ربح التشغيل)</option>
+        <option value="non_operating">مصروف غير تشغيلي وأخرى (فوائد، غرامات، خسائر...)</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>بند المصروف</label>
+      <select id="quick-exp-acc"></select>
+    </div>
+
+    <div class="form-group">
+      <label>المبلغ المدفوع</label>
+      <input type="number" id="quick-exp-amount" placeholder="0.00" min="0.01" step="any">
+    </div>
+
+    <div class="form-group">
+      <label>طريقة الدفع (الخصم من)</label>
+      <select id="quick-exp-source"></select>
+    </div>
+
+    <div class="form-group">
+      <label>تاريخ الصرف</label>
+      <input type="date" id="quick-exp-date">
+    </div>
+
+    <div class="form-group">
+      <label>البيان / ملاحظات الصرف</label>
+      <input type="text" id="quick-exp-memo" placeholder="مثال: فاتورة كهرباء، صيانة شاحنة، فوائد قرض بنكي...">
+    </div>
+
+    <button class="btn btn-danger" onclick="submitQuickExpenseAction()">
+      <i class="fa-solid fa-check"></i> حفظ وصرف المصروف فوراً
+    </button>
+  </div>
+</div>
+
+<!-- Modal: تسجيل إيرادات أخرى / سند قبض -->
 <div class="modal-overlay" id="modal-other-income">
   <div class="modal-panel">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
@@ -686,7 +746,7 @@
     </div>
     <div class="form-group">
       <label>بيان ومصدر الإيراد بالتفصيل (إلزامي)</label>
-      <input type="text" id="other-inc-memo" placeholder="مثال: أرباح عمولات تسويق، بيع كراتين تالفة، فوائد مصرفية...">
+      <input type="text" id="other-inc-memo" placeholder="مثال: أرباح عمولات تسويق، بيع كراتين، عوائد بنكية...">
     </div>
     <button class="btn btn-success" onclick="submitOtherIncomeAction()">
       <i class="fa-solid fa-check"></i> حفظ وقبض الإيراد وترحيله
@@ -767,60 +827,28 @@
   </div>
 </div>
 
-<!-- Modal: سند صرف سريع -->
-<div class="modal-overlay" id="modal-quick-expense">
-  <div class="modal-panel">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-      <h3 style="font-size: 16px; color: var(--danger);"><i class="fa-solid fa-receipt"></i> تسجيل سند صرف / مصروف</h3>
-      <button style="border:none; background:none; font-size:22px; cursor:pointer;" onclick="closeQuickExpenseModal()">×</button>
-    </div>
-    <div class="form-group">
-      <label>بند المصروف</label>
-      <select id="quick-exp-acc"></select>
-    </div>
-    <div class="form-group">
-      <label>المبلغ المدفوع</label>
-      <input type="number" id="quick-exp-amount" placeholder="0.00" min="0.01" step="any">
-    </div>
-    <div class="form-group">
-      <label>طريقة الدفع (الخصم من)</label>
-      <select id="quick-exp-source"></select>
-    </div>
-    <div class="form-group">
-      <label>تاريخ الصرف</label>
-      <input type="date" id="quick-exp-date">
-    </div>
-    <div class="form-group">
-      <label>البيان / ملاحظات الصرف</label>
-      <input type="text" id="quick-exp-memo" placeholder="مثال: فاتورة كهرباء شهر 10، ضيافة عملاء...">
-    </div>
-    <button class="btn btn-danger" onclick="submitQuickExpenseAction()">
-      <i class="fa-solid fa-check"></i> حفظ وصرف المصروف فوراً
-    </button>
-  </div>
-</div>
-
 <!-- Modal: إضافة حساب أو أصل ثابت -->
 <div class="modal-overlay" id="modal-add-account">
   <div class="modal-panel">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-      <h3 style="font-size: 16px;">إضافة حساب أو أصل ثابت</h3>
+      <h3 style="font-size: 16px;">إضافة حساب جديد</h3>
       <button style="border:none; background:none; font-size:22px; cursor:pointer;" onclick="closeAddAccountModal()">×</button>
     </div>
     <div class="form-group">
       <label>نوع الحساب</label>
       <select id="new-acc-type" onchange="toggleOpeningBalanceField()">
         <option value="asset">أصل ثابت / مقتنيات (أجهزة، سيارات، ديكور...)</option>
+        <option value="expense">مصروف تشغيلي وعمومي (OPEX)</option>
+        <option value="non_operating_expense">مصروف غير تشغيلي وأخرى (تمويل، غرامات...)</option>
         <option value="cash">صندوق / خزينة / محفظة إلكترونية</option>
         <option value="bank">حساب بنكي</option>
         <option value="customer">عميل / زبون (ذمم مدينة)</option>
         <option value="vendor">مورد / تاجر (ذمم دائنة)</option>
-        <option value="expense">مصروف تشغيلي / إداري / نثريات</option>
       </select>
     </div>
     <div class="form-group">
-      <label>اسم الحساب / الأصل</label>
-      <input type="text" id="new-acc-name" placeholder="مثال: سيارة التوزيع، لابتوب الإدارة...">
+      <label>اسم الحساب / البند</label>
+      <input type="text" id="new-acc-name" placeholder="مثال: رسوم قروض بنكية، سيارة التوزيع...">
     </div>
 
     <div id="box-asset-depr-config" class="form-group" style="background:#fffbeb; padding:12px; border-radius:12px; border:1px solid #fde68a;">
@@ -851,7 +879,7 @@
       <input type="number" id="new-acc-opening-bal" placeholder="0.00" value="0" min="0">
     </div>
 
-    <button class="btn btn-primary" onclick="confirmAddAccount()">حفظ وإدراج الحساب والأصل</button>
+    <button class="btn btn-primary" onclick="confirmAddAccount()">حفظ وإدراج الحساب</button>
   </div>
 </div>
 
@@ -1078,7 +1106,11 @@
     { code: "5202", name: "كهرباء ومياه وإنترنت", cat: "المصروفات التشغيلية", base: "expense", nature: "مدين" },
     { code: "5203", name: "رواتب وأجور الموظفين", cat: "المصروفات التشغيلية", base: "expense", nature: "مدين" },
     { code: "5204", name: "بوفيه وضيافة ونثريات", cat: "المصروفات التشغيلية", base: "expense", nature: "مدين" },
-    { code: "5206", name: "مصروف إهلاك الأصول الثابتة", cat: "المصروفات التشغيلية", base: "expense", nature: "مدين" }
+    { code: "5205", name: "صيانة وإصلاحات تشغيلية", cat: "المصروفات التشغيلية", base: "expense", nature: "مدين" },
+    { code: "5206", name: "مصروف إهلاك الأصول الثابتة", cat: "المصروفات التشغيلية", base: "expense", nature: "مدين" },
+    { code: "5301", name: "فوائد وعمولات بنكية وتمويلية", cat: "مصاريف أخرى غير تشغيلية", base: "non_operating_expense", nature: "مدين" },
+    { code: "5302", name: "غرامات ومخالفات جزائية", cat: "مصاريف أخرى غير تشغيلية", base: "non_operating_expense", nature: "مدين" },
+    { code: "5303", name: "خسائر بيع واستبعاد أصول", cat: "مصاريف أخرى غير تشغيلية", base: "non_operating_expense", nature: "مدين" }
   ];
 
   let currentLicense = {
@@ -1122,6 +1154,8 @@
       localStorage.setItem('smart_fixed_assets', JSON.stringify(fixedAssetsList));
     } catch (e) { console.warn(e); }
     updateDashboardStats();
+    updateLicenseUI();
+    renderTeamMembersList();
     renderInventoryReport();
     renderFixedAssetsDepreciationList();
   }
@@ -1158,6 +1192,87 @@
     return new Date().toISOString().split('T')[0];
   }
 
+  // فلترة بنود المصروفات (تشغيلي أم غير تشغيلي)
+  function filterExpenseAccountsByCategory() {
+    const cat = document.getElementById('quick-exp-category').value;
+    const expSel = document.getElementById('quick-exp-acc');
+    
+    let filteredAccounts = [];
+    if (cat === 'operating') {
+      filteredAccounts = chartOfAccounts.filter(a => a.base === 'expense' && a.code !== '5101' && a.code !== '5206');
+    } else {
+      filteredAccounts = chartOfAccounts.filter(a => a.base === 'non_operating_expense');
+    }
+
+    expSel.innerHTML = filteredAccounts.map(a => `<option value="${a.code}">${a.code} - ${a.name}</option>`).join('');
+  }
+
+  function openQuickExpenseModal() {
+    const catSel = document.getElementById('quick-exp-category');
+    catSel.value = 'operating';
+    filterExpenseAccountsByCategory();
+
+    const srcSel = document.getElementById('quick-exp-source');
+    const sourceAccounts = chartOfAccounts.filter(a => a.base === 'cash' || a.base === 'bank');
+    srcSel.innerHTML = sourceAccounts.map(a => `<option value="${a.code}">${a.code} - ${a.name}</option>`).join('');
+
+    document.getElementById('quick-exp-amount').value = '';
+    document.getElementById('quick-exp-memo').value = '';
+    document.getElementById('quick-exp-date').value = Utilities_getTodayStr();
+    document.getElementById('modal-quick-expense').classList.add('open');
+  }
+
+  function closeQuickExpenseModal() {
+    document.getElementById('modal-quick-expense').classList.remove('open');
+  }
+
+  async function submitQuickExpenseAction() {
+    const expCode = document.getElementById('quick-exp-acc').value;
+    const expAcc = chartOfAccounts.find(a => a.code === expCode);
+    const srcCode = document.getElementById('quick-exp-source').value;
+    const srcAcc = chartOfAccounts.find(a => a.code === srcCode);
+
+    const amount = parseFloat(document.getElementById('quick-exp-amount').value) || 0;
+    const date = document.getElementById('quick-exp-date').value || Utilities_getTodayStr();
+    const userMemo = document.getElementById('quick-exp-memo').value.trim();
+
+    if (amount <= 0) return showToast('يرجى إدخال مبلغ صحيح للمصروف', true);
+    if (!expCode || !srcCode) return showToast('يرجى اختيار بند المصروف وطريقة الدفع', true);
+
+    const memo = userMemo ? `${expAcc.name} - ${userMemo}` : `صرف: ${expAcc.name}`;
+    const genNo = Date.now();
+
+    const lines = [
+      { accountCode: expCode, accountName: expAcc.name, description: memo, debit: amount, credit: 0 },
+      { accountCode: srcCode, accountName: srcAcc.name, description: memo, debit: 0, credit: amount }
+    ];
+
+    lines.forEach(l => {
+      ledgerEntries.push({
+        entryNo: genNo, date: date, accountCode: l.accountCode, accountName: l.accountName,
+        desc: l.description, debit: l.debit, credit: l.credit
+      });
+    });
+
+    persistData();
+    calculateFinancialReports();
+    closeQuickExpenseModal();
+    showToast(`تم تسجيل مصروف بمبلغ ${amount.toFixed(2)} وخصمه من السيولة ✅`);
+
+    const sheetId = localStorage.getItem("user_sheet_id");
+    if (sheetId) {
+      fetch(SCRIPT_URL, {
+        method: "POST",
+        body: JSON.stringify({
+          action: "NEW_ENTRY",
+          spreadsheetId: sheetId,
+          entryDate: date,
+          lines: lines
+        })
+      });
+    }
+  }
+
   // دوال سند القبض وإيرادات أخرى
   function openOtherIncomeModal() {
     const srcSel = document.getElementById('other-inc-target');
@@ -1187,7 +1302,6 @@
     const fullMemo = `إيراد متنوع: ${memoUser}`;
     const genNo = Date.now();
 
-    // القيد: من حـ/ الخزينة أو البنك (مدين) إلى حـ/ 4201 إيرادات أخرى (دائن)
     ledgerEntries.push({ entryNo: genNo, date, accountCode: targetCode, accountName: targetAcc.name, desc: fullMemo, debit: amount, credit: 0 });
     ledgerEntries.push({ entryNo: genNo, date, accountCode: "4201", accountName: "إيرادات أخرى ومتنوعة", desc: fullMemo, debit: 0, credit: amount });
 
@@ -1213,7 +1327,7 @@
     }
   }
 
-  // دوال سجل الأصول الثابتة وتعديل الأصل المباشر
+  // دوال سجل الأصول الثابتة
   function renderFixedAssetsDepreciationList() {
     const container = document.getElementById('fixed-assets-list-container');
     if (!container) return;
@@ -1327,7 +1441,6 @@
     ast.startDate = newDate;
     ast.rate = newRate;
 
-    // تسوية فارق التكلفة التاريخية في دليل الحسابات إن تغيرت
     if (Math.abs(newCost - oldCost) > 0.01) {
       const diff = newCost - oldCost;
       const todayStr = Utilities_getTodayStr();
@@ -1581,7 +1694,7 @@
     container.innerHTML = html;
   }
 
-  // دوال مساحة العمل وتغيير الشيت
+  // مساحة العمل
   function openOnboardingModal(allowClose = true) {
     document.getElementById('modal-onboarding').classList.add('open');
   }
@@ -1637,7 +1750,7 @@
     }
   }
 
-  // دوال إضافة الحساب العادي
+  // إضافة حساب جديد أو أصل ثابت
   function openAddAccountModal(presetType) {
     document.getElementById('modal-add-account').classList.add('open');
     if (presetType) document.getElementById('new-acc-type').value = presetType;
@@ -1661,7 +1774,7 @@
       qLbl.innerHTML = '<i class="fa-solid fa-truck-pickup"></i> التكلفة الشرائية / التأسيسية للأصل:';
     } else {
       assetBox.style.display = 'none';
-      if (type === 'expense') {
+      if (type === 'expense' || type === 'non_operating_expense') {
         box.style.display = 'none';
       } else {
         box.style.display = 'block';
@@ -1680,13 +1793,19 @@
     const type = document.getElementById('new-acc-type').value;
     const openingBal = parseFloat(document.getElementById('new-acc-opening-bal').value) || 0;
 
-    if (!name) return showToast('يرجى كتابة اسم الحساب أو الأصل', true);
+    if (!name) return showToast('يرجى كتابة اسم الحساب أو البند', true);
     
-    let prefix = (type === 'vendor') ? '210' : (type === 'customer' ? '112' : (type === 'expense' ? '520' : (type === 'asset' ? '120' : '111')));
-    let code = prefix + Math.floor(10 + Math.random() * 89);
-    let cat = (type === 'asset') ? "الأصول والممتلكات" : "حسابات عامة";
-    let nature = (type === 'vendor') ? 'دائن' : 'مدين';
+    let prefix = '111';
+    let cat = 'حسابات عامة';
+    let nature = 'مدين';
 
+    if (type === 'vendor') { prefix = '210'; cat = 'الموردون والالتزامات'; nature = 'دائن'; }
+    else if (type === 'customer') { prefix = '112'; cat = 'العملاء والمدينون'; nature = 'مدين'; }
+    else if (type === 'expense') { prefix = '520'; cat = 'المصروفات التشغيلية'; nature = 'مدين'; }
+    else if (type === 'non_operating_expense') { prefix = '530'; cat = 'مصاريف أخرى غير تشغيلية'; nature = 'مدين'; }
+    else if (type === 'asset') { prefix = '120'; cat = 'الأصول والممتلكات'; nature = 'مدين'; }
+
+    let code = prefix + Math.floor(10 + Math.random() * 89);
     chartOfAccounts.push({ code, name, cat, base: type, nature });
 
     if (type === 'asset') {
@@ -1708,14 +1827,148 @@
     if (openingBal > 0) {
       const date = Utilities_getTodayStr();
       const genNo = Date.now();
-      ledgerEntries.push({ entryNo: genNo, date: date, accountCode: code, accountName: name, desc: "قيمة تأسيسية للأصل: " + name, debit: openingBal, credit: 0 });
-      ledgerEntries.push({ entryNo: genNo, date: date, accountCode: "3101", accountName: "رأس المال / الأرصدة الافتتاحية", desc: "تسوية رأس مال للأصل: " + name, debit: 0, credit: openingBal });
+      ledgerEntries.push({ entryNo: genNo, date: date, accountCode: code, accountName: name, desc: "قيمة تأسيسية / رصيد سابق: " + name, debit: openingBal, credit: 0 });
+      ledgerEntries.push({ entryNo: genNo, date: date, accountCode: "3101", accountName: "رأس المال / الأرصدة الافتتاحية", desc: "تسوية رأس مال: " + name, debit: 0, credit: openingBal });
     }
 
     persistData();
     populateAccountSelects();
     closeAddAccountModal();
-    showToast(`تمت إضافة ${name} برقم ${code} وتثبيت جدول استهلاكه ✅`);
+    showToast(`تمت إضافة ${name} برقم ${code} بنجاح ✅`);
+  }
+
+  // المزامنة والنسخ الاحتياطي السحابي
+  async function triggerCloudSync() {
+    const sheetId = localStorage.getItem('user_sheet_id');
+    if (!sheetId) return showToast('يرجى إدخال معرّف الشيت في تبويب الإعدادات أولاً', true);
+
+    showToast('جاري مزامنة وسحب الحركات والمخزون من Google Sheet...');
+    try {
+      const response = await fetch(SCRIPT_URL, {
+        method: "POST",
+        body: JSON.stringify({ action: "SYNC_PULL_DATA", spreadsheetId: sheetId })
+      });
+
+      const res = await response.json();
+      if (res.status === "success") {
+        if (res.entries && Array.isArray(res.entries)) ledgerEntries = res.entries;
+        if (res.items && Array.isArray(res.items)) inventoryItems = res.items;
+
+        if (res.accounts && Array.isArray(res.accounts)) {
+          const mergedAccounts = [...defaultAccounts];
+          res.accounts.forEach(cloudAcc => {
+            const cCode = String(cloudAcc.code).trim();
+            const existingIdx = mergedAccounts.findIndex(a => String(a.code).trim() === cCode);
+            if (existingIdx !== -1) {
+              mergedAccounts[existingIdx] = Object.assign({}, mergedAccounts[existingIdx], cloudAcc);
+            } else {
+              mergedAccounts.push(cloudAcc);
+            }
+          });
+          chartOfAccounts = mergedAccounts;
+        }
+
+        persistData();
+        populateAccountSelects();
+        populateItemSelectors();
+        showToast('اكتملت المزامنة بنجاح ✅');
+      } else {
+        throw new Error(res.message || 'فشلت المزامنة');
+      }
+    } catch (e) {
+      showToast('تعذرت المزامنة: ' + e.message, true);
+    }
+  }
+
+  async function exportLocalBackup() {
+    const sheetId = localStorage.getItem('user_sheet_id');
+    const email = localStorage.getItem('user_owner_email') || '';
+
+    if (!sheetId || !email) return showToast('يرجى تحديد الشيت والبريد في الإعدادات أولاً', true);
+
+    showToast('جارٍ أرشفة النسخة الاحتياطية على Google Drive... ⏳');
+    try {
+      const response = await fetch(SCRIPT_URL, {
+        method: "POST",
+        body: JSON.stringify({ action: "CREATE_DRIVE_BACKUP", spreadsheetId: sheetId, email: email })
+      });
+      const res = await response.json();
+      if (res.status === "success") {
+        showToast('تمت أرشفة النسخة الاحتياطية بنجاح 💾');
+      } else {
+        throw new Error(res.message);
+      }
+    } catch (err) {
+      showToast('خطأ: ' + err.message, true);
+    }
+  }
+
+  async function openRestoreBackupsModal() {
+    const email = localStorage.getItem('user_owner_email') || '';
+    if (!email) return showToast('يرجى كتابة البريد في الإعدادات أولاً', true);
+
+    const modal = document.getElementById('modal-restore-backups');
+    const container = document.getElementById('backups-list-container');
+    modal.classList.add('open');
+    container.innerHTML = `<div style="text-align:center; padding:20px; color:#64748b;"><i class="fa-solid fa-spinner fa-spin"></i> جاري البحث عن النسخ الاحتياطية في Google Drive...</div>`;
+
+    try {
+      const res = await fetch(SCRIPT_URL, {
+        method: "POST",
+        body: JSON.stringify({ action: "LIST_BACKUPS", email: email })
+      });
+      const data = await res.json();
+      if (data.status === "success" && data.backups && data.backups.length > 0) {
+        let html = '';
+        data.backups.forEach(b => {
+          html += `
+            <div class="backup-item-card">
+              <div>
+                <div style="font-size:13px; font-weight:700;">${b.name}</div>
+                <div style="font-size:11px; color:var(--text-muted);">${b.createdDate}</div>
+              </div>
+              <button class="btn btn-primary" style="width:auto; padding:6px 12px; font-size:12px;" onclick="confirmRestoreBackup('${b.id}','${b.name}')">استرجاع</button>
+            </div>
+          `;
+        });
+        container.innerHTML = html;
+      } else {
+        container.innerHTML = `<div style="text-align:center; padding:20px; color:#64748b;">لا توجد نسخ مؤرشفة حالياً</div>`;
+      }
+    } catch (e) {
+      container.innerHTML = `<div style="text-align:center; color:var(--danger); padding:15px;">خطأ: ${e.message}</div>`;
+    }
+  }
+
+  function closeRestoreBackupsModal() {
+    document.getElementById('modal-restore-backups').classList.remove('open');
+  }
+
+  async function confirmRestoreBackup(backupId, backupName) {
+    if (!confirm(`هل أنت متأكد من استرجاع:\n(${backupName})؟`)) return;
+    showToast('جارٍ استرجاع النسخة... ⏳');
+    closeRestoreBackupsModal();
+
+    try {
+      const res = await fetch(SCRIPT_URL, {
+        method: "POST",
+        body: JSON.stringify({
+          action: "RESTORE_BACKUP",
+          spreadsheetId: localStorage.getItem('user_sheet_id'),
+          backupFileId: backupId,
+          email: localStorage.getItem('user_owner_email') || ''
+        })
+      });
+      const data = await res.json();
+      if (data.status === "success") {
+        await triggerCloudSync();
+        alert('✅ تم بنجاح استرجاع بيانات النسخة السابقة.');
+      } else {
+        throw new Error(data.message);
+      }
+    } catch (e) {
+      showToast('خطأ: ' + e.message, true);
+    }
   }
 
   // الكاميرا والذكاء الاصطناعي

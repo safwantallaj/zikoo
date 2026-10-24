@@ -414,6 +414,45 @@
       margin-bottom: 8px;
     }
 
+    /* أساليب صفحة المؤشرات المالية */
+    .kpi-indicator-card {
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      color: white;
+      padding: 18px;
+      border-radius: 14px;
+      margin: 14px 0;
+      text-align: center;
+    }
+
+    .kpi-value-display {
+      font-size: 32px;
+      font-weight: 800;
+      margin: 8px 0;
+      color: #38bdf8;
+    }
+
+    .kpi-verdict-box {
+      padding: 12px;
+      border-radius: 10px;
+      margin-top: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .kpi-explanation-box {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      font-size: 13px;
+      line-height: 1.7;
+      color: #334155;
+    }
+
     nav {
       position: fixed;
       bottom: 0;
@@ -855,12 +894,13 @@
       </button>
     </div>
 
-    <!-- Tab 4: Financial Reports (شاملة الميزانية العمومية) -->
+    <!-- Tab 4: Financial Reports (شاملة الميزانية العمومية والمؤشرات المالية) -->
     <div id="tab-statement" class="tab-content">
       <div style="display: flex; gap: 6px; margin-bottom: 14px; overflow-x: auto; padding-bottom: 4px;">
         <button class="btn btn-secondary" style="flex:1; padding:8px; font-size:11px; white-space:nowrap;" onclick="switchSubReport('ledger')">كشف الحساب</button>
         <button class="btn btn-secondary" style="flex:1; padding:8px; font-size:11px; white-space:nowrap;" onclick="switchSubReport('income')">قائمة الدخل</button>
         <button class="btn btn-secondary" style="flex:1; padding:8px; font-size:11px; white-space:nowrap;" onclick="switchSubReport('balance-sheet')">الميزانية العمومية</button>
+        <button class="btn btn-primary" style="flex:1; padding:8px; font-size:11px; white-space:nowrap;" onclick="switchSubReport('kpis')">المؤشرات المالية (KPIs)</button>
         <button class="btn btn-secondary" style="flex:1; padding:8px; font-size:11px; white-space:nowrap;" onclick="switchSubReport('trial')">ميزان المراجعة</button>
         <button class="btn btn-secondary" style="flex:1; padding:8px; font-size:11px; white-space:nowrap;" onclick="switchSubReport('tax')">الإقرار الضريبي</button>
       </div>
@@ -948,6 +988,37 @@
               <span>إجمالي الالتزامات وحقوق الملكية:</span>
               <strong style="color:var(--danger); font-size:15px;"><span id="bs-total-liab-equity">0.00</span> <span class="curr-symbol">ر.س</span></strong>
             </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- شاشة التحليل المالي والمؤشرات الخمسة الرئيسية (KPIs) -->
+      <div id="sub-report-kpis" style="display: none;">
+        <div class="report-card">
+          <h4 style="margin-bottom: 12px; color: var(--primary);"><i class="fa-solid fa-chart-pie"></i> لوحة المؤشرات المالية والتحليل الرقابي</h4>
+          
+          <div class="form-group">
+            <label>اختر المؤشر المالي للتحليل الفوري:</label>
+            <select id="kpi-selector" onchange="renderSelectedKPI()">
+              <option value="current_ratio">1. مؤشر السيولة (نسبة التداول - Current Ratio)</option>
+              <option value="net_profit_margin">2. مؤشر الربحية (هامش صافي الربح - Net Margin)</option>
+              <option value="gross_margin">3. مؤشر كفاءة التسعير (هامش مجمل الربح - Gross Margin)</option>
+              <option value="debt_ratio">4. مؤشر الملاءة والديون (نسبة الديون إلى الأصول - Debt Ratio)</option>
+              <option value="roe">5. مؤشر كفاءة رأس المال (العائد على حقوق الملكية - ROE)</option>
+            </select>
+          </div>
+
+          <div class="kpi-indicator-card">
+            <div id="kpi-title" style="font-size:13px; color:#94a3b8; font-weight:600;">نسبة التداول (Current Ratio)</div>
+            <div id="kpi-value" class="kpi-value-display">0.00</div>
+            <div id="kpi-verdict" class="kpi-verdict-box" style="background:var(--success-light); color:var(--success);">
+              <i class="fa-solid fa-circle-check"></i> <span>الوضع المالي ممتاز ومستقر</span>
+            </div>
+          </div>
+
+          <div class="kpi-explanation-box">
+            <div style="font-weight:800; color:var(--primary); margin-bottom:6px;"><i class="fa-solid fa-user-doctor"></i> التشخيص المحاسبي والمدقق المالي:</div>
+            <p id="kpi-explanation" style="margin:0;"></p>
           </div>
         </div>
       </div>
@@ -1389,6 +1460,9 @@
   let smartInvoices = [];
   let teamMembers = [];
 
+  // بيانات المحرك الحسابي للمؤشرات المالية
+  let computedKPIs = {};
+
   try {
     const accData = localStorage.getItem('smart_accounts');
     if (accData) chartOfAccounts = JSON.parse(accData);
@@ -1565,7 +1639,6 @@
         localStorage.setItem('user_owner_email', currentLicense.email);
         localStorage.setItem('user_sheet_id', currentLicense.sheetId);
         
-        // تفريغ الأرصدة المحلية لتبدأ مساحة العمل الجديدة نظيفة ومطابقة للشيت المستنسخ
         localStorage.removeItem('smart_entries');
         localStorage.removeItem('smart_invoices');
         ledgerEntries = [];
@@ -2018,11 +2091,12 @@
   }
 
   function switchSubReport(subId) {
-    ['ledger', 'income', 'balance-sheet', 'trial', 'tax'].forEach(id => {
+    ['ledger', 'income', 'balance-sheet', 'kpis', 'trial', 'tax'].forEach(id => {
       const el = document.getElementById('sub-report-' + id);
       if (el) el.style.display = (id === subId) ? 'block' : 'none';
     });
     calculateFinancialReports();
+    if (subId === 'kpis') renderSelectedKPI();
   }
 
   function calculateFinancialReports() {
@@ -2049,6 +2123,7 @@
     const grossProfit = salesRev - cogs;
     const netProfit = grossProfit - expenses;
 
+    // تحديث قائمة الدخل
     const sRevEl = document.getElementById('rep-sales-rev');
     if (sRevEl) {
       sRevEl.innerText = Math.max(0, salesRev).toLocaleString(undefined, {minimumFractionDigits: 2});
@@ -2058,6 +2133,7 @@
       document.getElementById('rep-net-profit').innerText = netProfit.toLocaleString(undefined, {minimumFractionDigits: 2});
     }
 
+    // تحديث الإقرار الضريبي
     const taxOutEl = document.getElementById('tax-out');
     if (taxOutEl) {
       taxOutEl.innerText = taxOut.toLocaleString(undefined, {minimumFractionDigits: 2});
@@ -2065,6 +2141,7 @@
       document.getElementById('tax-net').innerText = (taxOut - taxIn).toLocaleString(undefined, {minimumFractionDigits: 2});
     }
 
+    // احتساب وبناء الميزانية العمومية
     let currentAssets = 0, fixedAssets = 0, liabilities = 0, capital = 0;
 
     for (let code in accountBalances) {
@@ -2110,6 +2187,7 @@
       }
     }
 
+    // ميزان المراجعة
     const trialBody = document.getElementById('trial-balance-rows');
     if (trialBody) {
       trialBody.innerHTML = '';
@@ -2128,6 +2206,137 @@
           `;
           trialBody.appendChild(tr);
         }
+      }
+    }
+
+    // حفظ أرقام المؤشرات المالية لاستهلاكها في صفحة التحليل
+    computedKPIs = {
+      salesRev,
+      grossProfit,
+      netProfit,
+      currentAssets,
+      fixedAssets,
+      totalAssets,
+      liabilities,
+      equity: capital + netProfit
+    };
+  }
+
+  // محرك عرض المؤشرات المالية والشرح الرقابي الذكي
+  function renderSelectedKPI() {
+    const sel = document.getElementById('kpi-selector');
+    if (!sel) return;
+    const type = sel.value;
+
+    const kpi = computedKPIs;
+    const valEl = document.getElementById('kpi-value');
+    const titleEl = document.getElementById('kpi-title');
+    const verdictEl = document.getElementById('kpi-verdict');
+    const expEl = document.getElementById('kpi-explanation');
+
+    if (type === 'current_ratio') {
+      titleEl.innerText = "1. نسبة التداول والسيولة (Current Ratio)";
+      const ratio = kpi.liabilities > 0 ? (kpi.currentAssets / kpi.liabilities) : (kpi.currentAssets > 0 ? 99 : 1);
+      valEl.innerText = ratio >= 99 ? "تغطية كاملة (لا توجد ديون)" : ratio.toFixed(2) + " : 1";
+
+      if (ratio >= 1.5) {
+        verdictEl.style.background = "var(--success-light)";
+        verdictEl.style.color = "var(--success)";
+        verdictEl.innerHTML = '<i class="fa-solid fa-circle-check"></i> الوضع المالي ممتاز ومستقر جداً';
+        expEl.innerHTML = `تمتلك أصولاً متداولة (نقدية، بضاعة، عملاء) كافية لتغطية التزاماتك قصيرة الأجل بمقدار <strong>(${ratio.toFixed(2)})</strong> ضعف. هذا يعني أن نشاطك التجاري في مأمن تام من أي تعثر نقدي فوري ولا يحتاج إلى قروض لتغطية مصاريفه.`;
+      } else if (ratio >= 1.0) {
+        verdictEl.style.background = "var(--warning-light)";
+        verdictEl.style.color = "var(--warning)";
+        verdictEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> السيولة مقبولة ولكن تحت المراقبة';
+        expEl.innerHTML = `نسبة التداول الحالية <strong>(${ratio.toFixed(2)}:1)</strong> تكفي لسداد الالتزامات بالكاد. يُوصى بالتركيز على تحصيل الديون المستحقة عند العملاء وتسريع تصريف المخزون لرفع السيولة النقدية وتجنب الضغط المالي.`;
+      } else {
+        verdictEl.style.background = "var(--danger-light)";
+        verdictEl.style.color = "var(--danger)";
+        verdictEl.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> إنذار عجز سيولة (خطر تعثر قصير الأجل)';
+        expEl.innerHTML = `الالتزامات المستحقة للموردين تتجاوز أصولك المتداولة المتاحة. تحتاج المنشأة إلى جدولة ديون الموردين أو ضخ سيولة إضافية في الصندوق لتفادي العجز النقدي الفوري.`;
+      }
+    } 
+    else if (type === 'net_profit_margin') {
+      titleEl.innerText = "2. هامش صافي الربح (Net Profit Margin)";
+      const margin = kpi.salesRev > 0 ? ((kpi.netProfit / kpi.salesRev) * 100) : 0;
+      valEl.innerText = margin.toFixed(1) + "%";
+
+      if (margin >= 15) {
+        verdictEl.style.background = "var(--success-light)";
+        verdictEl.style.color = "var(--success)";
+        verdictEl.innerHTML = '<i class="fa-solid fa-arrow-trend-up"></i> ربحية عالية وممتازة';
+        expEl.innerHTML = `تحقق المنشأة عائداً صافياً قدره <strong>(${margin.toFixed(1)}%)</strong> من إجمالي المبيعات بعد خصم كافة المصاريف وتكلفة البضاعة. هذا مؤشر على كفاءة إدارة المصاريف التشغيلية وقوة التسعير.`;
+      } else if (margin > 0) {
+        verdictEl.style.background = "var(--warning-light)";
+        verdictEl.style.color = "var(--warning)";
+        verdictEl.innerHTML = '<i class="fa-solid fa-chart-line"></i> أرباح إيجابية متواضعة';
+        expEl.innerHTML = `النشاط يولد أرباحاً صافية بنسبة <strong>(${margin.toFixed(1)}%)</strong>، ولكن الهامش يحتاج إلى تعزيز عن طريق مراجعة بنود المصروفات العامة أو تحسين شروط شراء البضائع من الموردين لزيادة الفائض الصافي.`;
+      } else {
+        verdictEl.style.background = "var(--danger-light)";
+        verdictEl.style.color = "var(--danger)";
+        verdictEl.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> خسارة تشغيلية دفترية';
+        expEl.innerHTML = `إجمالي المصروفات وتكلفة البضاعة المباعة تفوق الإيرادات المحققة حتى الآن. يتوجب فوراً تقليص المصروفات التشغيلية غير الضرورية ومراجعة هوامش أسعار البيع لتغطية نقطة التعادل.`;
+      }
+    }
+    else if (type === 'gross_margin') {
+      titleEl.innerText = "3. هامش مجمل الربح (Gross Margin)";
+      const gMargin = kpi.salesRev > 0 ? ((kpi.grossProfit / kpi.salesRev) * 100) : 0;
+      valEl.innerText = gMargin.toFixed(1) + "%";
+
+      if (gMargin >= 25) {
+        verdictEl.style.background = "var(--success-light)";
+        verdictEl.style.color = "var(--success)";
+        verdictEl.innerHTML = '<i class="fa-solid fa-tag"></i> تسعير سليم وتكلفة بضاعة منضبطة';
+        expEl.innerHTML = `تحقق مبيعاتك هامشاً إجمالياً ممتازاً قدره <strong>(${gMargin.toFixed(1)}%)</strong> قبل احتساب المصاريف. هذا يدل على أن أسعار البيع مدروسة بشكل قوي وأن تكلفة الشراء منخفضة ومناسبة.`;
+      } else {
+        verdictEl.style.background = "var(--warning-light)";
+        verdictEl.style.color = "var(--warning)";
+        verdictEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> هامش مجمل ربح ضعيف';
+        expEl.innerHTML = `هامش الربح الإجمالي يبلغ <strong>(${gMargin.toFixed(1)}%)</strong> فقط. هذا يعني أن تكلفة الشراء تأكل القسم الأكبر من الإيراد. ينبغي التفاوض مع الموردين على خصومات كميات أو تعديل أسعار البيع في الفواتير.`;
+      }
+    }
+    else if (type === 'debt_ratio') {
+      titleEl.innerText = "4. نسبة المديونية للأصول (Debt to Assets)";
+      const dRatio = kpi.totalAssets > 0 ? ((kpi.liabilities / kpi.totalAssets) * 100) : 0;
+      valEl.innerText = dRatio.toFixed(1) + "%";
+
+      if (dRatio <= 40) {
+        verdictEl.style.background = "var(--success-light)";
+        verdictEl.style.color = "var(--success)";
+        verdictEl.innerHTML = '<i class="fa-solid fa-shield-halved"></i> هيكل مالي متين واستقلالية عالية';
+        expEl.innerHTML = `الديون والمستحقات تمثل <strong>(${dRatio.toFixed(1)}%)</strong> فقط من إجمالي موجودات الشركة، مما يعني أن المنشأة تعتمد في الغالب على أموالها الذاتية ورأس مالها، ومخاطر الائتمان شبه منعدمة.`;
+      } else if (dRatio <= 70) {
+        verdictEl.style.background = "var(--warning-light)";
+        verdictEl.style.color = "var(--warning)";
+        verdictEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> مديونية متوسطة (تحت السيطرة)';
+        expEl.innerHTML = `الديون تمثل <strong>(${dRatio.toFixed(1)}%)</strong> من أصول المنشأة. الوضع آمن ولكن يجب تجنب فتح خطوط ائتمان جديدة مع الموردين لحين سداد جزء من الالتزامات القائمة.`;
+      } else {
+        verdictEl.style.background = "var(--danger-light)";
+        verdictEl.style.color = "var(--danger)";
+        verdictEl.innerHTML = '<i class="fa-solid fa-fire"></i> رافعة مالية مرتفعة (خطر ديون)';
+        expEl.innerHTML = `الديون تغطي القسم الأكبر من موجودات المنشأة بنسبة <strong>(${dRatio.toFixed(1)}%)</strong>. المنشأة تعمل بأموال الغير بشكل مكثف ويجب الحذر من أي تعثر في السداد.`;
+      }
+    }
+    else if (type === 'roe') {
+      titleEl.innerText = "5. العائد على حقوق الملكية ورأس المال (ROE)";
+      const roe = kpi.equity > 0 ? ((kpi.netProfit / kpi.equity) * 100) : 0;
+      valEl.innerText = roe.toFixed(1) + "%";
+
+      if (roe >= 20) {
+        verdictEl.style.background = "var(--success-light)";
+        verdictEl.style.color = "var(--success)";
+        verdictEl.innerHTML = '<i class="fa-solid fa-gem"></i> كفاءة استثمارية عالية لأموال الشركاء';
+        expEl.innerHTML = `يحقق رأس المال وأموال الملاك عائداً صافياً قدره <strong>(${roe.toFixed(1)}%)</strong>. هذه النتيجة تتفوق على معظم الفرص الاستثمارية التقليدية وتؤكد نجاح النشاط في تعظيم قيمة رأس المال.`;
+      } else if (roe > 0) {
+        verdictEl.style.background = "var(--warning-light)";
+        verdictEl.style.color = "var(--warning)";
+        verdictEl.innerHTML = '<i class="fa-solid fa-chart-line"></i> عائد معتدل على رأس المال';
+        expEl.innerHTML = `يحقق رأس المال عائداً إيجابياً قدره <strong>(${roe.toFixed(1)}%)</strong>. يمكن زيادته من خلال زيادة حجم المبيعات والاستفادة من الأصول المتاحة غير المستغلة.`;
+      } else {
+        verdictEl.style.background = "var(--danger-light)";
+        verdictEl.style.color = "var(--danger)";
+        verdictEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> لا يوجد عائد (تآكل نسبي لرأس المال)';
+        expEl.innerHTML = `بسبب تسجيل خسائر دورية، فإن حقوق الملكية ورأس المال لم يحققا عائداً في هذه الفترة. يجب التركيز على الربحية التشغيلية لتعويض رأس المال المستثمر.`;
       }
     }
   }

@@ -415,7 +415,6 @@
       margin-bottom: 8px;
     }
 
-    /* أساليب صفحة المؤشرات المالية */
     .kpi-indicator-card {
       background: linear-gradient(135deg, #1e293b, #0f172a);
       color: white;
@@ -745,7 +744,6 @@
         </div>
       </div>
 
-      <!-- إحصائية إضافية لقيمة المخزون الإجمالية لحظياً -->
       <div class="stat-card" style="margin-bottom: 14px; display:flex; justify-content:space-between; align-items:center;">
         <div class="stat-label" style="margin-bottom:0;"><i class="fa-solid fa-boxes-stacked" style="color:var(--success);"></i> إجمالي قيمة المخزون الحالي (بالتكلفة):</div>
         <div class="stat-val" style="color:var(--success);"><span id="dash-inventory-val">0.00</span> <span class="curr-symbol" style="font-size:12px;">ر.س</span></div>
@@ -774,7 +772,7 @@
       </button>
     </div>
 
-    <!-- Tab 2: Smart Invoices (مع منع البيع بالسالب والربط ببطاقة الصنف) -->
+    <!-- Tab 2: Smart Invoices -->
     <div id="tab-invoice" class="tab-content">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
         <h3 id="invoice-form-title" style="font-size: 18px;">إصدار فاتورة ذكية</h3>
@@ -920,7 +918,7 @@
       </button>
     </div>
 
-    <!-- Tab 4: Financial Reports (شاملة الميزانية العمومية والمؤشرات المالية) -->
+    <!-- Tab 4: Financial Reports -->
     <div id="tab-statement" class="tab-content">
       <div style="display: flex; gap: 6px; margin-bottom: 14px; overflow-x: auto; padding-bottom: 4px;">
         <button class="btn btn-secondary" style="flex:1; padding:8px; font-size:11px; white-space:nowrap;" onclick="switchSubReport('ledger')">كشف الحساب</button>
@@ -988,7 +986,7 @@
         </div>
       </div>
 
-      <!-- الميزانية العمومية (قائمة المركز المالي) -->
+      <!-- الميزانية العمومية -->
       <div id="sub-report-balance-sheet" style="display: none;">
         <div class="report-card">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
@@ -1050,7 +1048,7 @@
         </div>
       </div>
 
-      <!-- تقرير حركة المستودع والأصناف الحالي -->
+      <!-- تقرير حركة المستودع -->
       <div id="sub-report-inventory" style="display: none;">
         <div class="report-card">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
@@ -1102,7 +1100,6 @@
     <div id="tab-settings" class="tab-content">
       <h3 style="margin-bottom: 14px; font-size: 18px;"><i class="fa-solid fa-sliders" style="color: var(--primary);"></i> إعدادات النظام وفريق العمل</h3>
 
-      <!-- بطاقة الترخيص -->
       <div class="settings-card">
         <div style="font-weight: 700; font-size: 14px; margin-bottom: 10px; color: var(--primary); display: flex; align-items: center; justify-content: space-between;">
           <span><i class="fa-solid fa-key"></i> بيانات الترخيص والشيت المستقل</span>
@@ -1127,7 +1124,6 @@
         </button>
       </div>
 
-      <!-- بطاقة فريق العمل والصلاحيات -->
       <div class="settings-card">
         <div style="font-weight: 700; font-size: 14px; margin-bottom: 10px; color: var(--primary); display: flex; align-items: center; justify-content: space-between;">
           <span><i class="fa-solid fa-users-gear"></i> فريق العمل والصلاحيات الرقابية</span>
@@ -1137,7 +1133,6 @@
         <div id="team-members-list"></div>
       </div>
 
-      <!-- بطاقة النسخ الاحتياطي -->
       <div class="settings-card">
         <div style="font-weight: 700; font-size: 14px; margin-bottom: 10px; color: var(--primary); display: flex; align-items: center; gap: 6px;">
           <i class="fa-solid fa-cloud-arrow-up"></i> النسخ الاحتياطي والمزامنة والاسترجاع
@@ -1153,7 +1148,6 @@
         </button>
       </div>
 
-      <!-- بطاقة التفضيلات -->
       <div class="settings-card">
         <div style="font-weight: 700; font-size: 14px; margin-bottom: 10px; color: var(--primary); display: flex; align-items: center; gap: 6px;">
           <i class="fa-solid fa-gear"></i> التفضيلات العامة
@@ -1194,7 +1188,7 @@
 
 </div>
 
-<!-- Modal: تسجيل بطاقة صنف جديدة للمستودع -->
+<!-- Modal: بطاقة تعريف صنف جديد -->
 <div class="modal-overlay" id="modal-item-card">
   <div class="modal-panel">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
@@ -1202,7 +1196,7 @@
       <button style="border:none; background:none; font-size:22px; cursor:pointer;" onclick="closeItemCardModal()">×</button>
     </div>
     <div class="form-group">
-      <label>كود الصنف (SKU)</label>
+      <label>كود الصنف (Item Code / SKU)</label>
       <input type="text" id="item-card-code" placeholder="تلقائي مثال: SKU-101">
     </div>
     <div class="form-group">
@@ -1211,7 +1205,7 @@
     </div>
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
       <div class="form-group">
-        <label>سعر التكلفة الافتتاحي</label>
+        <label>سعر التكلفة (الشراء)</label>
         <input type="number" id="item-card-cost" placeholder="0.00" min="0" step="any">
       </div>
       <div class="form-group">
@@ -1225,12 +1219,12 @@
         <input type="number" id="item-card-qty" placeholder="0" min="0" value="0">
       </div>
       <div class="form-group">
-        <label>حد إعادة الطلب (تنبيه)</label>
-        <input type="number" id="item-card-reorder" placeholder="مثال: 5" min="0" value="3">
+        <label>حد الطلب (تنبيه)</label>
+        <input type="number" id="item-card-reorder" placeholder="مثال: 5" min="0" value="5">
       </div>
     </div>
-    <button class="btn btn-success" onclick="saveItemCardAction()">
-      <i class="fa-solid fa-check"></i> حفظ الصنف وإدراجه في المستودع
+    <button class="btn btn-success" id="btn-save-item-card" onclick="saveItemCardAction()">
+      <i class="fa-solid fa-check"></i> حفظ الصنف وترحيله إلى الشيت السحابي
     </button>
   </div>
 </div>
@@ -1268,7 +1262,7 @@
   </div>
 </div>
 
-<!-- Modal: دعوة عضو جديد وتحديد الصلاحيات -->
+<!-- Modal: دعوة عضو جديد -->
 <div class="modal-overlay" id="modal-add-member">
   <div class="modal-panel">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
@@ -1548,12 +1542,7 @@
   let ledgerEntries = [];
   let smartInvoices = [];
   let teamMembers = [];
-  
-  // هيكل بطاقات الأصناف للمستودع
-  let inventoryItems = [
-    { code: "SKU-1001", name: "بضاعة تجارية عامة", unit: "قطعة", cost: 70, price: 100, qty: 50, reorder: 5 }
-  ];
-
+  let inventoryItems = [];
   let computedKPIs = {};
 
   try {
@@ -1619,14 +1608,13 @@
     triggerCloudSync();
   }
 
-  // دوال بطاقة الصنف والمخزون
   function openItemCardModal() {
     document.getElementById('item-card-code').value = 'SKU-' + Math.floor(1000 + Math.random() * 9000);
     document.getElementById('item-card-name').value = '';
     document.getElementById('item-card-cost').value = '';
     document.getElementById('item-card-price').value = '';
     document.getElementById('item-card-qty').value = '0';
-    document.getElementById('item-card-reorder').value = '3';
+    document.getElementById('item-card-reorder').value = '5';
     document.getElementById('modal-item-card').classList.add('open');
   }
 
@@ -1634,24 +1622,23 @@
     document.getElementById('modal-item-card').classList.remove('open');
   }
 
-  function saveItemCardAction() {
+  async function saveItemCardAction() {
     const code = document.getElementById('item-card-code').value.trim() || ('SKU-' + Date.now().toString().slice(-4));
     const name = document.getElementById('item-card-name').value.trim();
     const cost = parseFloat(document.getElementById('item-card-cost').value) || 0;
     const price = parseFloat(document.getElementById('item-card-price').value) || (cost * 1.3);
     const qty = parseFloat(document.getElementById('item-card-qty').value) || 0;
-    const reorder = parseFloat(document.getElementById('item-card-reorder').value) || 3;
+    const reorder = parseFloat(document.getElementById('item-card-reorder').value) || 5;
 
     if (!name) return showToast('يرجى كتابة اسم الصنف', true);
 
     const existingIdx = inventoryItems.findIndex(it => it.code === code || it.name === name);
     if (existingIdx !== -1) {
-      inventoryItems[existingIdx] = { code, name, unit: "قطعة", cost, price, qty, reorder };
+      inventoryItems[existingIdx] = { code, name, unit: "حبة", cost, price, qty, reorder };
     } else {
-      inventoryItems.push({ code, name, unit: "قطعة", cost, price, qty, reorder });
+      inventoryItems.push({ code, name, unit: "حبة", cost, price, qty, reorder });
     }
 
-    // إذا كانت هناك كمية افتتاحية بتكلفة، يتم إدراج قيدها في المخزون ورأس المال
     if (qty > 0 && cost > 0 && existingIdx === -1) {
       const totalVal = qty * cost;
       const date = new Date().toISOString().split('T')[0];
@@ -1662,14 +1649,43 @@
 
     persistData();
     closeItemCardModal();
-    showToast(`تم حفظ بطاقة الصنف (${name}) بنجاح ✅`);
+    showToast(`تم حفظ الصنف (${name}) وترحيله للسحابة ✅`);
     populateItemSelectors();
+
+    const sheetId = localStorage.getItem("user_sheet_id");
+    if (sheetId) {
+      fetch(SCRIPT_URL, {
+        method: "POST",
+        body: JSON.stringify({
+          action: "ADD_INVENTORY_ITEM",
+          spreadsheetId: sheetId,
+          item: {
+            code: code,
+            name: name,
+            unit: "حبة",
+            barcode: "",
+            cost: cost,
+            price: price,
+            openingQty: qty,
+            inQty: 0,
+            outQty: 0,
+            currentQty: qty,
+            reorder: reorder
+          }
+        })
+      });
+    }
   }
 
   function renderInventoryReport() {
     const tbody = document.getElementById('inventory-report-rows');
     if (!tbody) return;
     tbody.innerHTML = '';
+
+    if (inventoryItems.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:15px; color:#64748b;">لا توجد أصناف معرفة حتى الآن. اضغط على "+ إضافة صنف" لتعريف أول صنف.</td></tr>`;
+      return;
+    }
 
     inventoryItems.forEach(it => {
       const totalVal = (Number(it.qty) || 0) * (Number(it.cost) || 0);
@@ -1685,7 +1701,7 @@
           <div style="font-size:10px; color:var(--text-muted);">${it.code}</div>
           <span class="stock-badge ${statusClass}">${statusText}</span>
         </td>
-        <td style="font-weight:700; font-size:14px;">${it.qty} ${it.unit || 'قطعة'}</td>
+        <td style="font-weight:700; font-size:14px;">${it.qty} ${it.unit || 'حبة'}</td>
         <td>${Number(it.cost).toFixed(2)}</td>
         <td style="font-weight:700; color:var(--primary);">${totalVal.toLocaleString(undefined, {minimumFractionDigits:2})}</td>
       `;
@@ -1705,7 +1721,6 @@
     });
   }
 
-  // إدارة فريق العمل والأذونات
   function openAddMemberModal() {
     document.getElementById('new-member-email').value = '';
     document.getElementById('modal-add-member').classList.add('open');
@@ -1945,15 +1960,14 @@
         stockItems.push({ name: name, qty: qty, cost: cost, price: cost * 1.3 });
         stockTotalVal += (qty * cost);
 
-        // إضافة الصنف لبطاقة الأصناف بالمستودع
         inventoryItems.push({
           code: 'SKU-' + Math.floor(1000 + Math.random() * 9000),
           name: name,
-          unit: 'قطعة',
+          unit: 'حبة',
           cost: cost,
           price: cost * 1.3,
           qty: qty,
-          reorder: 3
+          reorder: 5
         });
       }
     });
@@ -2094,7 +2108,7 @@
     const sheetId = localStorage.getItem('user_sheet_id');
     if (!sheetId) return showToast('يرجى إدخال معرّف الشيت في تبويب الإعدادات أولاً', true);
 
-    showToast('جاري مزامنة وسحب الحركات من Google Sheet...');
+    showToast('جاري مزامنة وسحب الحركات والمخزون من Google Sheet...');
     try {
       const response = await fetch(SCRIPT_URL, {
         method: "POST",
@@ -2136,6 +2150,11 @@
           localStorage.setItem('smart_accounts', JSON.stringify(chartOfAccounts));
         }
 
+        if (res.items && Array.isArray(res.items)) {
+          inventoryItems = res.items;
+          localStorage.setItem('smart_inventory_items', JSON.stringify(inventoryItems));
+        }
+
         populateAccountSelects();
         populateItemSelectors();
         updateDashboardStats();
@@ -2144,7 +2163,7 @@
           loadStatementData();
           calculateFinancialReports();
         }
-        showToast('اكتملت المزامنة وتطابقت الأرصدة بنجاح ✅');
+        showToast('اكتملت المزامنة وتطابقت الأرصدة والمستودع بنجاح ✅');
       } else {
         throw new Error(res.message || 'فشلت المزامنة');
       }
@@ -2639,12 +2658,12 @@
       } else {
         inputEl.style.borderColor = 'var(--border)';
         warnEl.style.color = 'var(--success)';
-        warnEl.innerHTML = `<i class="fa-solid fa-circle-check"></i> متوفر بالمخزن: ${it.qty} قطعة (التكلفة: ${it.cost.toFixed(2)})`;
+        warnEl.innerHTML = `<i class="fa-solid fa-circle-check"></i> متوفر بالمخزن: ${it.qty} حبة (التكلفة: ${it.cost.toFixed(2)})`;
       }
     } else {
       inputEl.style.borderColor = 'var(--border)';
       warnEl.style.color = 'var(--primary)';
-      warnEl.innerHTML = `الرصيد الحالي: ${it.qty} (ستتم إضافة ${qty} قطعة واحتساب متوسط التكلفة WAC)`;
+      warnEl.innerHTML = `الرصيد الحالي: ${it.qty} (ستتم إضافة ${qty} واحتساب متوسط التكلفة WAC)`;
     }
   }
 
@@ -2682,7 +2701,6 @@
       const it = inventoryItems.find(x => x.code === code || x.name === name);
       if (it && cost === 0) cost = it.cost;
 
-      // فحص الرقابة ومنع البيع بالسالب
       if (invType === 'sales') {
         const availableQty = it ? it.qty : 0;
         if (qty > availableQty) {
@@ -2721,13 +2739,11 @@
       subtotal += (it.qty * it.unitPrice);
       totalCogsVal += (it.qty * it.costPrice);
 
-      // تطبيق معادلة WAC وتحديث المستودع
       const targetItem = inventoryItems.find(x => (it.itemCode && x.code === it.itemCode) || x.name === it.itemName);
       if (targetItem) {
         if (invType === 'sales') {
           targetItem.qty = Math.max(0, targetItem.qty - it.qty);
         } else {
-          // شراء جديد: معادلة المتوسط المرجح WAC
           const oldTotalCost = targetItem.qty * targetItem.cost;
           const newBuyCost = it.qty * it.unitPrice;
           const newTotalQty = targetItem.qty + it.qty;
@@ -2738,11 +2754,11 @@
         inventoryItems.push({
           code: 'SKU-' + Math.floor(1000 + Math.random() * 9000),
           name: it.itemName,
-          unit: 'قطعة',
+          unit: 'حبة',
           cost: it.unitPrice,
           price: it.unitPrice * 1.3,
           qty: it.qty,
-          reorder: 3
+          reorder: 5
         });
       }
     });
@@ -2765,18 +2781,15 @@
 
     const memo = (invType === 'sales' ? 'فاتورة مبيعات ' : 'فاتورة مشتريات ') + (payMethod === 'credit' ? '(آجل)' : '(نقدي)') + ' #' + invId;
     if (invType === 'sales') {
-      // 1. قيد المبيعات والعميل/الخزينة والضريبة
       ledgerEntries.push({ date, accountCode: partyCode, desc: memo, debit: grandTotal, credit: 0, invoiceId: invId });
       ledgerEntries.push({ date, accountCode: "4101", desc: memo, debit: 0, credit: subtotal, invoiceId: invId });
       if (taxAmount > 0) ledgerEntries.push({ date, accountCode: "2103", desc: "ضريبة القيمة المضافة", debit: 0, credit: taxAmount, invoiceId: invId });
 
-      // 2. قيد تكلفة البضاعة المباعة والمخزون المعياري
       if (totalCogsVal > 0) {
         ledgerEntries.push({ date, accountCode: "5101", desc: `تكلفة بضاعة مباعة بالفاتورة #${invId}`, debit: totalCogsVal, credit: 0, invoiceId: invId });
         ledgerEntries.push({ date, accountCode: "1131", desc: `إخراج مخزني بالفاتورة #${invId}`, debit: 0, credit: totalCogsVal, invoiceId: invId });
       }
     } else {
-      // فاتورة مشتريات: إدخال مخزني والتزام مورد
       ledgerEntries.push({ date, accountCode: "1131", desc: memo, debit: subtotal, credit: 0, invoiceId: invId });
       if (taxAmount > 0) ledgerEntries.push({ date, accountCode: "2103", desc: "ضريبة مدخلات مشتريات", debit: taxAmount, credit: 0, invoiceId: invId });
       ledgerEntries.push({ date, accountCode: partyCode, desc: memo, debit: 0, credit: grandTotal, invoiceId: invId });

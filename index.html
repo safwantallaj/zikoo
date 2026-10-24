@@ -272,18 +272,15 @@
           </div>
         </div>
 
-        <!-- خيار العملة وسعر الصرف اللحظي للفاتورة -->
-        <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 10px; margin-bottom: 10px; background:#f8fafc; padding:8px; border-radius:10px; border:1px solid #e2e8f0;">
+        <!-- خيار العملات المتعددة وسعر الصرف اللحظي -->
+        <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 10px; margin-bottom: 10px; background:#f8fafc; padding:8px; border-radius:10px; border:1px solid #e2e8f0;">
           <div>
             <label style="font-size:11px;">عملة الفاتورة</label>
-            <select id="inv-currency" onchange="toggleInvoiceExchangeRate()">
-              <option value="LOCAL">العملة المحلية الأساسية</option>
-              <option value="USD">دولار أمريكي ($ USD)</option>
-            </select>
+            <select id="inv-currency" onchange="toggleInvoiceExchangeRate()"></select>
           </div>
           <div id="box-inv-rate" style="display:none;">
-            <label style="font-size:11px;">سعر صرف الدولار اليوم</label>
-            <input type="number" id="inv-exchange-rate" value="3.75" step="any" min="0.01" oninput="calculateInvoiceTotals()">
+            <label style="font-size:11px;">سعر الصرف مقابل العملة الأساسية</label>
+            <input type="number" id="inv-exchange-rate" value="1" step="any" min="0.0001" oninput="calculateInvoiceTotals()">
           </div>
         </div>
 
@@ -330,18 +327,18 @@
       <div class="invoice-summary-box">
         <div class="summary-row">
           <span>المجموع قبل الضريبة:</span>
-          <span><span id="inv-sum-subtotal">0.00</span> <span class="curr-symbol" id="inv-sym-1">ر.س</span></span>
+          <span><span id="inv-sum-subtotal">0.00</span> <span id="inv-sym-1" class="curr-symbol">ر.س</span></span>
         </div>
         <div class="summary-row">
           <span>قيمة الضريبة:</span>
-          <span><span id="inv-sum-tax">0.00</span> <span class="curr-symbol" id="inv-sym-2">ر.س</span></span>
+          <span><span id="inv-sum-tax">0.00</span> <span id="inv-sym-2" class="curr-symbol">ر.س</span></span>
         </div>
         <div class="summary-row total">
           <span>الصافي الإجمالي:</span>
-          <span><span id="inv-sum-grand">0.00</span> <span class="curr-symbol" id="inv-sym-3">ر.س</span></span>
+          <span><span id="inv-sum-grand">0.00</span> <span id="inv-sym-3" class="curr-symbol">ر.س</span></span>
         </div>
         <div id="inv-equiv-local" style="font-size:11px; color:#94a3b8; text-align:left; margin-top:4px; display:none;">
-          المعادل بالعملة المحلية: <span id="inv-equiv-val">0.00</span> <span class="curr-symbol">ر.س</span>
+          المعادل بالعملة الأساسية: <strong style="color:#38bdf8;"><span id="inv-equiv-val">0.00</span></strong> <span class="base-curr-label">ر.س</span>
         </div>
       </div>
 
@@ -429,7 +426,7 @@
         </div>
 
         <button class="btn btn-primary" style="margin-bottom: 12px; font-size: 13px;" onclick="triggerUniversalPrint('ledger')">
-          <i class="fa-solid fa-print"></i> طباعة كشف الحساب / تصدير PDF (للموبايل)
+          <i class="fa-solid fa-print"></i> طباعة كشف الحساب / تصدير PDF
         </button>
 
         <div style="background: var(--bg); padding: 10px 14px; border-radius: 8px; margin-bottom: 10px; font-size: 13px; display: flex; justify-content: space-between;">
@@ -442,11 +439,11 @@
         </table>
       </div>
 
-      <!-- قائمة الدخل المعيارية -->
+      <!-- قائمة الدخل -->
       <div id="sub-report-income" style="display: none;">
         <div class="report-card">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-            <h4 style="color: var(--primary); margin:0;"><i class="fa-solid fa-chart-line"></i> قائمة الدخل (المعايير المحاسبية)</h4>
+            <h4 style="color: var(--primary); margin:0;"><i class="fa-solid fa-chart-line"></i> قائمة الدخل (وفق المعايير المحاسبية)</h4>
             <button class="btn btn-primary" style="width:auto; padding:5px 10px; font-size:11px;" onclick="triggerUniversalPrint('income')"><i class="fa-solid fa-print"></i> طباعة</button>
           </div>
           
@@ -660,16 +657,19 @@
         </button>
       </div>
 
-      <!-- ميزة إعادة تقييم العملات الأجنبية (فروق العملة IAS 21) -->
+      <!-- بطاقة جدول العملات المتعددة وأسعار الصرف وإعادة التقييم -->
       <div class="settings-card" style="border-color:#bfdbfe;">
-        <div style="font-weight: 700; font-size: 14px; margin-bottom: 8px; color: var(--primary); display: flex; align-items: center; gap: 6px;">
-          <i class="fa-solid fa-arrow-right-arrow-left"></i> تسوية وإعادة تقييم العملات الأجنبية (IAS 21)
+        <div style="font-weight: 700; font-size: 14px; margin-bottom: 8px; color: var(--primary); display: flex; align-items: center; justify-content:space-between;">
+          <span><i class="fa-solid fa-arrow-right-arrow-left"></i> العملات المتعددة وأسعار الصرف (IAS 21)</span>
+          <button style="border:none; background:none; color:var(--primary); font-weight:700; font-size:12px; cursor:pointer;" onclick="openAddCurrencyModal()">+ إضافة عملة</button>
         </div>
-        <p style="font-size:11px; color:var(--text-muted); margin-bottom:10px;">إعادة تقييم أرصدة العملاء والموردين بالدولار لإقفال فروق العملة تلقائياً في قائمة الدخل.</p>
-        <div style="display:flex; gap:8px;">
-          <input type="number" id="reval-closing-rate" placeholder="سعر صرف الإقفال الحالي" step="any" min="0.01">
-          <button class="btn btn-primary" style="width:auto; white-space:nowrap; padding:0 14px; font-size:12px;" onclick="executeCurrencyRevaluation()">إجراء التسوية</button>
-        </div>
+        <p style="font-size:11px; color:var(--text-muted); margin-bottom:10px;">إدارة العملات الأجنبية وتحديد سعر الصرف المقابل للعملة الأساسية وإعادة التقييم.</p>
+        
+        <div id="currencies-table-container" style="margin-bottom:12px;"></div>
+
+        <button class="btn btn-primary" style="padding:9px; font-size:12px;" onclick="executeCurrencyRevaluation()">
+          <i class="fa-solid fa-scale-balanced"></i> تسوية وإعادة تقييم فروق أسعار الصرف آلياً
+        </button>
       </div>
 
       <div class="settings-card">
@@ -731,9 +731,9 @@
       <button style="border:none; background:none; font-size:22px; cursor:pointer;" onclick="closePrintPreviewModal()">×</button>
     </div>
     <div id="print-doc-content" style="background:#fff; border:1px solid #cbd5e1; padding:16px; border-radius:10px; font-size:12px; max-height:60vh; overflow-y:auto;"></div>
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:14px;">
-      <button class="btn btn-primary" onclick="executeNativeShareOrPrint()"><i class="fa-solid fa-share-nodes"></i> مشاركة / حفظ PDF</button>
-      <button class="btn btn-secondary" onclick="closePrintPreviewModal()">إغلاق</button>
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:14px;">
+      <button class="btn btn-primary" onclick="executeNativeIframePrint()"><i class="fa-solid fa-print"></i> طباعة فورية للمستند</button>
+      <button class="btn btn-secondary" onclick="executeNativeShare()"><i class="fa-solid fa-share-nodes"></i> مشاركة المستند</button>
     </div>
   </div>
 </div>
@@ -810,6 +810,35 @@
     </div>
     <button class="btn btn-success" onclick="submitOtherIncomeAction()">
       <i class="fa-solid fa-check"></i> حفظ وقبض الإيراد وترحيله
+    </button>
+  </div>
+</div>
+
+<!-- Modal: إضافة عملة أجنبية جديدة -->
+<div class="modal-overlay" id="modal-add-currency">
+  <div class="modal-panel">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+      <h3 style="font-size: 16px; color: var(--primary);"><i class="fa-solid fa-coins"></i> إضافة عملة أجنبية جديدة</h3>
+      <button style="border:none; background:none; font-size:22px; cursor:pointer;" onclick="closeAddCurrencyModal()">×</button>
+    </div>
+    <div class="form-group">
+      <label>كود العملة (مثال: USD, EUR, TRY, GBP)</label>
+      <input type="text" id="new-curr-code" placeholder="USD" style="text-transform:uppercase;">
+    </div>
+    <div class="form-group">
+      <label>اسم العملة (مثال: دولار أمريكي، يورو، ليرة تركية)</label>
+      <input type="text" id="new-curr-name" placeholder="دولار أمريكي">
+    </div>
+    <div class="form-group">
+      <label>رمز العملة (مثال: $, €, ₺, £)</label>
+      <input type="text" id="new-curr-symbol" placeholder="$">
+    </div>
+    <div class="form-group">
+      <label>سعر الصرف الافتراضي مقابل العملة الأساسية</label>
+      <input type="number" id="new-curr-rate" placeholder="3.75" step="any" min="0.0001">
+    </div>
+    <button class="btn btn-primary" onclick="saveNewCurrencyAction()">
+      <i class="fa-solid fa-check"></i> حفظ العملة واعتمادها في النظام
     </button>
   </div>
 </div>
@@ -1010,22 +1039,22 @@
   </div>
 </div>
 
-<!-- Modal: العملات -->
+<!-- Modal: اختيار العملة الأساسية للمنشأة -->
 <div class="modal-overlay" id="modal-currency-setup">
   <div class="modal-panel">
     <div style="text-align: center; margin-bottom: 14px;">
       <div style="width: 50px; height: 50px; background: var(--primary-light); color: var(--primary); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 8px;">
         <i class="fa-solid fa-coins"></i>
       </div>
-      <h3 style="font-size: 18px; font-weight: 800;">تحديد العملة الرئيسية</h3>
+      <h3 style="font-size: 18px; font-weight: 800;">تحديد العملة الأساسية للدفاتر</h3>
     </div>
     <div class="currency-grid">
-      <button type="button" class="currency-btn" onclick="selectCurrency('ر.س', 'ريال سعودي')"><span>🇸🇦 ريال سعودي</span> <strong>ر.س</strong></button>
-      <button type="button" class="currency-btn" onclick="selectCurrency('ج.م', 'جنيه مصري')"><span>🇪🇬 جنيه مصري</span> <strong>ج.م</strong></button>
-      <button type="button" class="currency-btn" onclick="selectCurrency('ل.س', 'ليرة سورية')"><span>🇸🇾 ليرة سورية</span> <strong>ل.س</strong></button>
-      <button type="button" class="currency-btn" onclick="selectCurrency('د.إ', 'درهم إماراتي')"><span>🇦🇪 درهم إماراتي</span> <strong>د.إ</strong></button>
-      <button type="button" class="currency-btn" onclick="selectCurrency('$', 'دولار أمريكي')"><span>🇺🇸 دولار أمريكي</span> <strong>$</strong></button>
-      <button type="button" class="currency-btn" onclick="selectCurrency('د.أ', 'دينار أردني')"><span>🇯🇴 دينار أردني</span> <strong>د.أ</strong></button>
+      <button type="button" class="currency-btn" onclick="selectBaseCurrency('ر.س', 'ريال سعودي')"><span>🇸🇦 ريال سعودي</span> <strong>ر.س</strong></button>
+      <button type="button" class="currency-btn" onclick="selectBaseCurrency('ج.م', 'جنيه مصري')"><span>🇪🇬 جنيه مصري</span> <strong>ج.م</strong></button>
+      <button type="button" class="currency-btn" onclick="selectBaseCurrency('ل.س', 'ليرة سورية')"><span>🇸🇾 ليرة سورية</span> <strong>ل.س</strong></button>
+      <button type="button" class="currency-btn" onclick="selectBaseCurrency('د.إ', 'درهم إماراتي')"><span>🇦🇪 درهم إماراتي</span> <strong>د.إ</strong></button>
+      <button type="button" class="currency-btn" onclick="selectBaseCurrency('$', 'دولار أمريكي')"><span>🇺🇸 دولار أمريكي</span> <strong>$</strong></button>
+      <button type="button" class="currency-btn" onclick="selectBaseCurrency('د.أ', 'دينار أردني')"><span>🇯🇴 دينار أردني</span> <strong>د.أ</strong></button>
     </div>
     <div class="form-group" style="margin-top: 10px;">
       <label style="font-size: 12px;">أو كتابة رمز مخصص:</label>
@@ -1112,7 +1141,7 @@
     { code: "5204", name: "بوفيه وضيافة ونثريات", cat: "المصروفات التشغيلية", base: "expense", nature: "مدين" },
     { code: "5205", name: "صيانة وإصلاحات تشغيلية", cat: "المصروفات التشغيلية", base: "expense", nature: "مدين" },
     { code: "5206", name: "مصروف إهلاك الأصول الثابتة", cat: "المصروفات التشغيلية", base: "expense", nature: "مدين" },
-    { code: "5301", name: "فوائد وعمولات بنكية وتمويلية", cat: "مصاريف أخرى غير تشغيلية", base: "non_operating_expense", nature: "مدين" },
+    { code: "5301", name: "فوائد وخسائر فروق عملة", cat: "مصاريف أخرى غير تشغيلية", base: "non_operating_expense", nature: "مدين" },
     { code: "5302", name: "غرامات ومخالفات جزائية", cat: "مصاريف أخرى غير تشغيلية", base: "non_operating_expense", nature: "مدين" },
     { code: "5303", name: "خسائر بيع واستبعاد أصول", cat: "مصاريف أخرى غير تشغيلية", base: "non_operating_expense", nature: "مدين" }
   ];
@@ -1124,6 +1153,23 @@
     email: localStorage.getItem('user_owner_email') || "",
     sheetId: localStorage.getItem('user_sheet_id') || ""
   };
+
+  let baseCurrency = localStorage.getItem('smart_base_currency') || 'ر.س';
+  let currentCurrency = baseCurrency;
+
+  // سجل العملات الأجنبية وأسعار صرفها
+  const defaultForeignCurrencies = [
+    { code: "USD", name: "دولار أمريكي", symbol: "$", rate: 3.75 },
+    { code: "EUR", name: "يورو أوروبي", symbol: "€", rate: 4.10 },
+    { code: "TRY", name: "ليرة تركية", symbol: "₺", rate: 0.11 },
+    { code: "GBP", name: "جنيه إسترليني", symbol: "£", rate: 4.80 }
+  ];
+
+  let foreignCurrencies = defaultForeignCurrencies;
+  try {
+    const savedCurrs = localStorage.getItem('smart_foreign_currencies');
+    if (savedCurrs) foreignCurrencies = JSON.parse(savedCurrs);
+  } catch (e) { console.warn(e); }
 
   let chartOfAccounts = defaultAccounts;
   let ledgerEntries = [];
@@ -1156,12 +1202,14 @@
       localStorage.setItem('smart_team_members', JSON.stringify(teamMembers));
       localStorage.setItem('smart_inventory_items', JSON.stringify(inventoryItems));
       localStorage.setItem('smart_fixed_assets', JSON.stringify(fixedAssetsList));
+      localStorage.setItem('smart_foreign_currencies', JSON.stringify(foreignCurrencies));
     } catch (e) { console.warn(e); }
     updateDashboardStats();
     updateLicenseUI();
     renderTeamMembersList();
     renderInventoryReport();
     renderFixedAssetsDepreciationList();
+    renderCurrenciesTable();
   }
 
   function updateLicenseUI() {
@@ -1322,6 +1370,186 @@
         })
       });
     }
+  }
+
+  // إدارة جدول العملات المتعددة وسعر الصرف في الإعدادات
+  function renderCurrenciesTable() {
+    const container = document.getElementById('currencies-table-container');
+    if (!container) return;
+
+    let html = `
+      <table style="width:100%; border-collapse:collapse; font-size:12px; background:#fff; border-radius:8px; overflow:hidden; border:1px solid #cbd5e1;">
+        <thead>
+          <tr style="background:#f1f5f9; color:var(--text-muted);">
+            <th style="padding:6px; text-align:right;">العملة</th>
+            <th style="padding:6px; text-align:center;">الرمز</th>
+            <th style="padding:6px; text-align:center;">سعر الصرف (${baseCurrency})</th>
+            <th style="padding:6px; text-align:center;">إجراء</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    foreignCurrencies.forEach((c, idx) => {
+      html += `
+        <tr style="border-bottom:1px solid #e2e8f0;">
+          <td style="padding:6px;"><strong>${c.name}</strong> <span style="font-size:10px; color:var(--text-muted);">(${c.code})</span></td>
+          <td style="padding:6px; text-align:center; font-weight:700;">${c.symbol}</td>
+          <td style="padding:6px; text-align:center;">
+            <input type="number" step="any" min="0.0001" value="${c.rate}" style="width:75px; padding:3px 6px; text-align:center; font-size:11px;" onchange="updateCurrencyRate(${idx}, this.value)">
+          </td>
+          <td style="padding:6px; text-align:center;">
+            <button style="border:none; background:none; color:var(--danger); cursor:pointer; font-size:13px;" onclick="removeCurrency(${idx})">×</button>
+          </td>
+        </tr>
+      `;
+    });
+
+    html += `</tbody></table>`;
+    container.innerHTML = html;
+    populateInvoiceCurrencies();
+  }
+
+  function updateCurrencyRate(idx, newRate) {
+    const val = parseFloat(newRate);
+    if (val && val > 0) {
+      foreignCurrencies[idx].rate = val;
+      persistData();
+      showToast(`تم تحديث سعر صرف ${foreignCurrencies[idx].name} إلى ${val} ✅`);
+    }
+  }
+
+  function removeCurrency(idx) {
+    if (confirm(`هل أنت متأكد من حذف ${foreignCurrencies[idx].name} من قائمة العملات؟`)) {
+      foreignCurrencies.splice(idx, 1);
+      persistData();
+      showToast('تمت إزالة العملة');
+    }
+  }
+
+  function openAddCurrencyModal() {
+    document.getElementById('new-curr-code').value = '';
+    document.getElementById('new-curr-name').value = '';
+    document.getElementById('new-curr-symbol').value = '';
+    document.getElementById('new-curr-rate').value = '';
+    document.getElementById('modal-add-currency').classList.add('open');
+  }
+
+  function closeAddCurrencyModal() {
+    document.getElementById('modal-add-currency').classList.remove('open');
+  }
+
+  function saveNewCurrencyAction() {
+    const code = document.getElementById('new-curr-code').value.trim().toUpperCase();
+    const name = document.getElementById('new-curr-name').value.trim();
+    const symbol = document.getElementById('new-curr-symbol').value.trim() || code;
+    const rate = parseFloat(document.getElementById('new-curr-rate').value) || 1;
+
+    if (!code || !name) return showToast('يرجى ملء كود واسم العملة', true);
+    if (foreignCurrencies.some(c => c.code === code)) return showToast('هذه العملة مضافة مسبقاً', true);
+
+    foreignCurrencies.push({ code, name, symbol, rate });
+    persistData();
+    closeAddCurrencyModal();
+    showToast(`تمت إضافة ${name} (${code}) بنجاح ✅`);
+  }
+
+  function populateInvoiceCurrencies() {
+    const sel = document.getElementById('inv-currency');
+    if (!sel) return;
+    const curVal = sel.value;
+    let optHtml = `<option value="BASE">العملة الأساسية (${baseCurrency})</option>`;
+    foreignCurrencies.forEach(c => {
+      optHtml += `<option value="${c.code}" data-rate="${c.rate}" data-symbol="${c.symbol}">${c.name} (${c.symbol} ${c.code})</option>`;
+    });
+    sel.innerHTML = optHtml;
+    if (curVal) sel.value = curVal;
+  }
+
+  function toggleInvoiceExchangeRate() {
+    const sel = document.getElementById('inv-currency');
+    const val = sel.value;
+    const rateBox = document.getElementById('box-inv-rate');
+    const rateInput = document.getElementById('inv-exchange-rate');
+
+    if (val === 'BASE') {
+      rateBox.style.display = 'none';
+      document.getElementById('inv-sym-1').innerText = baseCurrency;
+      document.getElementById('inv-sym-2').innerText = baseCurrency;
+      document.getElementById('inv-sym-3').innerText = baseCurrency;
+      document.getElementById('inv-equiv-local').style.display = 'none';
+      rateInput.value = 1;
+    } else {
+      const opt = sel.options[sel.selectedIndex];
+      const rate = opt.getAttribute('data-rate') || 1;
+      const symbol = opt.getAttribute('data-symbol') || val;
+
+      rateBox.style.display = 'block';
+      rateInput.value = rate;
+      document.getElementById('inv-sym-1').innerText = symbol;
+      document.getElementById('inv-sym-2').innerText = symbol;
+      document.getElementById('inv-sym-3').innerText = symbol;
+      document.getElementById('inv-equiv-local').style.display = 'block';
+    }
+    calculateInvoiceTotals();
+  }
+
+  function executeCurrencyRevaluation() {
+    const todayStr = Utilities_getTodayStr();
+    let totalGain = 0;
+    let totalLoss = 0;
+    const lines = [];
+
+    smartInvoices.forEach(inv => {
+      if (inv.currency && inv.currency !== 'BASE') {
+        const currObj = foreignCurrencies.find(c => c.code === inv.currency);
+        if (currObj) {
+          const currentMarketRate = currObj.rate;
+          const invoiceRate = inv.exchangeRate || 1;
+          const origAmount = inv.grandTotal;
+
+          const currentEquiv = origAmount * currentMarketRate;
+          const recordedEquiv = origAmount * invoiceRate;
+          const diff = currentEquiv - recordedEquiv;
+
+          if (Math.abs(diff) > 0.01) {
+            if (inv.type === 'sales') {
+              if (diff > 0) {
+                totalGain += diff;
+                lines.push({ accountCode: inv.partyCode, accountName: inv.partyName, description: `أرباح فروق صرف غير محققة (فاتورة #${inv.id})`, debit: diff, credit: 0 });
+                lines.push({ accountCode: "4201", accountName: "إيرادات أخرى ومتنوعة", description: `أرباح فروق تقييم عملة (${currObj.code})`, debit: 0, credit: diff });
+              } else {
+                totalLoss += Math.abs(diff);
+                lines.push({ accountCode: "5301", accountName: "فوائد وخسائر فروق عملة", description: `خسائر فروق صرف تقييم عملة (${currObj.code})`, debit: Math.abs(diff), credit: 0 });
+                lines.push({ accountCode: inv.partyCode, accountName: inv.partyName, description: `تسوية فروق صرف (فاتورة #${inv.id})`, debit: 0, credit: Math.abs(diff) });
+              }
+            } else {
+              if (diff > 0) {
+                totalLoss += diff;
+                lines.push({ accountCode: "5301", accountName: "فوائد وخسائر فروق عملة", description: `خسائر فروق صرف التزام مورد (${currObj.code})`, debit: diff, credit: 0 });
+                lines.push({ accountCode: inv.partyCode, accountName: inv.partyName, description: `تسوية فروق صرف التزام مورد (فاتورة #${inv.id})`, debit: 0, credit: diff });
+              } else {
+                totalGain += Math.abs(diff);
+                lines.push({ accountCode: inv.partyCode, accountName: inv.partyName, description: `أرباح فروق صرف تخفيض التزام مورد`, debit: Math.abs(diff), credit: 0 });
+                lines.push({ accountCode: "4201", accountName: "إيرادات أخرى ومتنوعة", description: `أرباح فروق عملة التزام مورد (${currObj.code})`, debit: 0, credit: Math.abs(diff) });
+              }
+            }
+            inv.exchangeRate = currentMarketRate;
+          }
+        }
+      }
+    });
+
+    if (lines.length === 0) return showToast('كافة الأرصدة مطابقة لأسعار الصرف الحالية ولا توجد فروق تسوية ✅');
+
+    const genNo = Date.now();
+    lines.forEach(l => {
+      ledgerEntries.push({ entryNo: genNo, date: todayStr, accountCode: l.accountCode, accountName: l.accountName, desc: l.description, debit: l.debit, credit: l.credit });
+    });
+
+    persistData();
+    calculateFinancialReports();
+    showToast(`اكتملت التسوية بنجاح: أرباح (${totalGain.toFixed(2)}) | خسائر (${totalLoss.toFixed(2)}) ✅`);
   }
 
   // دوال سجل الأصول الثابتة
@@ -1561,7 +1789,7 @@
       inventoryItems.push({ code, name, unit: "حبة", cost, price, qty, reorder });
     }
 
-    // الربط المحاسبي المباشر مع حساب المخزون 1131
+    // الربط المحاسبي التلقائي المباشر مع حساب المخزون 1131
     const newVal = qty * cost;
     const diffVal = newVal - oldVal;
 
@@ -1642,79 +1870,7 @@
     });
   }
 
-  // تعدد العملات وفروق الصرف (IAS 21)
-  function toggleInvoiceExchangeRate() {
-    const curr = document.getElementById('inv-currency').value;
-    const rateBox = document.getElementById('box-inv-rate');
-    const isUSD = (curr === 'USD');
-    rateBox.style.display = isUSD ? 'block' : 'none';
-    document.getElementById('inv-sym-1').innerText = isUSD ? '$' : currentCurrency;
-    document.getElementById('inv-sym-2').innerText = isUSD ? '$' : currentCurrency;
-    document.getElementById('inv-sym-3').innerText = isUSD ? '$' : currentCurrency;
-    document.getElementById('inv-equiv-local').style.display = isUSD ? 'block' : 'none';
-    calculateInvoiceTotals();
-  }
-
-  function executeCurrencyRevaluation() {
-    const rate = parseFloat(document.getElementById('reval-closing-rate').value);
-    if (!rate || rate <= 0) return showToast('يرجى إدخال سعر صرف صحيح للإقفال', true);
-
-    const todayStr = Utilities_getTodayStr();
-    let totalGain = 0;
-    let totalLoss = 0;
-    const lines = [];
-
-    // فحص أرصدة العملاء والموردين الذين لديهم تعاملات بالدولار
-    smartInvoices.forEach(inv => {
-      if (inv.currency === 'USD') {
-        const origUSD = inv.grandTotal;
-        const oldRate = inv.exchangeRate || 3.75;
-        const currentEquivalent = origUSD * rate;
-        const oldEquivalent = origUSD * oldRate;
-        const diff = currentEquivalent - oldEquivalent;
-
-        if (Math.abs(diff) > 0.01) {
-          if (inv.type === 'sales') {
-            // عميل: إذا ارتفع السعر نحقق ربح فروق عملة، وإذا انخفض نحقق خسارة
-            if (diff > 0) {
-              totalGain += diff;
-              lines.push({ accountCode: inv.partyCode, accountName: inv.partyName, description: `أرباح فروق صرف غير محققة (فاتورة #${inv.id})`, debit: diff, credit: 0 });
-              lines.push({ accountCode: "4201", accountName: "إيرادات أخرى ومتنوعة", description: `أرباح فروق عملة تقييم الدولار`, debit: 0, credit: diff });
-            } else {
-              totalLoss += Math.abs(diff);
-              lines.push({ accountCode: "5301", accountName: "فوائد وخسائر فروق عملة", description: `خسائر فروق صرف تقييم الدولار`, debit: Math.abs(diff), credit: 0 });
-              lines.push({ accountCode: inv.partyCode, accountName: inv.partyName, description: `تسوية فروق صرف (فاتورة #${inv.id})`, debit: 0, credit: Math.abs(diff) });
-            }
-          } else {
-            // مورد: إذا ارتفع السعر نتحمل خسارة، وإذا انخفض نحقق ربح
-            if (diff > 0) {
-              totalLoss += diff;
-              lines.push({ accountCode: "5301", accountName: "فوائد وخسائر فروق عملة", description: `خسائر فروق صرف التزام مورد`, debit: diff, credit: 0 });
-              lines.push({ accountCode: inv.partyCode, accountName: inv.partyName, description: `تسوية فروق صرف التزام مورد (فاتورة #${inv.id})`, debit: 0, credit: diff });
-            } else {
-              totalGain += Math.abs(diff);
-              lines.push({ accountCode: inv.partyCode, accountName: inv.partyName, description: `أرباح فروق صرف تخفيض التزام مورد`, debit: Math.abs(diff), credit: 0 });
-              lines.push({ accountCode: "4201", accountName: "إيرادات أخرى ومتنوعة", description: `أرباح فروق عملة التزام مورد`, debit: 0, credit: Math.abs(diff) });
-            }
-          }
-          inv.exchangeRate = rate; // تحديث السعر التقييمي
-        }
-      }
-    });
-
-    if (lines.length === 0) return showToast('لا توجد فواتير بالدولار تحتاج لإعادة تقييم حالياً ✅');
-
-    const genNo = Date.now();
-    lines.forEach(l => {
-      ledgerEntries.push({ entryNo: genNo, date: todayStr, accountCode: l.accountCode, accountName: l.accountName, desc: l.description, debit: l.debit, credit: l.credit });
-    });
-
-    persistData();
-    calculateFinancialReports();
-    showToast(`تمت إعادة التقييم بنجاح: أرباح (${totalGain.toFixed(2)}) | خسائر (${totalLoss.toFixed(2)}) ✅`);
-  }
-
-  // منظومة الطباعة والتصدير الشاملة المتوافقة 100% مع الموبايل والأبليكيشن
+  // منظومة الطباعة الفورية المباشرة الشاملة (Direct Print & Share)
   let currentPrintDocumentData = { title: "", htmlContent: "" };
 
   function triggerUniversalPrint(reportType) {
@@ -1730,7 +1886,7 @@
       content = `
         <div style="text-align:center; border-bottom:2px solid #000; padding-bottom:8px; margin-bottom:12px;">
           <h2 style="font-size:16px; margin:0;">المحاسب الذكي | كشف حساب رسمي</h2>
-          <div style="font-size:11px; margin-top:4px;">الحساب: <strong>${accName}</strong> | التاريخ: ${today} | الرصيد: <strong>${bal} ${currentCurrency}</strong></div>
+          <div style="font-size:11px; margin-top:4px;">الحساب: <strong>${accName}</strong> | التاريخ: ${today} | الرصيد: <strong>${bal} ${baseCurrency}</strong></div>
         </div>
         <table style="width:100%; border-collapse:collapse; font-size:11px;">
           ${document.querySelector('.statement-table').innerHTML}
@@ -1741,7 +1897,7 @@
       content = `
         <div style="text-align:center; border-bottom:2px solid #000; padding-bottom:8px; margin-bottom:12px;">
           <h2 style="font-size:16px; margin:0;">قائمة الدخل والأرباح والخسائر</h2>
-          <div style="font-size:11px; margin-top:4px;">عن الفترة المنتهية في: ${today} (${currentCurrency})</div>
+          <div style="font-size:11px; margin-top:4px;">عن الفترة المنتهية في: ${today} (${baseCurrency})</div>
         </div>
         ${document.getElementById('sub-report-income').innerHTML}
       `;
@@ -1750,7 +1906,7 @@
       content = `
         <div style="text-align:center; border-bottom:2px solid #000; padding-bottom:8px; margin-bottom:12px;">
           <h2 style="font-size:16px; margin:0;">قائمة المركز المالي (الميزانية العمومية)</h2>
-          <div style="font-size:11px; margin-top:4px;">كما في تاريخ: ${today} (${currentCurrency})</div>
+          <div style="font-size:11px; margin-top:4px;">كما في تاريخ: ${today} (${baseCurrency})</div>
         </div>
         ${document.getElementById('sub-report-balance-sheet').innerHTML}
       `;
@@ -1789,7 +1945,52 @@
     document.getElementById('modal-print-preview').classList.remove('open');
   }
 
-  function executeNativeShareOrPrint() {
+  // الطباعة الفورية الصريحة المباشرة لأي طابعة شبكية / AirPrint / طابعة الموبايل
+  function executeNativeIframePrint() {
+    const docData = currentPrintDocumentData;
+    const cleanHtml = `
+      <!DOCTYPE html>
+      <html lang="ar" dir="rtl">
+      <head>
+        <meta charset="UTF-8">
+        <title>${docData.title}</title>
+        <style>
+          @page { size: A4; margin: 15mm; }
+          body { font-family: 'Cairo', sans-serif; padding: 10px; color: #000; background: #fff; }
+          table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+          th, td { border: 1px solid #000; padding: 6px; text-align: right; font-size: 12px; }
+          th { background: #f1f5f9; }
+          .btn, button, .btn-inv-tag, .btn-edit-tag { display: none !important; }
+        </style>
+      </head>
+      <body>
+        ${docData.htmlContent}
+      </body>
+      </html>
+    `;
+
+    // إطار طباعة مخفي يفتح مدير طباعة النظام فوراً
+    let printIframe = document.getElementById('hidden-direct-print-frame');
+    if (!printIframe) {
+      printIframe = document.createElement('iframe');
+      printIframe.id = 'hidden-direct-print-frame';
+      printIframe.style.cssText = 'position:fixed; top:-9999px; left:-9999px; width:1px; height:1px; border:none;';
+      document.body.appendChild(printIframe);
+    }
+
+    const frameDoc = printIframe.contentWindow || printIframe.contentDocument.document || printIframe.contentDocument;
+    frameDoc.document.open();
+    frameDoc.document.write(cleanHtml);
+    frameDoc.document.close();
+
+    setTimeout(() => {
+      frameDoc.focus();
+      frameDoc.print();
+    }, 400);
+  }
+
+  // المشاركة كملف مستند رسمي
+  function executeNativeShare() {
     const docData = currentPrintDocumentData;
     const cleanHtml = `
       <!DOCTYPE html>
@@ -1818,17 +2019,12 @@
       navigator.share({
         files: [file],
         title: docData.title,
-        text: `مستند محاسبي رسمي صادر من المحاسب الذكي: ${docData.title}`
+        text: `تقرير محاسبي معتمد: ${docData.title}`
       }).catch(err => {
-        window.print();
+        executeNativeIframePrint();
       });
     } else {
-      // للمتصفح المكتبي أو الأجهزة التي لا تدعم share
-      const win = window.open('', '_blank');
-      win.document.write(cleanHtml);
-      win.document.close();
-      win.focus();
-      setTimeout(() => { win.print(); }, 400);
+      executeNativeIframePrint();
     }
   }
 
@@ -2283,25 +2479,26 @@
     }
   }
 
-  // إدارة العملات
-  let currentCurrency = localStorage.getItem('smart_currency') || 'ر.س';
-
-  function applyCurrency(symbol) {
+  // إدارة العملة الأساسية للمنشأة
+  function applyBaseCurrency(symbol) {
+    baseCurrency = symbol;
     currentCurrency = symbol;
-    localStorage.setItem('smart_currency', symbol);
+    localStorage.setItem('smart_base_currency', symbol);
     document.getElementById('header-curr-label').innerText = symbol;
     document.querySelectorAll('.curr-symbol').forEach(el => el.innerText = symbol);
+    document.querySelectorAll('.base-curr-label').forEach(el => el.innerText = symbol);
+    renderCurrenciesTable();
   }
 
   function openCurrencyModal() { document.getElementById('modal-currency-setup').classList.add('open'); }
-  function selectCurrency(symbol, name) {
-    applyCurrency(symbol);
+  function selectBaseCurrency(symbol, name) {
+    applyBaseCurrency(symbol);
     document.getElementById('modal-currency-setup').classList.remove('open');
-    showToast(`تم اعتماد ${name} كعملة رئيسية`);
+    showToast(`تم اعتماد ${name} كعملة أساسية للدفاتر`);
   }
   function applyCustomCurrency() {
     const val = document.getElementById('custom-currency-input').value.trim();
-    if (val) selectCurrency(val, val);
+    if (val) selectBaseCurrency(val, val);
   }
 
   // الحسابات والتقارير المالية المعيارية
@@ -2534,6 +2731,7 @@
     if (tabId === 'tab-settings') {
       updateLicenseUI();
       renderTeamMembersList();
+      renderCurrenciesTable();
     }
   }
 
@@ -2671,7 +2869,7 @@
   function calculateInvoiceTotals() {
     let subtotal = 0;
     const taxRate = parseFloat(document.getElementById('inv-tax-mode').value) || 0;
-    const curr = document.getElementById('inv-currency').value;
+    const currVal = document.getElementById('inv-currency').value;
     const rate = parseFloat(document.getElementById('inv-exchange-rate').value) || 1;
 
     document.querySelectorAll('.inv-item-row').forEach(row => {
@@ -2687,7 +2885,7 @@
     document.getElementById('inv-sum-tax').innerText = taxAmount.toFixed(2);
     document.getElementById('inv-sum-grand').innerText = grandTotal.toFixed(2);
 
-    if (curr === 'USD') {
+    if (currVal !== 'BASE') {
       const localEquiv = grandTotal * rate;
       document.getElementById('inv-equiv-val').innerText = localEquiv.toLocaleString(undefined, {minimumFractionDigits: 2});
     }
@@ -2737,7 +2935,7 @@
     const date = document.getElementById('inv-date').value || Utilities_getTodayStr();
 
     const invCurrency = document.getElementById('inv-currency').value;
-    const exchangeRate = invCurrency === 'USD' ? (parseFloat(document.getElementById('inv-exchange-rate').value) || 1) : 1;
+    const exchangeRate = invCurrency !== 'BASE' ? (parseFloat(document.getElementById('inv-exchange-rate').value) || 1) : 1;
 
     const editingId = document.getElementById('editing-invoice-id').value;
     const isEditMode = !!editingId;
@@ -2777,7 +2975,7 @@
     const taxAmount = subtotal * (taxRate / 100);
     const grandTotal = subtotal + taxAmount;
 
-    // ترجمة المبالغ دفترياً بالعملة المحلية
+    // المبالغ مقومة بالعملة الأساسية للدفاتر
     const grandTotalLocal = grandTotal * exchangeRate;
     const subtotalLocal = subtotal * exchangeRate;
     const taxAmountLocal = taxAmount * exchangeRate;
@@ -2795,7 +2993,7 @@
       smartInvoices.push(fullInvoice);
     }
 
-    const currTag = invCurrency === 'USD' ? ` ($${grandTotal.toFixed(2)})` : '';
+    const currTag = invCurrency !== 'BASE' ? ` (${invCurrency} ${grandTotal.toFixed(2)})` : '';
     const memo = (invType === 'sales' ? 'فاتورة مبيعات ' : 'فاتورة مشتريات ') + (payMethod === 'credit' ? '(آجل)' : '(نقدي)') + ' #' + invId + currTag;
 
     if (invType === 'sales') {
@@ -2847,7 +3045,12 @@
     let inv = smartInvoices.find(x => x.id === invId);
     if (!inv) return showToast('لا توجد تفاصيل لهذه الفاتورة', true);
 
-    const curr = inv.currency === 'USD' ? '$' : currentCurrency;
+    let currSym = baseCurrency;
+    if (inv.currency && inv.currency !== 'BASE') {
+      const cObj = foreignCurrencies.find(c => c.code === inv.currency);
+      currSym = cObj ? cObj.symbol : inv.currency;
+    }
+
     let itemsRows = '';
     inv.items.forEach((it, idx) => {
       itemsRows += `
@@ -2869,7 +3072,7 @@
           <tbody>${itemsRows}</tbody>
         </table>
         <div style="font-weight:800; font-size:15px; text-align:left; color:var(--primary); margin-top:10px;">
-          الصافي: ${Number(inv.grandTotal).toFixed(2)} ${curr}
+          الصافي: ${Number(inv.grandTotal).toFixed(2)} ${currSym}
         </div>
       </div>
     `;
@@ -3140,7 +3343,7 @@
     if (document.getElementById('date-to')) document.getElementById('date-to').value = today;
     if (document.getElementById('asset-start-date')) document.getElementById('asset-start-date').value = today;
 
-    applyCurrency(localStorage.getItem('smart_currency') || 'ر.س');
+    applyBaseCurrency(localStorage.getItem('smart_base_currency') || 'ر.س');
     populateAccountSelects();
     populateItemSelectors();
     addInvoiceItemRow();
@@ -3149,6 +3352,7 @@
     renderTeamMembersList();
     renderInventoryReport();
     renderFixedAssetsDepreciationList();
+    renderCurrenciesTable();
   });
 </script>
 </body>

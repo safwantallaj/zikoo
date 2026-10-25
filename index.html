@@ -41,8 +41,8 @@
     .currency-badge { display: flex; align-items: center; gap: 4px; background: var(--primary-light); padding: 5px 10px; border-radius: 20px; font-size: 12px; color: var(--primary-dark); font-weight: 700; cursor: pointer; border: 1px solid #bfdbfe; }
     
     main { flex: 1; padding: 20px; padding-bottom: 95px; overflow-y: auto; }
-    .tab-content { display: none; animation: fadeIn 0.2s ease-in-out; }
-    .tab-content.active { display: block; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; animation: fadeIn 0.2s ease-in-out; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
     .hero-balance { background: linear-gradient(135deg, #1e293b, #0f172a); color: white; padding: 22px; border-radius: var(--radius); margin-bottom: 18px; }
@@ -143,18 +143,6 @@
 
     #ocr-loading-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.85); z-index: 2147483649; align-items: center; justify-content: center; flex-direction: column; color: white; text-align: center; padding: 20px; backdrop-filter: blur(5px); }
     .backup-item-card { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
-
-    @media print {
-      body { background-color: #fff !important; color: #000 !important; }
-      .app-container { max-width: 100% !important; box-shadow: none !important; width: 100% !important; }
-      header, nav, #license-banner, .btn, .header-actions, .form-group, #date-from, #date-to, #statement-account-selector, .btn-inv-tag, .btn-edit-tag { display: none !important; }
-      main { padding: 0 !important; overflow: visible !important; }
-      .tab-content { display: none !important; }
-      #tab-statement { display: block !important; }
-      .statement-table { border: 1px solid #000 !important; font-size: 12px !important; }
-      .statement-table th, .statement-table td { border: 1px solid #ccc !important; padding: 8px !important; color: #000 !important; }
-      .statement-table th { background: #f1f5f9 !important; }
-    }
   </style>
 </head>
 <body>
@@ -213,10 +201,10 @@
       </div>
 
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
-        <button class="btn btn-primary" onclick="switchTab('tab-invoice', document.querySelectorAll('.nav-item')[1])">
+        <button class="btn btn-primary" onclick="switchTab('tab-invoice')">
           <i class="fa-solid fa-file-invoice-dollar"></i> إصدار فاتورة
         </button>
-        <button class="btn btn-secondary" onclick="switchTab('tab-entry', document.querySelectorAll('.nav-item')[2])">
+        <button class="btn btn-secondary" onclick="switchTab('tab-entry')">
           <i class="fa-solid fa-plus-circle"></i> تسجيل قيد
         </button>
       </div>
@@ -1242,10 +1230,11 @@
   }
 
   function filterExpenseAccountsByCategory() {
-    const cat = document.getElementById('quick-exp-category').value;
+    const catEl = document.getElementById('quick-exp-category');
     const expSel = document.getElementById('quick-exp-acc');
-    if (!expSel) return;
+    if (!catEl || !expSel) return;
     
+    const cat = catEl.value;
     let filteredAccounts = [];
     if (cat === 'operating') {
       filteredAccounts = chartOfAccounts.filter(a => a.base === 'expense' && a.code !== '5101' && a.code !== '5206');
@@ -1258,21 +1247,29 @@
 
   function openQuickExpenseModal() {
     const catSel = document.getElementById('quick-exp-category');
-    catSel.value = 'operating';
+    if (catSel) catSel.value = 'operating';
     filterExpenseAccountsByCategory();
 
     const srcSel = document.getElementById('quick-exp-source');
-    const sourceAccounts = chartOfAccounts.filter(a => a.base === 'cash' || a.base === 'bank');
-    srcSel.innerHTML = sourceAccounts.map(a => `<option value="${a.code}">${a.code} - ${a.name}</option>`).join('');
+    if (srcSel) {
+      const sourceAccounts = chartOfAccounts.filter(a => a.base === 'cash' || a.base === 'bank');
+      srcSel.innerHTML = sourceAccounts.map(a => `<option value="${a.code}">${a.code} - ${a.name}</option>`).join('');
+    }
 
-    document.getElementById('quick-exp-amount').value = '';
-    document.getElementById('quick-exp-memo').value = '';
-    document.getElementById('quick-exp-date').value = Utilities_getTodayStr();
-    document.getElementById('modal-quick-expense').classList.add('open');
+    const amt = document.getElementById('quick-exp-amount');
+    const memo = document.getElementById('quick-exp-memo');
+    const dt = document.getElementById('quick-exp-date');
+    if (amt) amt.value = '';
+    if (memo) memo.value = '';
+    if (dt) dt.value = Utilities_getTodayStr();
+
+    const m = document.getElementById('modal-quick-expense');
+    if (m) m.classList.add('open');
   }
 
   function closeQuickExpenseModal() {
-    document.getElementById('modal-quick-expense').classList.remove('open');
+    const m = document.getElementById('modal-quick-expense');
+    if (m) m.classList.remove('open');
   }
 
   async function submitQuickExpenseAction() {
@@ -1320,17 +1317,25 @@
 
   function openOtherIncomeModal() {
     const srcSel = document.getElementById('other-inc-target');
-    const sourceAccounts = chartOfAccounts.filter(a => a.base === 'cash' || a.base === 'bank');
-    srcSel.innerHTML = sourceAccounts.map(a => `<option value="${a.code}">${a.code} - ${a.name}</option>`).join('');
+    if (srcSel) {
+      const sourceAccounts = chartOfAccounts.filter(a => a.base === 'cash' || a.base === 'bank');
+      srcSel.innerHTML = sourceAccounts.map(a => `<option value="${a.code}">${a.code} - ${a.name}</option>`).join('');
+    }
 
-    document.getElementById('other-inc-amount').value = '';
-    document.getElementById('other-inc-memo').value = '';
-    document.getElementById('other-inc-date').value = Utilities_getTodayStr();
-    document.getElementById('modal-other-income').classList.add('open');
+    const amt = document.getElementById('other-inc-amount');
+    const memo = document.getElementById('other-inc-memo');
+    const dt = document.getElementById('other-inc-date');
+    if (amt) amt.value = '';
+    if (memo) memo.value = '';
+    if (dt) dt.value = Utilities_getTodayStr();
+
+    const m = document.getElementById('modal-other-income');
+    if (m) m.classList.add('open');
   }
 
   function closeOtherIncomeModal() {
-    document.getElementById('modal-other-income').classList.remove('open');
+    const m = document.getElementById('modal-other-income');
+    if (m) m.classList.remove('open');
   }
 
   async function submitOtherIncomeAction() {
@@ -1431,11 +1436,13 @@
     document.getElementById('new-curr-name').value = '';
     document.getElementById('new-curr-symbol').value = '';
     document.getElementById('new-curr-rate').value = '';
-    document.getElementById('modal-add-currency').classList.add('open');
+    const m = document.getElementById('modal-add-currency');
+    if (m) m.classList.add('open');
   }
 
   function closeAddCurrencyModal() {
-    document.getElementById('modal-add-currency').classList.remove('open');
+    const m = document.getElementById('modal-add-currency');
+    if (m) m.classList.remove('open');
   }
 
   function saveNewCurrencyAction() {
@@ -1473,23 +1480,23 @@
     const rateInput = document.getElementById('inv-exchange-rate');
 
     if (val === 'BASE') {
-      rateBox.style.display = 'none';
-      document.getElementById('inv-sym-1').innerText = baseCurrency;
-      document.getElementById('inv-sym-2').innerText = baseCurrency;
-      document.getElementById('inv-sym-3').innerText = baseCurrency;
-      document.getElementById('inv-equiv-local').style.display = 'none';
-      rateInput.value = 1;
+      if (rateBox) rateBox.style.display = 'none';
+      const s1 = document.getElementById('inv-sym-1'); if (s1) s1.innerText = baseCurrency;
+      const s2 = document.getElementById('inv-sym-2'); if (s2) s2.innerText = baseCurrency;
+      const s3 = document.getElementById('inv-sym-3'); if (s3) s3.innerText = baseCurrency;
+      const eq = document.getElementById('inv-equiv-local'); if (eq) eq.style.display = 'none';
+      if (rateInput) rateInput.value = 1;
     } else {
       const opt = sel.options[sel.selectedIndex];
-      const rate = opt.getAttribute('data-rate') || 1;
-      const symbol = opt.getAttribute('data-symbol') || val;
+      const rate = opt ? opt.getAttribute('data-rate') || 1 : 1;
+      const symbol = opt ? opt.getAttribute('data-symbol') || val : val;
 
-      rateBox.style.display = 'block';
-      rateInput.value = rate;
-      document.getElementById('inv-sym-1').innerText = symbol;
-      document.getElementById('inv-sym-2').innerText = symbol;
-      document.getElementById('inv-sym-3').innerText = symbol;
-      document.getElementById('inv-equiv-local').style.display = 'block';
+      if (rateBox) rateBox.style.display = 'block';
+      if (rateInput) rateInput.value = rate;
+      const s1 = document.getElementById('inv-sym-1'); if (s1) s1.innerText = symbol;
+      const s2 = document.getElementById('inv-sym-2'); if (s2) s2.innerText = symbol;
+      const s3 = document.getElementById('inv-sym-3'); if (s3) s3.innerText = symbol;
+      const eq = document.getElementById('inv-equiv-local'); if (eq) eq.style.display = 'block';
     }
     calculateInvoiceTotals();
   }
@@ -1563,9 +1570,9 @@
 
     if (fixedAssetsList.length === 0) {
       container.innerHTML = `<div style="text-align:center; padding:15px; color:#64748b; font-size:12px;">لا توجد أصول مسجلة بعد. يمكنك إضافة سيارات أو تجهيزات عبر زر "تسجيل أصل".</div>`;
-      document.getElementById('kpi-asset-total-cost').innerText = '0.00';
-      document.getElementById('kpi-asset-net-book').innerText = '0.00';
-      document.getElementById('depr-total-pending').innerText = '0.00';
+      const cEl = document.getElementById('kpi-asset-total-cost'); if(cEl) cEl.innerText = '0.00';
+      const nEl = document.getElementById('kpi-asset-net-book'); if(nEl) nEl.innerText = '0.00';
+      const pEl = document.getElementById('depr-total-pending'); if(pEl) pEl.innerText = '0.00';
       return;
     }
 
@@ -1628,9 +1635,9 @@
       container.appendChild(card);
     });
 
-    document.getElementById('kpi-asset-total-cost').innerText = totalCostAll.toLocaleString(undefined, {minimumFractionDigits:2});
-    document.getElementById('kpi-asset-net-book').innerText = totalNetBookAll.toLocaleString(undefined, {minimumFractionDigits:2});
-    document.getElementById('depr-total-pending').innerText = totalPendingDepr.toLocaleString(undefined, {minimumFractionDigits:2});
+    const cEl = document.getElementById('kpi-asset-total-cost'); if(cEl) cEl.innerText = totalCostAll.toLocaleString(undefined, {minimumFractionDigits:2});
+    const nEl = document.getElementById('kpi-asset-net-book'); if(nEl) nEl.innerText = totalNetBookAll.toLocaleString(undefined, {minimumFractionDigits:2});
+    const pEl = document.getElementById('depr-total-pending'); if(pEl) pEl.innerText = totalPendingDepr.toLocaleString(undefined, {minimumFractionDigits:2});
   }
 
   function openEditAssetModal(index) {
@@ -1642,11 +1649,13 @@
     document.getElementById('edit-asset-cost').value = ast.cost;
     document.getElementById('edit-asset-start-date').value = ast.startDate;
     document.getElementById('edit-asset-rate').value = ast.rate;
-    document.getElementById('modal-edit-asset').classList.add('open');
+    const m = document.getElementById('modal-edit-asset');
+    if (m) m.classList.add('open');
   }
 
   function closeEditAssetModal() {
-    document.getElementById('modal-edit-asset').classList.remove('open');
+    const m = document.getElementById('modal-edit-asset');
+    if (m) m.classList.remove('open');
   }
 
   function saveEditedAssetAction() {
@@ -1751,7 +1760,8 @@
         document.getElementById('item-card-price').value = it.price;
         document.getElementById('item-card-qty').value = it.qty;
         document.getElementById('item-card-reorder').value = it.reorder;
-        document.getElementById('modal-item-card').classList.add('open');
+        const m = document.getElementById('modal-item-card');
+        if (m) m.classList.add('open');
         return;
       }
     }
@@ -1761,11 +1771,13 @@
     document.getElementById('item-card-price').value = '';
     document.getElementById('item-card-qty').value = '0';
     document.getElementById('item-card-reorder').value = '5';
-    document.getElementById('modal-item-card').classList.add('open');
+    const m = document.getElementById('modal-item-card');
+    if (m) m.classList.add('open');
   }
 
   function closeItemCardModal() {
-    document.getElementById('modal-item-card').classList.remove('open');
+    const m = document.getElementById('modal-item-card');
+    if (m) m.classList.remove('open');
   }
 
   async function saveItemCardAction() {
@@ -1887,8 +1899,9 @@
 
     if (reportType === 'ledger') {
       const sel = document.getElementById('statement-account-selector');
-      const accName = sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text : "الحساب";
-      const bal = document.getElementById('final-balance').innerText;
+      const accName = sel && sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text : "الحساب";
+      const balEl = document.getElementById('final-balance');
+      const bal = balEl ? balEl.innerText : "0.00";
       docTitle = `كشف حساب - ${accName}`;
       summaryText = `📄 كشف حساب معتمد: ${accName}\nالتاريخ: ${today}\nالرصيد الدفتري الحالي: ${bal} ${baseCurrency}`;
 
@@ -1912,8 +1925,11 @@
       `;
     } else if (reportType === 'income') {
       docTitle = `قائمة الدخل - ${today}`;
-      const netProf = document.getElementById('rep-net-profit').innerText;
+      const netProfEl = document.getElementById('rep-net-profit');
+      const netProf = netProfEl ? netProfEl.innerText : "0.00";
       summaryText = `📊 قائمة الدخل الرسمية حتى تاريخ ${today}\nصافي الربح/الخسارة للفترة: ${netProf} ${baseCurrency}`;
+      const repEl = document.getElementById('sub-report-income');
+      const repContent = repEl ? repEl.querySelector('.report-card').innerHTML : '';
       bodyHtml = `
         <div style="border-bottom:2px solid #0f172a; padding-bottom:8px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:flex-end;">
           <div>
@@ -1925,12 +1941,15 @@
             <div>العملة: <strong>${baseCurrency}</strong></div>
           </div>
         </div>
-        ${document.getElementById('sub-report-income').querySelector('.report-card').innerHTML}
+        ${repContent}
       `;
     } else if (reportType === 'balance_sheet') {
       docTitle = `الميزانية العمومية - ${today}`;
-      const totAssets = document.getElementById('bs-total-assets').innerText;
+      const totAssetsEl = document.getElementById('bs-total-assets');
+      const totAssets = totAssetsEl ? totAssetsEl.innerText : "0.00";
       summaryText = `⚖️ الميزانية العمومية وقائمة المركز المالي كما في ${today}\nإجمالي المركز المالي: ${totAssets} ${baseCurrency}`;
+      const bsEl = document.getElementById('sub-report-balance-sheet');
+      const bsContent = bsEl ? bsEl.querySelector('.report-card').innerHTML : '';
       bodyHtml = `
         <div style="border-bottom:2px solid #0f172a; padding-bottom:8px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:flex-end;">
           <div>
@@ -1942,13 +1961,15 @@
             <div>العملة: <strong>${baseCurrency}</strong></div>
           </div>
         </div>
-        ${document.getElementById('sub-report-balance-sheet').querySelector('.report-card').innerHTML}
+        ${bsContent}
       `;
     } else if (reportType === 'assets') {
       docTitle = `سجل الأصول الثابتة - ${today}`;
-      const netAssets = document.getElementById('kpi-asset-net-book').innerText;
+      const netAssetsEl = document.getElementById('kpi-asset-net-book');
+      const netAssets = netAssetsEl ? netAssetsEl.innerText : "0.00";
       summaryText = `🏛️ سجل الأصول الثابتة والإهلاك الدوري (IAS 16)\nصافي القيمة الدفترية للأصول: ${netAssets} ${baseCurrency}`;
-      const cloneAssets = document.getElementById('fixed-assets-list-container').cloneNode(true);
+      const astCont = document.getElementById('fixed-assets-list-container');
+      const cloneAssets = astCont ? astCont.cloneNode(true) : document.createElement('div');
       cloneAssets.querySelectorAll('button, .btn-edit-tag').forEach(b => b.remove());
       bodyHtml = `
         <div style="border-bottom:2px solid #0f172a; padding-bottom:8px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:flex-end;">
@@ -1965,7 +1986,8 @@
       `;
     } else if (reportType === 'inventory') {
       docTitle = `جرد المستودع - ${today}`;
-      const invTotal = document.getElementById('dash-inventory-val').innerText;
+      const invTotalEl = document.getElementById('dash-inventory-val');
+      const invTotal = invTotalEl ? invTotalEl.innerText : "0.00";
       summaryText = `📦 تقرير جرد بضاعة المستودع بالمتوسط المرجح (WAC)\nالقيمة الإجمالية للمخزون: ${invTotal} ${baseCurrency}`;
       const cleanedInvTable = cleanTableHtmlForPrinting(document.getElementById('main-inventory-table'));
       bodyHtml = `
@@ -1984,6 +2006,8 @@
     } else if (reportType === 'trial') {
       docTitle = `ميزان المراجعة - ${today}`;
       summaryText = `📑 ميزان المراجعة بالأرصدة كما في ${today}`;
+      const trEl = document.getElementById('sub-report-trial');
+      const trTable = trEl && trEl.querySelector('.statement-table') ? trEl.querySelector('.statement-table').outerHTML : '';
       bodyHtml = `
         <div style="border-bottom:2px solid #0f172a; padding-bottom:8px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:flex-end;">
           <div>
@@ -1995,11 +2019,13 @@
             <div>العملة: <strong>${baseCurrency}</strong></div>
           </div>
         </div>
-        ${document.getElementById('sub-report-trial').querySelector('.statement-table').outerHTML}
+        ${trTable}
       `;
     } else if (reportType === 'invoice_current') {
       docTitle = `فاتورة رقمية رسمية`;
       summaryText = `🧾 فاتورة رسمية صادرة من المحاسب الذكي`;
+      const invBodyEl = document.getElementById('digital-invoice-body');
+      const invBody = invBodyEl ? invBodyEl.innerHTML : '';
       bodyHtml = `
         <div style="border-bottom:2px solid #0f172a; padding-bottom:8px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:flex-end;">
           <div>
@@ -2010,7 +2036,7 @@
             <div>التاريخ: <strong>${today}</strong></div>
           </div>
         </div>
-        ${document.getElementById('digital-invoice-body').innerHTML}
+        ${invBody}
       `;
     }
 
@@ -2020,13 +2046,14 @@
     bodyHtml = tempContainer.innerHTML;
 
     currentPrintDocumentData = { title: docTitle, cleanContentHtml: bodyHtml, rawSummaryText: summaryText };
-    document.getElementById('print-doc-title').innerText = docTitle;
-    document.getElementById('print-doc-content').innerHTML = bodyHtml;
-    document.getElementById('modal-print-preview').classList.add('open');
+    const pTitle = document.getElementById('print-doc-title'); if(pTitle) pTitle.innerText = docTitle;
+    const pContent = document.getElementById('print-doc-content'); if(pContent) pContent.innerHTML = bodyHtml;
+    const mPrint = document.getElementById('modal-print-preview'); if(mPrint) mPrint.classList.add('open');
   }
 
   function closePrintPreviewModal() {
-    document.getElementById('modal-print-preview').classList.remove('open');
+    const m = document.getElementById('modal-print-preview');
+    if (m) m.classList.remove('open');
   }
 
   function executeNativeIframePrint() {
@@ -2128,11 +2155,13 @@
 
   function openAddMemberModal() {
     document.getElementById('new-member-email').value = '';
-    document.getElementById('modal-add-member').classList.add('open');
+    const m = document.getElementById('modal-add-member');
+    if (m) m.classList.add('open');
   }
 
   function closeAddMemberModal() {
-    document.getElementById('modal-add-member').classList.remove('open');
+    const m = document.getElementById('modal-add-member');
+    if (m) m.classList.remove('open');
   }
 
   async function confirmAddTeamMember() {
@@ -2203,11 +2232,13 @@
   }
 
   function openOnboardingModal(allowClose = true) {
-    document.getElementById('modal-onboarding').classList.add('open');
+    const m = document.getElementById('modal-onboarding');
+    if (m) m.classList.add('open');
   }
 
   function closeOnboardingModal() {
-    document.getElementById('modal-onboarding').classList.remove('open');
+    const m = document.getElementById('modal-onboarding');
+    if (m) m.classList.remove('open');
   }
 
   async function submitLicenseActivation() {
@@ -2258,40 +2289,48 @@
   }
 
   function openAddAccountModal(presetType) {
-    document.getElementById('modal-add-account').classList.add('open');
-    if (presetType) document.getElementById('new-acc-type').value = presetType;
-    document.getElementById('asset-start-date').value = Utilities_getTodayStr();
+    const m = document.getElementById('modal-add-account');
+    if (m) m.classList.add('open');
+    if (presetType) {
+      const t = document.getElementById('new-acc-type');
+      if (t) t.value = presetType;
+    }
+    const st = document.getElementById('asset-start-date');
+    if (st) st.value = Utilities_getTodayStr();
     toggleOpeningBalanceField();
   }
 
   function closeAddAccountModal() {
-    document.getElementById('modal-add-account').classList.remove('open');
+    const m = document.getElementById('modal-add-account');
+    if (m) m.classList.remove('open');
   }
 
   function toggleOpeningBalanceField() {
-    const type = document.getElementById('new-acc-type').value;
+    const typeEl = document.getElementById('new-acc-type');
+    if (!typeEl) return;
+    const type = typeEl.value;
     const box = document.getElementById('box-acc-opening-bal');
     const assetBox = document.getElementById('box-asset-depr-config');
     const qLbl = document.getElementById('lbl-opening-bal-question');
 
     if (type === 'asset') {
-      assetBox.style.display = 'block';
-      box.style.display = 'block';
-      qLbl.innerHTML = '<i class="fa-solid fa-truck-pickup"></i> التكلفة الشرائية / التأسيسية للأصل:';
+      if (assetBox) assetBox.style.display = 'block';
+      if (box) box.style.display = 'block';
+      if (qLbl) qLbl.innerHTML = '<i class="fa-solid fa-truck-pickup"></i> التكلفة الشرائية / التأسيسية للأصل:';
     } else {
-      assetBox.style.display = 'none';
+      if (assetBox) assetBox.style.display = 'none';
       if (type === 'expense' || type === 'non_operating_expense') {
-        box.style.display = 'none';
+        if (box) box.style.display = 'none';
       } else {
-        box.style.display = 'block';
-        qLbl.innerHTML = '<i class="fa-solid fa-scale-balanced"></i> هل يوجد رصيد سابق (افتتاحي) مستحق لهذا الحساب؟';
+        if (box) box.style.display = 'block';
+        if (qLbl) qLbl.innerHTML = '<i class="fa-solid fa-scale-balanced"></i> هل يوجد رصيد سابق (افتتاحي) مستحق لهذا الحساب؟';
       }
     }
   }
 
   function checkCustomDeprRate(sel) {
     const customInp = document.getElementById('asset-custom-rate');
-    customInp.style.display = (sel.value === 'custom') ? 'block' : 'none';
+    if (customInp) customInp.style.display = (sel.value === 'custom') ? 'block' : 'none';
   }
 
   async function confirmAddAccount() {
@@ -2416,8 +2455,8 @@
 
     const modal = document.getElementById('modal-restore-backups');
     const container = document.getElementById('backups-list-container');
-    modal.classList.add('open');
-    container.innerHTML = `<div style="text-align:center; padding:20px; color:#64748b;"><i class="fa-solid fa-spinner fa-spin"></i> جاري البحث عن النسخ الاحتياطية في Google Drive...</div>`;
+    if (modal) modal.classList.add('open');
+    if (container) container.innerHTML = `<div style="text-align:center; padding:20px; color:#64748b;"><i class="fa-solid fa-spinner fa-spin"></i> جاري البحث عن النسخ الاحتياطية في Google Drive...</div>`;
 
     try {
       const res = await fetch(SCRIPT_URL, {
@@ -2439,17 +2478,18 @@
             </div>
           `;
         });
-        container.innerHTML = html;
+        if (container) container.innerHTML = html;
       } else {
-        container.innerHTML = `<div style="text-align:center; padding:20px; color:#64748b;">لا توجد نسخ مؤرشفة حالياً</div>`;
+        if (container) container.innerHTML = `<div style="text-align:center; padding:20px; color:#64748b;">لا توجد نسخ مؤرشفة حالياً</div>`;
       }
     } catch (e) {
-      container.innerHTML = `<div style="text-align:center; color:var(--danger); padding:15px;">خطأ: ${e.message}</div>`;
+      if (container) container.innerHTML = `<div style="text-align:center; color:var(--danger); padding:15px;">خطأ: ${e.message}</div>`;
     }
   }
 
   function closeRestoreBackupsModal() {
-    document.getElementById('modal-restore-backups').classList.remove('open');
+    const m = document.getElementById('modal-restore-backups');
+    if (m) m.classList.remove('open');
   }
 
   async function confirmRestoreBackup(backupId, backupName) {
@@ -2489,7 +2529,7 @@
       if (videoStream) stopLiveCamera();
       videoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } }, audio: false });
       video.srcObject = videoStream;
-      modal.style.display = 'flex';
+      if (modal) modal.style.display = 'flex';
       await video.play();
     } catch (err) {
       const fallbackInput = document.createElement('input');
@@ -2506,7 +2546,8 @@
       videoStream.getTracks().forEach(track => track.stop());
       videoStream = null;
     }
-    document.getElementById('live-camera-modal').style.display = 'none';
+    const m = document.getElementById('live-camera-modal');
+    if (m) m.style.display = 'none';
   }
 
   async function captureLiveInvoice() {
@@ -2542,7 +2583,7 @@
 
   async function analyzeInvoiceWithAI(base64Image) {
     const loading = document.getElementById('ocr-loading-overlay');
-    loading.style.display = 'flex';
+    if (loading) loading.style.display = 'flex';
     try {
       const response = await fetch(SCRIPT_URL, {
         method: "POST",
@@ -2554,11 +2595,13 @@
         const d = res.data;
         if (d.date) document.getElementById('inv-date').value = d.date;
         const list = document.getElementById('invoice-items-list');
-        list.innerHTML = '';
-        if (d.items && d.items.length > 0) {
-          d.items.forEach(it => addInvoiceItemRow(it.name || 'بضاعة', it.qty || 1, it.price || 10));
-        } else {
-          addInvoiceItemRow();
+        if (list) {
+          list.innerHTML = '';
+          if (d.items && d.items.length > 0) {
+            d.items.forEach(it => addInvoiceItemRow(it.name || 'بضاعة', it.qty || 1, it.price || 10));
+          } else {
+            addInvoiceItemRow();
+          }
         }
         calculateInvoiceTotals();
         showToast('تم تحليل الفاتورة بنجاح ✅');
@@ -2568,7 +2611,7 @@
     } catch (err) {
       showToast('خطأ: ' + err.message, true);
     } finally {
-      loading.style.display = 'none';
+      if (loading) loading.style.display = 'none';
     }
   }
 
@@ -2583,10 +2626,14 @@
     try { renderCurrenciesTable(); } catch(e){}
   }
 
-  function openCurrencyModal() { document.getElementById('modal-currency-setup').classList.add('open'); }
+  function openCurrencyModal() { 
+    const m = document.getElementById('modal-currency-setup');
+    if (m) m.classList.add('open');
+  }
   function selectBaseCurrency(symbol, name) {
     applyBaseCurrency(symbol);
-    document.getElementById('modal-currency-setup').classList.remove('open');
+    const m = document.getElementById('modal-currency-setup');
+    if (m) m.classList.remove('open');
     showToast(`تم اعتماد ${name} كعملة أساسية للدفاتر`);
   }
   function applyCustomCurrency() {
@@ -2682,10 +2729,12 @@
       document.getElementById('bs-total-liab-equity').innerText = totalLiabAndEquity.toLocaleString(undefined, {minimumFractionDigits: 2});
 
       const bsStatus = document.getElementById('bs-balance-status');
-      if (Math.abs(totalAssets - totalLiabAndEquity) < 0.1) {
-        bsStatus.className = 'status-badge balanced'; bsStatus.innerText = 'متوازنة ✓';
-      } else {
-        bsStatus.className = 'status-badge unbalanced'; bsStatus.innerText = 'غير متوازنة (' + (totalAssets - totalLiabAndEquity).toFixed(2) + ')';
+      if (bsStatus) {
+        if (Math.abs(totalAssets - totalLiabAndEquity) < 0.1) {
+          bsStatus.className = 'status-badge balanced'; bsStatus.innerText = 'متوازنة ✓';
+        } else {
+          bsStatus.className = 'status-badge unbalanced'; bsStatus.innerText = 'غير متوازنة (' + (totalAssets - totalLiabAndEquity).toFixed(2) + ')';
+        }
       }
     }
 
@@ -2814,10 +2863,15 @@
     const target = document.getElementById(tabId);
     if (target) target.classList.add('active');
     
+    document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
     if (el) {
-      document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
       el.classList.add('active');
+    } else {
+      const idxMap = { 'tab-home': 0, 'tab-invoice': 1, 'tab-entry': 2, 'tab-statement': 3, 'tab-settings': 4 };
+      const items = document.querySelectorAll('.nav-item');
+      if (items[idxMap[tabId]]) items[idxMap[tabId]].classList.add('active');
     }
+
     if (tabId === 'tab-statement') {
       loadStatementData();
       calculateFinancialReports();
@@ -2854,24 +2908,28 @@
   }
 
   function handleInvoiceTypeChange() {
-    const type = document.getElementById('inv-type').value;
+    const typeEl = document.getElementById('inv-type');
+    if (!typeEl) return;
+    const type = typeEl.value;
     const partySel = document.getElementById('inv-party-select');
     const partyLabel = document.getElementById('inv-party-label');
-    const payMethod = document.getElementById('inv-payment-method').value;
+    const payMethodEl = document.getElementById('inv-payment-method');
+    const payMethod = payMethodEl ? payMethodEl.value : 'credit';
 
     if (type === 'sales') {
-      partyLabel.innerText = payMethod === 'credit' ? 'العميل (ذمم مدينة)' : 'حساب الإيداع / الخزينة';
+      if (partyLabel) partyLabel.innerText = payMethod === 'credit' ? 'العميل (ذمم مدينة)' : 'حساب الإيداع / الخزينة';
       let options = chartOfAccounts.filter(a => payMethod === 'credit' ? a.base === 'customer' : (a.base === 'cash' || a.base === 'bank'));
-      partySel.innerHTML = options.map(a => `<option value="${a.code}">${a.code} - ${a.name}</option>`).join('');
+      if (partySel) partySel.innerHTML = options.map(a => `<option value="${a.code}">${a.code} - ${a.name}</option>`).join('');
     } else {
-      partyLabel.innerText = payMethod === 'credit' ? 'المورد (ذمم دائنة)' : 'حساب الدفع / الخزينة';
+      if (partyLabel) partyLabel.innerText = payMethod === 'credit' ? 'المورد (ذمم دائنة)' : 'حساب الدفع / الخزينة';
       let options = chartOfAccounts.filter(a => payMethod === 'credit' ? a.base === 'vendor' : (a.base === 'cash' || a.base === 'bank'));
-      partySel.innerHTML = options.map(a => `<option value="${a.code}">${a.code} - ${a.name}</option>`).join('');
+      if (partySel) partySel.innerHTML = options.map(a => `<option value="${a.code}">${a.code} - ${a.name}</option>`).join('');
     }
   }
 
   function addInvoiceItemRow(name = "", qty = 1, price = 0, cost = 0, code = "") {
     const container = document.getElementById('invoice-items-list');
+    if (!container) return;
     const div = document.createElement('div');
     div.className = 'inv-item-row';
 
@@ -2933,6 +2991,7 @@
   }
 
   function validateRowQty(inputEl) {
+    if (!inputEl) return;
     const row = inputEl.closest('.inv-item-row');
     const warnEl = row.querySelector('.row-stock-warn');
     const invType = document.getElementById('inv-type').value;
@@ -2940,30 +2999,39 @@
     const qty = parseFloat(inputEl.value) || 0;
 
     const it = inventoryItems.find(x => x.code === code);
-    if (!it) { warnEl.innerHTML = ''; return; }
+    if (!it) { if (warnEl) warnEl.innerHTML = ''; return; }
 
     if (invType === 'sales') {
       if (qty > it.qty) {
         inputEl.style.borderColor = 'var(--danger)';
-        warnEl.style.color = 'var(--danger)';
-        warnEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> الرصيد المتوفر (${it.qty}) غير كافٍ!`;
+        if (warnEl) {
+          warnEl.style.color = 'var(--danger)';
+          warnEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> الرصيد المتوفر (${it.qty}) غير كافٍ!`;
+        }
       } else {
         inputEl.style.borderColor = 'var(--border)';
-        warnEl.style.color = 'var(--success)';
-        warnEl.innerHTML = `<i class="fa-solid fa-circle-check"></i> متوفر بالمخزن: ${it.qty} حبة`;
+        if (warnEl) {
+          warnEl.style.color = 'var(--success)';
+          warnEl.innerHTML = `<i class="fa-solid fa-circle-check"></i> متوفر بالمخزن: ${it.qty} حبة`;
+        }
       }
     } else {
       inputEl.style.borderColor = 'var(--border)';
-      warnEl.style.color = 'var(--primary)';
-      warnEl.innerHTML = `الرصيد الحالي: ${it.qty} (ستتم إضافة ${qty} وحساب WAC)`;
+      if (warnEl) {
+        warnEl.style.color = 'var(--primary)';
+        warnEl.innerHTML = `الرصيد الحالي: ${it.qty} (ستتم إضافة ${qty} وحساب WAC)`;
+      }
     }
   }
 
   function calculateInvoiceTotals() {
     let subtotal = 0;
-    const taxRate = parseFloat(document.getElementById('inv-tax-mode').value) || 0;
-    const currVal = document.getElementById('inv-currency').value;
-    const rate = parseFloat(document.getElementById('inv-exchange-rate').value) || 1;
+    const taxRateEl = document.getElementById('inv-tax-mode');
+    const taxRate = taxRateEl ? parseFloat(taxRateEl.value) || 0 : 0;
+    const currEl = document.getElementById('inv-currency');
+    const currVal = currEl ? currEl.value : 'BASE';
+    const rateEl = document.getElementById('inv-exchange-rate');
+    const rate = rateEl ? parseFloat(rateEl.value) || 1 : 1;
 
     document.querySelectorAll('.inv-item-row').forEach(row => {
       const q = parseFloat(row.querySelector('.inv-item-qty').value) || 0;
@@ -2974,13 +3042,14 @@
     const taxAmount = subtotal * (taxRate / 100);
     const grandTotal = subtotal + taxAmount;
 
-    document.getElementById('inv-sum-subtotal').innerText = subtotal.toFixed(2);
-    document.getElementById('inv-sum-tax').innerText = taxAmount.toFixed(2);
-    document.getElementById('inv-sum-grand').innerText = grandTotal.toFixed(2);
+    const sSub = document.getElementById('inv-sum-subtotal'); if(sSub) sSub.innerText = subtotal.toFixed(2);
+    const sTax = document.getElementById('inv-sum-tax'); if(sTax) sTax.innerText = taxAmount.toFixed(2);
+    const sGrd = document.getElementById('inv-sum-grand'); if(sGrd) sGrd.innerText = grandTotal.toFixed(2);
 
+    const eqVal = document.getElementById('inv-equiv-val');
     if (currVal !== 'BASE') {
       const localEquiv = grandTotal * rate;
-      document.getElementById('inv-equiv-val').innerText = localEquiv.toLocaleString(undefined, {minimumFractionDigits: 2});
+      if (eqVal) eqVal.innerText = localEquiv.toLocaleString(undefined, {minimumFractionDigits: 2});
     }
   }
 
@@ -3053,4 +3122,407 @@
           targetItem.qty = newTotalQty;
         }
       } else if (invType === 'purchase') {
-        inventory
+        inventoryItems.push({
+          code: 'SKU-' + Math.floor(1000 + Math.random() * 9000),
+          name: it.itemName,
+          unit: 'حبة',
+          cost: it.unitPrice * exchangeRate,
+          price: (it.unitPrice * exchangeRate) * 1.3,
+          qty: it.qty,
+          reorder: 5
+        });
+      }
+    });
+
+    const taxAmount = subtotal * (taxRate / 100);
+    const grandTotal = subtotal + taxAmount;
+
+    const grandTotalLocal = grandTotal * exchangeRate;
+    const subtotalLocal = subtotal * exchangeRate;
+    const taxAmountLocal = taxAmount * exchangeRate;
+
+    const fullInvoice = {
+      id: invId, date, type: invType, partyCode, partyName, payMethod, taxRate,
+      subtotal, taxAmount, grandTotal, currency: invCurrency, exchangeRate: exchangeRate, items
+    };
+
+    if (isEditMode) {
+      smartInvoices = smartInvoices.filter(x => x.id !== invId);
+      smartInvoices.push(fullInvoice);
+      ledgerEntries = ledgerEntries.filter(e => e.invoiceId !== invId && !(e.desc && e.desc.includes(invId)));
+    } else {
+      smartInvoices.push(fullInvoice);
+    }
+
+    const currTag = invCurrency !== 'BASE' ? ` (${invCurrency} ${grandTotal.toFixed(2)})` : '';
+    const memo = (invType === 'sales' ? 'فاتورة مبيعات ' : 'فاتورة مشتريات ') + (payMethod === 'credit' ? '(آجل)' : '(نقدي)') + ' #' + invId + currTag;
+
+    if (invType === 'sales') {
+      ledgerEntries.push({ date, accountCode: partyCode, desc: memo, debit: grandTotalLocal, credit: 0, invoiceId: invId });
+      ledgerEntries.push({ date, accountCode: "4101", desc: memo, debit: 0, credit: subtotalLocal, invoiceId: invId });
+      if (taxAmountLocal > 0) ledgerEntries.push({ date, accountCode: "2103", desc: "ضريبة القيمة المضافة", debit: 0, credit: taxAmountLocal, invoiceId: invId });
+
+      if (totalCogsVal > 0) {
+        ledgerEntries.push({ date, accountCode: "5101", desc: `تكلفة بضاعة مباعة بالفاتورة #${invId}`, debit: totalCogsVal, credit: 0, invoiceId: invId });
+        ledgerEntries.push({ date, accountCode: "1131", desc: `إخراج مخزني بالفاتورة #${invId}`, debit: 0, credit: totalCogsVal, invoiceId: invId });
+      }
+    } else {
+      ledgerEntries.push({ date, accountCode: "1131", desc: memo, debit: subtotalLocal, credit: 0, invoiceId: invId });
+      if (taxAmountLocal > 0) ledgerEntries.push({ date, accountCode: "2103", desc: "ضريبة مدخلات مشتريات", debit: taxAmountLocal, credit: 0, invoiceId: invId });
+      ledgerEntries.push({ date, accountCode: partyCode, desc: memo, debit: 0, credit: grandTotalLocal, invoiceId: invId });
+    }
+
+    persistData();
+    populateItemSelectors();
+    showToast(isEditMode ? 'تم حفظ التعديل وتحديث المخزون ✅' : 'تم ترحيل الفاتورة وتحديث المخزون بنجاح ✅');
+    
+    fetch(SCRIPT_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({
+        action: isEditMode ? "EDIT_INVOICE" : "CREATE_INVOICE",
+        spreadsheetId: localStorage.getItem("user_sheet_id"),
+        invoiceId: invId, invoiceType: invType, partyAccountCode: partyCode,
+        partyAccountName: partyName, paymentMethod: payMethod, applyTax: taxRate > 0,
+        taxRate: taxRate, invoiceDate: date, items: items
+      })
+    });
+
+    cancelEditInvoiceMode();
+    const stmtSel = document.getElementById('statement-account-selector');
+    if (stmtSel) { stmtSel.value = partyCode; switchTab('tab-statement'); }
+  }
+
+  function cancelEditInvoiceMode() {
+    document.getElementById('editing-invoice-id').value = '';
+    document.getElementById('invoice-form-title').innerText = 'إصدار فاتورة ذكية';
+    document.getElementById('btn-cancel-edit-inv').style.display = 'none';
+    document.getElementById('invoice-items-list').innerHTML = '';
+    addInvoiceItemRow();
+    calculateInvoiceTotals();
+  }
+
+  window.openInvoicePopup = function(invId, entryIndex) {
+    let inv = smartInvoices.find(x => x.id === invId);
+    if (!inv) return showToast('لا توجد تفاصيل لهذه الفاتورة', true);
+
+    let currSym = baseCurrency;
+    if (inv.currency && inv.currency !== 'BASE') {
+      const cObj = foreignCurrencies.find(c => c.code === inv.currency);
+      currSym = cObj ? cObj.symbol : inv.currency;
+    }
+
+    let itemsRows = '';
+    inv.items.forEach((it, idx) => {
+      itemsRows += `
+        <tr>
+          <td>${idx + 1}</td><td><strong>${it.itemName}</strong></td>
+          <td style="text-align:center;">${it.qty}</td>
+          <td style="text-align:left;">${Number(it.unitPrice).toFixed(2)}</td>
+          <td style="text-align:left; font-weight:700;">${(Number(it.qty) * Number(it.unitPrice)).toFixed(2)}</td>
+        </tr>
+      `;
+    });
+
+    document.getElementById('digital-invoice-body').innerHTML = `
+      <div class="digital-invoice">
+        <div style="font-weight:800; margin-bottom:8px;">${inv.type === 'sales' ? 'فاتورة مبيعات' : 'فاتورة مشتريات'} #${inv.id}</div>
+        <div style="font-size:12px; margin-bottom:10px;">الطرف: <strong>${inv.partyName}</strong></div>
+        <table class="digital-inv-table">
+          <thead><tr><th>#</th><th>الصنف</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th></tr></thead>
+          <tbody>${itemsRows}</tbody>
+        </table>
+        <div style="font-weight:800; font-size:15px; text-align:left; color:var(--primary); margin-top:10px;">
+          الصافي: ${Number(inv.grandTotal).toFixed(2)} ${currSym}
+        </div>
+      </div>
+    `;
+    const m = document.getElementById('modal-view-invoice');
+    if (m) m.classList.add('open');
+  };
+
+  window.closeViewInvoiceModal = function() {
+    const m = document.getElementById('modal-view-invoice');
+    if (m) m.classList.remove('open');
+  };
+
+  function loadStatementData() {
+    const sel = document.getElementById('statement-account-selector');
+    if (!sel || !sel.value) return;
+    const code = sel.value;
+    const acc = chartOfAccounts.find(a => a.code === code) || { name: sel.options[sel.selectedIndex].text, nature: "مدين" };
+    const dateFrom = document.getElementById('date-from').value;
+    const dateTo = document.getElementById('date-to').value;
+
+    const actLbl = document.getElementById('active-acc-label');
+    if (actLbl) actLbl.innerHTML = `الحساب: <strong>${code} - ${acc.name}</strong>`;
+    
+    const tbody = document.getElementById('statement-rows');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    const filtered = [];
+    ledgerEntries.forEach((e, idx) => {
+      if (String(e.accountCode) === String(code) && (!dateFrom || e.date >= dateFrom) && (!dateTo || e.date <= dateTo)) {
+        filtered.push({ entry: e, index: idx });
+      }
+    });
+
+    if (filtered.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:20px; color:#64748b;">لا توجد حركات مسجلة لهذا الحساب</td></tr>`;
+      const fBal = document.getElementById('final-balance'); if (fBal) fBal.innerText = '0.00';
+      return;
+    }
+
+    let bal = 0;
+    filtered.forEach(obj => {
+      const item = obj.entry;
+      const originalIdx = obj.index;
+      bal += acc.nature === "مدين" ? (item.debit - item.credit) : (item.credit - item.debit);
+      const isInvoice = !!item.invoiceId || (item.desc && item.desc.includes('فاتورة'));
+      const invoiceIdVal = item.invoiceId || 'INV-PREV';
+      
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${item.date.substring(5)}</td>
+        <td>
+          <div>${item.desc}</div>
+          <div style="display:flex; flex-wrap:wrap; gap:4px; margin-top:4px;">
+            ${isInvoice ? `<button type="button" class="btn-inv-tag" onclick="openInvoicePopup('${invoiceIdVal}',${originalIdx})"><i class="fa-solid fa-file-invoice"></i> عرض</button>` : ''}
+            <button type="button" class="btn-edit-tag" onclick="startEditEntry(${originalIdx})"><i class="fa-solid fa-pencil"></i> تعديل</button>
+          </div>
+        </td>
+        <td style="${item.debit > 0 ? 'color: var(--success); font-weight:700;' : ''}">${item.debit > 0 ? item.debit.toLocaleString() : '-'}</td>
+        <td style="${item.credit > 0 ? 'color: var(--danger); font-weight:700;' : ''}">${item.credit > 0 ? item.credit.toLocaleString() : '-'}</td>
+        <td style="font-weight:700;">${bal.toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+    const fBal = document.getElementById('final-balance');
+    if (fBal) fBal.innerText = bal.toLocaleString(undefined, {minimumFractionDigits: 2});
+  }
+
+  function startEditEntry(entryIndex) {
+    const target = ledgerEntries[entryIndex];
+    if (!target) return;
+
+    const entryNo = target.entryNo;
+    const relatedLines = entryNo ? ledgerEntries.filter(e => e.entryNo === entryNo) : [target];
+
+    document.getElementById('editing-entry-no').value = entryNo || ("TMP-" + entryIndex);
+    document.getElementById('entry-date').value = target.date;
+    document.getElementById('entry-memo').value = target.desc || '';
+    document.getElementById('entry-form-title').innerHTML = `تعديل القيد رقم: ${entryNo || ''}`;
+    document.getElementById('btn-cancel-edit').style.display = 'inline-block';
+
+    const list = document.getElementById('entries-list');
+    list.innerHTML = '';
+
+    relatedLines.forEach(line => {
+      const div = document.createElement('div');
+      div.className = 'entry-row';
+      div.innerHTML = `
+        <button class="btn-remove-row" onclick="this.parentElement.remove(); calculateBalance();">×</button>
+        <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 8px;">
+          <select class="account-selector"></select>
+          <input type="number" placeholder="مدين" class="input-debit" value="${line.debit || 0}" oninput="calculateBalance()">
+          <input type="number" placeholder="دائن" class="input-credit" value="${line.credit || 0}" oninput="calculateBalance()">
+        </div>
+      `;
+      list.appendChild(div);
+      populateSingleAccountSelect(div.querySelector('.account-selector'), line.accountCode);
+    });
+
+    calculateBalance();
+    switchTab('tab-entry');
+  }
+
+  function cancelEditEntryMode() {
+    document.getElementById('editing-entry-no').value = '';
+    document.getElementById('entry-memo').value = '';
+    document.getElementById('entry-form-title').innerText = 'تسجيل قيد يومية عام';
+    document.getElementById('btn-cancel-edit').style.display = 'none';
+
+    const list = document.getElementById('entries-list');
+    list.innerHTML = `
+      <div class="entry-row">
+        <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 8px;">
+          <select class="account-selector"></select>
+          <input type="number" placeholder="مدين" class="input-debit" value="0" oninput="calculateBalance()">
+          <input type="number" placeholder="دائن" class="input-credit" value="0" oninput="calculateBalance()">
+        </div>
+      </div>
+      <div class="entry-row">
+        <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 8px;">
+          <select class="account-selector"></select>
+          <input type="number" placeholder="مدين" class="input-debit" value="0" oninput="calculateBalance()">
+          <input type="number" placeholder="دائن" class="input-credit" value="0" oninput="calculateBalance()">
+        </div>
+      </div>
+    `;
+    populateAccountSelects();
+    calculateBalance();
+  }
+
+  function populateSingleAccountSelect(sel, selectedCode) {
+    let accHtml = '';
+    chartOfAccounts.forEach(a => accHtml += `<option value="${a.code}">${a.code} - ${a.name}</option>`);
+    sel.innerHTML = accHtml;
+    if (selectedCode) sel.value = selectedCode;
+  }
+
+  function addEntryRow() {
+    const list = document.getElementById('entries-list');
+    const div = document.createElement('div');
+    div.className = 'entry-row';
+    div.innerHTML = `
+      <button class="btn-remove-row" onclick="this.parentElement.remove(); calculateBalance();">×</button>
+      <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 8px;">
+        <select class="account-selector"></select>
+        <input type="number" placeholder="مدين" class="input-debit" value="0" oninput="calculateBalance()">
+        <input type="number" placeholder="دائن" class="input-credit" value="0" oninput="calculateBalance()">
+      </div>
+    `;
+    list.appendChild(div);
+    populateAccountSelects();
+  }
+
+  function calculateBalance() {
+    let deb = 0, crd = 0;
+    document.querySelectorAll('.input-debit').forEach(i => deb += parseFloat(i.value || 0));
+    document.querySelectorAll('.input-credit').forEach(i => crd += parseFloat(i.value || 0));
+    document.getElementById('total-debit').innerText = deb.toFixed(2);
+    document.getElementById('total-credit').innerText = crd.toFixed(2);
+
+    const b = document.getElementById('balance-status');
+    const btn = document.getElementById('btn-save-entry');
+    if (deb > 0 && Math.abs(deb - crd) < 0.01) {
+      b.className = 'status-badge balanced'; b.innerText = 'القيد متوازن ✓';
+      btn.disabled = false; btn.style.opacity = '1';
+    } else {
+      b.className = 'status-badge unbalanced'; b.innerText = deb === 0 ? 'أدخل أطراف القيد' : 'غير متوازن';
+      btn.disabled = true; btn.style.opacity = '0.5';
+    }
+  }
+
+  function saveEntryAction() {
+    const date = document.getElementById('entry-date').value;
+    const memo = document.getElementById('entry-memo').value || 'قيد يومية';
+    const editingNo = document.getElementById('editing-entry-no').value;
+    const isEditMode = !!editingNo;
+
+    const lines = [];
+    document.querySelectorAll('#entries-list .entry-row').forEach(r => {
+      const sel = r.querySelector('.account-selector');
+      const d = parseFloat(r.querySelector('.input-debit').value || 0);
+      const c = parseFloat(r.querySelector('.input-credit').value || 0);
+      if (d > 0 || c > 0) {
+        lines.push({
+          accountCode: sel.value,
+          accountName: sel.options[sel.selectedIndex].text.split(' - ')[1],
+          description: memo, debit: d, credit: c
+        });
+      }
+    });
+
+    if (lines.length < 2) return showToast('يجب إدخال طرفين على الأقل للقيد', true);
+
+    if (isEditMode) {
+      const targetNo = isNaN(editingNo) ? editingNo : Number(editingNo);
+      ledgerEntries = ledgerEntries.filter(e => e.entryNo !== targetNo);
+      lines.forEach(l => {
+        ledgerEntries.push({
+          entryNo: targetNo, date, refNo: "REF-" + targetNo,
+          accountCode: l.accountCode, accountName: l.accountName, desc: l.description,
+          debit: l.debit, credit: l.credit
+        });
+      });
+      persistData();
+      showToast('تم تعديل وحفظ القيد المحاسبي بنجاح ✅');
+      fetch(SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action: "EDIT_ENTRY", spreadsheetId: localStorage.getItem("user_sheet_id"), entryNo: targetNo, entryDate: date, lines })
+      });
+      cancelEditEntryMode();
+      switchTab('tab-statement');
+    } else {
+      const generatedEntryNo = Date.now();
+      lines.forEach(l => {
+        ledgerEntries.push({
+          entryNo: generatedEntryNo, date, accountCode: l.accountCode,
+          accountName: l.accountName, desc: memo, debit: l.debit, credit: l.credit
+        });
+      });
+      persistData();
+      showToast('تم ترحيل القيد بنجاح');
+      document.getElementById('entry-memo').value = '';
+      document.querySelectorAll('.input-debit').forEach(i => i.value = 0);
+      document.querySelectorAll('.input-credit').forEach(i => i.value = 0);
+      calculateBalance();
+
+      fetch(SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action: "NEW_ENTRY", spreadsheetId: localStorage.getItem("user_sheet_id"), entryDate: date, lines })
+      });
+    }
+  }
+
+  function updateDashboardStats() {
+    let cash = 0, cust = 0, vend = 0;
+    ledgerEntries.forEach(e => {
+      const accCodeStr = String(e.accountCode || "").trim();
+      const a = chartOfAccounts.find(x => String(x.code).trim() === accCodeStr);
+      const debitVal = Number(e.debit) || 0;
+      const creditVal = Number(e.credit) || 0;
+      const netMovement = debitVal - creditVal;
+
+      const isCashOrBank = (a && (a.base === 'cash' || a.base === 'bank')) ||
+                           accCodeStr.startsWith("111") ||
+                           (a && a.cat && (a.cat.includes("نقدية") || a.cat.includes("بنوك")));
+
+      const isCustomer = (a && a.base === 'customer') || accCodeStr.startsWith("112");
+      const isVendor = (a && a.base === 'vendor') || accCodeStr.startsWith("210");
+
+      if (isCashOrBank) cash += netMovement;
+      else if (isCustomer) cust += netMovement;
+      else if (isVendor) vend += (creditVal - debitVal);
+    });
+
+    let totalInvVal = 0;
+    inventoryItems.forEach(it => {
+      totalInvVal += ((Number(it.qty) || 0) * (Number(it.cost) || 0));
+    });
+
+    const cDash = document.getElementById('dash-cash'); if(cDash) cDash.innerText = cash.toLocaleString(undefined, {minimumFractionDigits: 2});
+    const uDash = document.getElementById('dash-customers'); if(uDash) uDash.innerText = Math.max(0, cust).toLocaleString(undefined, {minimumFractionDigits: 2});
+    const vDash = document.getElementById('dash-vendors'); if(vDash) vDash.innerText = Math.max(0, vend).toLocaleString(undefined, {minimumFractionDigits: 2});
+    const iDash = document.getElementById('dash-inventory-val'); if(iDash) iDash.innerText = totalInvVal.toLocaleString(undefined, {minimumFractionDigits: 2});
+  }
+
+  window.addEventListener('DOMContentLoaded', function() {
+    try {
+      const today = Utilities_getTodayStr();
+      const eDate = document.getElementById('entry-date'); if(eDate) eDate.value = today;
+      const iDate = document.getElementById('inv-date'); if(iDate) iDate.value = today;
+      const dTo = document.getElementById('date-to'); if(dTo) dTo.value = today;
+      const aDate = document.getElementById('asset-start-date'); if(aDate) aDate.value = today;
+
+      applyBaseCurrency(localStorage.getItem('smart_base_currency') || 'ر.س');
+      populateAccountSelects();
+      populateItemSelectors();
+      addInvoiceItemRow();
+      updateDashboardStats();
+      updateLicenseUI();
+      renderTeamMembersList();
+      renderInventoryReport();
+      renderFixedAssetsDepreciationList();
+      renderCurrenciesTable();
+    } catch(err) {
+      console.warn("Bootstrap safe init:", err);
+    }
+  });
+</script>
+</body>
+</html>

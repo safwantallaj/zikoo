@@ -122,8 +122,8 @@
     .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); z-index: 2147483647; align-items: flex-end; justify-content: center; backdrop-filter: blur(4px); }
     .modal-overlay.open { display: flex !important; }
     .modal-panel { background: white; width: 100%; max-width: 480px; border-radius: 20px 20px 0 0; padding: 22px; max-height: 88vh; overflow-y: auto; box-shadow: 0 -10px 40px rgba(0,0,0,0.2); }
-    #modal-onboarding, #modal-opening-wizard, #modal-add-member, #modal-item-card, #modal-edit-asset, #modal-other-income, #modal-add-account, #modal-restore-backups, #modal-view-invoice, #modal-print-preview { align-items: center; padding: 20px; background: rgba(15, 23, 42, 0.95); }
-    #modal-onboarding .modal-panel, #modal-opening-wizard .modal-panel, #modal-add-member .modal-panel, #modal-item-card .modal-panel, #modal-edit-asset .modal-panel, #modal-other-income .modal-panel, #modal-add-account .modal-panel, #modal-restore-backups .modal-panel, #modal-view-invoice .modal-panel, #modal-print-preview .modal-panel { border-radius: 24px; max-height: 90vh; }
+    #modal-onboarding, #modal-opening-wizard, #modal-add-member, #modal-item-card, #modal-edit-asset, #modal-other-income, #modal-add-account, #modal-restore-backups, #modal-view-invoice, #modal-print-preview, #modal-add-currency { align-items: center; padding: 20px; background: rgba(15, 23, 42, 0.95); }
+    #modal-onboarding .modal-panel, #modal-opening-wizard .modal-panel, #modal-add-member .modal-panel, #modal-item-card .modal-panel, #modal-edit-asset .modal-panel, #modal-other-income .modal-panel, #modal-add-account .modal-panel, #modal-restore-backups .modal-panel, #modal-view-invoice .modal-panel, #modal-print-preview .modal-panel, #modal-add-currency .modal-panel { border-radius: 24px; max-height: 90vh; }
 
     .digital-invoice { border: 1px solid var(--border); border-radius: 12px; padding: 16px; background: #f8fafc; margin-top: 10px; }
     .digital-inv-table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 12px; }
@@ -180,7 +180,7 @@
         <i class="fa-solid fa-cloud-arrow-down"></i>
         <span>مزامنة</span>
       </button>
-      <div class="currency-badge" onclick="openCurrencyModal()" title="تغيير العملة">
+      <div class="currency-badge" onclick="openCurrencyModal()" title="تغيير العملة الأساسية">
         <i class="fa-solid fa-coins"></i>
         <span id="header-curr-label">ر.س</span>
       </div>
@@ -279,7 +279,7 @@
             <select id="inv-currency" onchange="toggleInvoiceExchangeRate()"></select>
           </div>
           <div id="box-inv-rate" style="display:none;">
-            <label style="font-size:11px;">سعر الصرف مقابل العملة الأساسية</label>
+            <label style="font-size:11px;">سعر الصرف اللحظي</label>
             <input type="number" id="inv-exchange-rate" value="1" step="any" min="0.0001" oninput="calculateInvoiceTotals()">
           </div>
         </div>
@@ -443,7 +443,7 @@
       <div id="sub-report-income" style="display: none;">
         <div class="report-card">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-            <h4 style="color: var(--primary); margin:0;"><i class="fa-solid fa-chart-line"></i> قائمة الدخل (وفق المعايير المحاسبية)</h4>
+            <h4 style="color: var(--primary); margin:0;"><i class="fa-solid fa-chart-line"></i> قائمة الدخل (المعايير المحاسبية)</h4>
             <button class="btn btn-primary" style="width:auto; padding:5px 10px; font-size:11px;" onclick="triggerUniversalPrint('income')"><i class="fa-solid fa-print"></i> طباعة</button>
           </div>
           
@@ -1157,7 +1157,6 @@
   let baseCurrency = localStorage.getItem('smart_base_currency') || 'ر.س';
   let currentCurrency = baseCurrency;
 
-  // سجل العملات الأجنبية وأسعار صرفها
   const defaultForeignCurrencies = [
     { code: "USD", name: "دولار أمريكي", symbol: "$", rate: 3.75 },
     { code: "EUR", name: "يورو أوروبي", symbol: "€", rate: 4.10 },
@@ -1240,7 +1239,6 @@
     return new Date().toISOString().split('T')[0];
   }
 
-  // فلترة بنود المصروفات (تشغيلي / غير تشغيلي)
   function filterExpenseAccountsByCategory() {
     const cat = document.getElementById('quick-exp-category').value;
     const expSel = document.getElementById('quick-exp-acc');
@@ -1317,7 +1315,6 @@
     }
   }
 
-  // دوال سند القبض وإيرادات أخرى
   function openOtherIncomeModal() {
     const srcSel = document.getElementById('other-inc-target');
     const sourceAccounts = chartOfAccounts.filter(a => a.base === 'cash' || a.base === 'bank');
@@ -1372,7 +1369,6 @@
     }
   }
 
-  // إدارة جدول العملات المتعددة وسعر الصرف في الإعدادات
   function renderCurrenciesTable() {
     const container = document.getElementById('currencies-table-container');
     if (!container) return;
@@ -1552,7 +1548,6 @@
     showToast(`اكتملت التسوية بنجاح: أرباح (${totalGain.toFixed(2)}) | خسائر (${totalLoss.toFixed(2)}) ✅`);
   }
 
-  // دوال سجل الأصول الثابتة
   function renderFixedAssetsDepreciationList() {
     const container = document.getElementById('fixed-assets-list-container');
     if (!container) return;
@@ -1742,7 +1737,6 @@
     }
   }
 
-  // دوال بطاقة الصنف والمخزون والتعديل المباشر
   function openItemCardModal(itemCode = "") {
     if (itemCode) {
       const it = inventoryItems.find(x => x.code === itemCode);
@@ -1789,7 +1783,6 @@
       inventoryItems.push({ code, name, unit: "حبة", cost, price, qty, reorder });
     }
 
-    // الربط المحاسبي التلقائي المباشر مع حساب المخزون 1131
     const newVal = qty * cost;
     const diffVal = newVal - oldVal;
 
@@ -1870,7 +1863,6 @@
     });
   }
 
-  // منظومة الطباعة الفورية المباشرة الشاملة (Direct Print & Share)
   let currentPrintDocumentData = { title: "", htmlContent: "" };
 
   function triggerUniversalPrint(reportType) {
@@ -1945,7 +1937,6 @@
     document.getElementById('modal-print-preview').classList.remove('open');
   }
 
-  // الطباعة الفورية الصريحة المباشرة لأي طابعة شبكية / AirPrint / طابعة الموبايل
   function executeNativeIframePrint() {
     const docData = currentPrintDocumentData;
     const cleanHtml = `
@@ -1955,11 +1946,11 @@
         <meta charset="UTF-8">
         <title>${docData.title}</title>
         <style>
-          @page { size: A4; margin: 15mm; }
-          body { font-family: 'Cairo', sans-serif; padding: 10px; color: #000; background: #fff; }
+          @page { size: A4 portrait; margin: 12mm; }
+          body { font-family: 'Cairo', sans-serif; padding: 10px; color: #000; background: #fff; margin: 0; }
           table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-          th, td { border: 1px solid #000; padding: 6px; text-align: right; font-size: 12px; }
-          th { background: #f1f5f9; }
+          th, td { border: 1px solid #334155; padding: 6px 8px; text-align: right; font-size: 11px; }
+          th { background-color: #f1f5f9 !important; }
           .btn, button, .btn-inv-tag, .btn-edit-tag { display: none !important; }
         </style>
       </head>
@@ -1969,28 +1960,19 @@
       </html>
     `;
 
-    // إطار طباعة مخفي يفتح مدير طباعة النظام فوراً
-    let printIframe = document.getElementById('hidden-direct-print-frame');
-    if (!printIframe) {
-      printIframe = document.createElement('iframe');
-      printIframe.id = 'hidden-direct-print-frame';
-      printIframe.style.cssText = 'position:fixed; top:-9999px; left:-9999px; width:1px; height:1px; border:none;';
-      document.body.appendChild(printIframe);
+    const printWin = window.open('', '_blank');
+    if (printWin) {
+      printWin.document.open();
+      printWin.document.write(cleanHtml);
+      printWin.document.close();
+      printWin.focus();
+      setTimeout(function() { printWin.print(); }, 500);
+    } else {
+      window.print();
     }
-
-    const frameDoc = printIframe.contentWindow || printIframe.contentDocument.document || printIframe.contentDocument;
-    frameDoc.document.open();
-    frameDoc.document.write(cleanHtml);
-    frameDoc.document.close();
-
-    setTimeout(() => {
-      frameDoc.focus();
-      frameDoc.print();
-    }, 400);
   }
 
-  // المشاركة كملف مستند رسمي
-  function executeNativeShare() {
+  async function executeNativeShare() {
     const docData = currentPrintDocumentData;
     const cleanHtml = `
       <!DOCTYPE html>
@@ -1999,36 +1981,39 @@
         <meta charset="UTF-8">
         <title>${docData.title}</title>
         <style>
-          body { font-family: 'Cairo', sans-serif; padding: 20px; color: #000; }
-          table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-          th, td { border: 1px solid #000; padding: 6px; text-align: right; font-size: 12px; }
-          th { background: #f1f5f9; }
-          .btn, button, .btn-inv-tag, .btn-edit-tag { display: none !important; }
+          body { font-family: sans-serif; padding: 15px; }
+          table { width: 100%; border-collapse: collapse; }
+          th, td { border: 1px solid #ccc; padding: 6px; text-align: right; }
         </style>
       </head>
-      <body>
-        ${docData.htmlContent}
-      </body>
+      <body>${docData.htmlContent}</body>
       </html>
     `;
 
-    const blob = new Blob([cleanHtml], { type: 'text/html;charset=utf-8' });
-    const file = new File([blob], `${docData.title}.html`, { type: 'text/html' });
-
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      navigator.share({
-        files: [file],
-        title: docData.title,
-        text: `تقرير محاسبي معتمد: ${docData.title}`
-      }).catch(err => {
-        executeNativeIframePrint();
-      });
-    } else {
-      executeNativeIframePrint();
+    try {
+      const file = new File([cleanHtml], `${docData.title}.html`, { type: 'text/html' });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: docData.title,
+          text: `تقرير محاسبي معتمد: ${docData.title}`
+        });
+        return;
+      }
+    } catch (err) {
+      console.warn("المشاركة كملف غير مدعومة، التحويل للتنزيل المباشر...", err);
     }
+
+    const blob = new Blob([cleanHtml], { type: 'text/html;charset=utf-8' });
+    const downloadLink = document.createElement('a');
+    downloadLink.href = URL.createObjectURL(blob);
+    downloadLink.download = `${docData.title}.html`;
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+    showToast('تم تنزيل المستند بنجاح على هاتفك ✅');
   }
 
-  // دوال فريق العمل
   function openAddMemberModal() {
     document.getElementById('new-member-email').value = '';
     document.getElementById('modal-add-member').classList.add('open');
@@ -2105,7 +2090,6 @@
     container.innerHTML = html;
   }
 
-  // مساحة العمل
   function openOnboardingModal(allowClose = true) {
     document.getElementById('modal-onboarding').classList.add('open');
   }
@@ -2161,7 +2145,6 @@
     }
   }
 
-  // إضافة حساب جديد أو أصل ثابت
   function openAddAccountModal(presetType) {
     document.getElementById('modal-add-account').classList.add('open');
     if (presetType) document.getElementById('new-acc-type').value = presetType;
@@ -2248,7 +2231,6 @@
     showToast(`تمت إضافة ${name} برقم ${code} بنجاح ✅`);
   }
 
-  // المزامنة والنسخ الاحتياطي السحابي
   async function triggerCloudSync() {
     const sheetId = localStorage.getItem('user_sheet_id');
     if (!sheetId) return showToast('يرجى إدخال معرّف الشيت في تبويب الإعدادات أولاً', true);
@@ -2386,7 +2368,6 @@
     }
   }
 
-  // الكاميرا والذكاء الاصطناعي
   let videoStream = null;
 
   async function startLiveCamera() {
@@ -2479,7 +2460,6 @@
     }
   }
 
-  // إدارة العملة الأساسية للمنشأة
   function applyBaseCurrency(symbol) {
     baseCurrency = symbol;
     currentCurrency = symbol;
@@ -2501,7 +2481,6 @@
     if (val) selectBaseCurrency(val, val);
   }
 
-  // الحسابات والتقارير المالية المعيارية
   function calculateFinancialReports() {
     let salesRev = 0, cogs = 0, deprExpense = 0, operatingExp = 0, nonOperatingExp = 0, otherRev = 0, taxOut = 0, taxIn = 0;
     let accountBalances = {};
@@ -2746,7 +2725,6 @@
     if (subId === 'inventory') renderInventoryReport();
   }
 
-  // دوال الفواتير
   function populateAccountSelects() {
     let accHtml = '';
     chartOfAccounts.forEach(a => {
@@ -2975,7 +2953,6 @@
     const taxAmount = subtotal * (taxRate / 100);
     const grandTotal = subtotal + taxAmount;
 
-    // المبالغ مقومة بالعملة الأساسية للدفاتر
     const grandTotalLocal = grandTotal * exchangeRate;
     const subtotalLocal = subtotal * exchangeRate;
     const taxAmountLocal = taxAmount * exchangeRate;
@@ -3083,7 +3060,6 @@
     document.getElementById('modal-view-invoice').classList.remove('open');
   };
 
-  // دوال كشف الحساب والقيود
   function loadStatementData() {
     const sel = document.getElementById('statement-account-selector');
     if (!sel || !sel.value) return;

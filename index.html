@@ -59,7 +59,7 @@
     input, select, textarea { width: 100%; padding: 11px 13px; border: 1px solid var(--border); border-radius: 10px; font-size: 13px; background: white; color: var(--text); outline: none; transition: border 0.2s; }
     input:focus, select:focus, textarea:focus { border-color: var(--primary); }
 
-    .entry-row, .inv-item-row, .wizard-item-row { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-bottom: 12px; position: relative; }
+    .entry-row, .inv-item-row { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-bottom: 12px; position: relative; }
     .btn-remove-row { position: absolute; top: -8px; left: -8px; background: var(--danger); color: white; border: none; width: 22px; height: 22px; border-radius: 50%; font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 
     .balance-box { background: #f1f5f9; padding: 14px; border-radius: 12px; margin: 16px 0; display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 700; }
@@ -144,9 +144,6 @@
     #ocr-loading-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.85); z-index: 2147483649; align-items: center; justify-content: center; flex-direction: column; color: white; text-align: center; padding: 20px; backdrop-filter: blur(5px); }
     .backup-item-card { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
 
-    /* الطباعة المباشرة النظيفة A4 */
-    .print-only-header { display: none; }
-
     @media print {
       @page { size: A4 portrait; margin: 10mm; }
       body { background-color: #fff !important; color: #000 !important; margin: 0 !important; padding: 0 !important; }
@@ -155,22 +152,9 @@
       main { padding: 0 !important; overflow: visible !important; }
       .tab-content { display: none !important; }
       #tab-statement { display: block !important; }
-      
-      .print-only-header {
-        display: flex !important;
-        justify-content: space-between;
-        align-items: flex-end;
-        border-bottom: 2px solid #000;
-        padding-bottom: 8px;
-        margin-bottom: 14px;
-      }
-
       .statement-table { width: 100% !important; border-collapse: collapse !important; border: 1px solid #000 !important; font-size: 11px !important; margin-top: 10px !important; }
       .statement-table th, .statement-table td { border: 1px solid #000 !important; padding: 6px 8px !important; color: #000 !important; }
-      .statement-table th { background: #f1f5f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; font-weight: 800 !important; }
-      
-      .report-card { border: 1px solid #000 !important; padding: 15px !important; box-shadow: none !important; }
-      .report-card h4 button { display: none !important; }
+      .statement-table th { background: #f1f5f9 !important; font-weight: 800 !important; }
     }
   </style>
 </head>
@@ -430,18 +414,6 @@
         <button class="btn btn-secondary" style="flex:1; padding:8px; font-size:11px; white-space:nowrap;" onclick="switchSubReport('tax')">الإقرار الضريبي</button>
       </div>
 
-      <!-- ترويسة رسمية تظهر فقط عند أمر الطباعة على ورقة A4 -->
-      <div class="print-only-header">
-        <div>
-          <div style="font-size:16px; font-weight:900;">المحاسب الذكي | Smart Ledger Pro</div>
-          <div id="print-sub-title" style="font-size:12px; font-weight:700; color:#2563eb; margin-top:2px;">كشف حساب رسمي معتمد</div>
-        </div>
-        <div style="text-align:left; font-size:10px;">
-          <div>التاريخ: <strong id="print-date-display"></strong></div>
-          <div>العملة: <strong class="base-curr-label">ر.س</strong></div>
-        </div>
-      </div>
-
       <!-- كشف الحساب -->
       <div id="sub-report-ledger">
         <div class="form-group">
@@ -454,10 +426,10 @@
         </div>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;">
-          <button class="btn btn-primary" onclick="directPrintReport('ledger')">
+          <button class="btn btn-primary" onclick="universalPrintAction('ledger')">
             <i class="fa-solid fa-print"></i> طباعة فورية للمستند 🖨️
           </button>
-          <button class="btn btn-secondary" onclick="directShareReport('ledger')">
+          <button class="btn btn-secondary" onclick="universalShareAction('ledger')">
             <i class="fa-solid fa-share-nodes"></i> مشاركة التقرير 📲
           </button>
         </div>
@@ -478,8 +450,8 @@
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
             <h4 style="color: var(--primary); margin:0;"><i class="fa-solid fa-chart-line"></i> قائمة الدخل (المعايير المحاسبية)</h4>
             <div style="display:flex; gap:6px;">
-              <button class="btn btn-primary" style="width:auto; padding:5px 10px; font-size:11px;" onclick="directPrintReport('income')"><i class="fa-solid fa-print"></i> طباعة</button>
-              <button class="btn btn-secondary" style="width:auto; padding:5px 10px; font-size:11px;" onclick="directShareReport('income')"><i class="fa-solid fa-share-nodes"></i> مشاركة</button>
+              <button class="btn btn-primary" style="width:auto; padding:5px 10px; font-size:11px;" onclick="universalPrintAction('income')"><i class="fa-solid fa-print"></i> طباعة</button>
+              <button class="btn btn-secondary" style="width:auto; padding:5px 10px; font-size:11px;" onclick="universalShareAction('income')"><i class="fa-solid fa-share-nodes"></i> مشاركة</button>
             </div>
           </div>
           
@@ -517,8 +489,8 @@
             <h4 style="color: var(--primary); margin:0;"><i class="fa-solid fa-scale-balanced"></i> قائمة المركز المالي (الميزانية)</h4>
             <div style="display:flex; gap:6px; align-items:center;">
               <span id="bs-balance-status" class="status-badge balanced">متوازنة ✓</span>
-              <button class="btn btn-primary" style="width:auto; padding:5px 10px; font-size:11px;" onclick="directPrintReport('balance_sheet')"><i class="fa-solid fa-print"></i> طباعة</button>
-              <button class="btn btn-secondary" style="width:auto; padding:5px 10px; font-size:11px;" onclick="directShareReport('balance_sheet')"><i class="fa-solid fa-share-nodes"></i> مشاركة</button>
+              <button class="btn btn-primary" style="width:auto; padding:5px 10px; font-size:11px;" onclick="universalPrintAction('balance_sheet')"><i class="fa-solid fa-print"></i> طباعة</button>
+              <button class="btn btn-secondary" style="width:auto; padding:5px 10px; font-size:11px;" onclick="universalShareAction('balance_sheet')"><i class="fa-solid fa-share-nodes"></i> مشاركة</button>
             </div>
           </div>
 
@@ -556,7 +528,7 @@
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
             <h4 style="color: var(--warning); margin:0;"><i class="fa-solid fa-landmark"></i> سجل الأصول الثابتة والتحليل الرقابي</h4>
             <div style="display:flex; gap:6px;">
-              <button class="btn btn-primary" style="width:auto; padding:6px 12px; font-size:11px;" onclick="directPrintReport('assets')"><i class="fa-solid fa-print"></i> طباعة السجل</button>
+              <button class="btn btn-primary" style="width:auto; padding:6px 12px; font-size:11px;" onclick="universalPrintAction('assets')"><i class="fa-solid fa-print"></i> طباعة السجل</button>
               <button class="btn btn-success" style="width:auto; padding:6px 12px; font-size:11px;" onclick="openAddAccountModal('asset')">+ تسجيل أصل</button>
             </div>
           </div>
@@ -621,7 +593,7 @@
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
             <h4 style="color: var(--primary); margin:0;"><i class="fa-solid fa-boxes-stacked"></i> جرد المستودع وبطاقات الأصناف</h4>
             <div style="display:flex; gap:6px;">
-              <button class="btn btn-secondary" style="width:auto; padding:6px 10px; font-size:11px;" onclick="directPrintReport('inventory')"><i class="fa-solid fa-print"></i> طباعة الجرد</button>
+              <button class="btn btn-secondary" style="width:auto; padding:6px 10px; font-size:11px;" onclick="universalPrintAction('inventory')"><i class="fa-solid fa-print"></i> طباعة الجرد</button>
               <button class="btn btn-primary" style="width:auto; padding:6px 12px; font-size:11px;" onclick="openItemCardModal()">+ إضافة صنف</button>
             </div>
           </div>
@@ -644,7 +616,7 @@
         <div class="report-card">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
             <h4 style="color: var(--primary); margin:0;"><i class="fa-solid fa-table-list"></i> ميزان المراجعة بالأرصدة</h4>
-            <button class="btn btn-primary" style="width:auto; padding:5px 10px; font-size:11px;" onclick="directPrintReport('trial')"><i class="fa-solid fa-print"></i> طباعة الميزان</button>
+            <button class="btn btn-primary" style="width:auto; padding:5px 10px; font-size:11px;" onclick="universalPrintAction('trial')"><i class="fa-solid fa-print"></i> طباعة الميزان</button>
           </div>
           <table class="statement-table" id="main-trial-table">
             <thead>
@@ -1096,8 +1068,8 @@
     </div>
     <div id="digital-invoice-body"></div>
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px;">
-      <button class="btn btn-primary" onclick="directPrintReport('invoice_current')"><i class="fa-solid fa-print"></i> طباعة الفاتورة 🖨️</button>
-      <button class="btn btn-secondary" onclick="directShareReport('invoice_current')"><i class="fa-solid fa-share-nodes"></i> مشاركة الفاتورة 📲</button>
+      <button class="btn btn-primary" onclick="universalPrintAction('invoice_current')"><i class="fa-solid fa-print"></i> طباعة الفاتورة 🖨️</button>
+      <button class="btn btn-secondary" onclick="universalShareAction('invoice_current')"><i class="fa-solid fa-share-nodes"></i> مشاركة الفاتورة 📲</button>
     </div>
   </div>
 </div>
@@ -1128,7 +1100,7 @@
 <script>
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx4KelOxUEpf8grAQ_Ax0EuZQnIEwOV_do-EsfkORQ6R8lUWISqL8eU-NWiwTEPK-4O/exec";
 
-  function showToast(message, isError = false) {
+  function showToast(message, isError) {
     let toast = document.getElementById("appToast");
     if (!toast) {
       toast = document.createElement("div");
@@ -1140,7 +1112,7 @@
     toast.textContent = message;
     toast.style.opacity = "1";
     toast.style.transform = "translateX(-50%) translateY(0)";
-    setTimeout(() => { toast.style.opacity = "0"; }, 3200);
+    setTimeout(function() { toast.style.opacity = "0"; }, 3200);
   }
 
   const defaultAccounts = [
@@ -1568,8 +1540,8 @@
                 lines.push({ accountCode: inv.partyCode, accountName: inv.partyName, description: `تسوية فروق صرف التزام مورد (فاتورة #${inv.id})`, debit: 0, credit: diff });
               } else {
                 totalGain += Math.abs(diff);
-                lines.push({ accountCode: inv.partyCode, accountName: inv.partyName, description: `أرباح فروق صرف تخفيض التزام مورد`, debit: Math.abs(diff), credit: 0 });
                 lines.push({ accountCode: "4201", accountName: "إيرادات أخرى ومتنوعة", description: `أرباح فروق عملة التزام مورد (${currObj.code})`, debit: 0, credit: Math.abs(diff) });
+                lines.push({ accountCode: inv.partyCode, accountName: inv.partyName, description: `أرباح فروق صرف تخفيض التزام مورد`, debit: Math.abs(diff), credit: 0 });
               }
             }
             inv.exchangeRate = currentMarketRate;
@@ -1910,38 +1882,110 @@
     });
   }
 
-  // الطباعة المباشرة من الصفحة بنظام A4 المتوافق مع الموبايل
-  function directPrintReport(reportType) {
-    const today = Utilities_getTodayStr();
-    const dtEl = document.getElementById('print-date-display');
-    if (dtEl) dtEl.innerText = today;
-
-    const subTitleEl = document.getElementById('print-sub-title');
-    if (subTitleEl) {
-      if (reportType === 'ledger') {
-        const sel = document.getElementById('statement-account-selector');
-        const accName = sel && sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text : "الحساب";
-        subTitleEl.innerText = `كشف حساب تفصيلي رسمي - ${accName}`;
-      } else if (reportType === 'income') {
-        subTitleEl.innerText = `قائمة الدخل والأرباح والخسائر المعيارية`;
-      } else if (reportType === 'balance_sheet') {
-        subTitleEl.innerText = `قائمة المركز المالي (الميزانية العمومية)`;
-      } else if (reportType === 'assets') {
-        subTitleEl.innerText = `سجل الأصول الثابتة ومجمعات الإهلاك (IAS 16)`;
-      } else if (reportType === 'inventory') {
-        subTitleEl.innerText = `تقرير جرد بضاعة المستودع (WAC)`;
-      } else if (reportType === 'trial') {
-        subTitleEl.innerText = `ميزان المراجعة بالأرصدة`;
-      } else if (reportType === 'invoice_current') {
-        subTitleEl.innerText = `فاتورة رقمية رسمية`;
-      }
-    }
-
-    window.print();
+  // ==============================================================
+  // محرك الطباعة/التصدير المتوافق 100% مع تطبيقات الموبايل والكمبيوتر
+  // ==============================================================
+  function cleanReportHtmlForDocument(sourceElement) {
+    if (!sourceElement) return '';
+    const clone = sourceElement.cloneNode(true);
+    clone.querySelectorAll('button, .btn, .btn-inv-tag, .btn-edit-tag').forEach(el => el.remove());
+    return clone.innerHTML;
   }
 
-  // المشاركة الأصلية الشاملة لكافة تطبيقات الهاتف
-  async function directShareReport(reportType) {
+  function universalPrintAction(reportType) {
+    const today = Utilities_getTodayStr();
+    let title = "تقرير محاسبي";
+    let bodyHtml = "";
+
+    if (reportType === 'ledger') {
+      const sel = document.getElementById('statement-account-selector');
+      const accName = sel && sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text : "الحساب";
+      const balEl = document.getElementById('final-balance');
+      const bal = balEl ? balEl.innerText : "0.00";
+      title = `كشف حساب - ${accName}`;
+      
+      const cloneTable = document.getElementById('main-statement-table').cloneNode(true);
+      cloneTable.querySelectorAll('.btn-inv-tag, .btn-edit-tag, button').forEach(el => el.remove());
+
+      bodyHtml = `
+        <div style="background:#f8fafc; padding:10px; border:1px solid #cbd5e1; border-radius:6px; margin-bottom:12px; display:flex; justify-content:space-between; font-size:12px;">
+          <span>الحساب: <strong>${accName}</strong></span>
+          <span>الرصيد: <strong style="color:#2563eb;">${bal} ${baseCurrency}</strong></span>
+        </div>
+        ${cloneTable.outerHTML}
+      `;
+    } else if (reportType === 'income') {
+      title = `قائمة الدخل - ${today}`;
+      bodyHtml = cleanReportHtmlForDocument(document.getElementById('sub-report-income').querySelector('.report-card'));
+    } else if (reportType === 'balance_sheet') {
+      title = `الميزانية العمومية - ${today}`;
+      bodyHtml = cleanReportHtmlForDocument(document.getElementById('sub-report-balance-sheet').querySelector('.report-card'));
+    } else if (reportType === 'assets') {
+      title = `سجل الأصول الثابتة - ${today}`;
+      bodyHtml = cleanReportHtmlForDocument(document.getElementById('fixed-assets-list-container'));
+    } else if (reportType === 'inventory') {
+      title = `جرد المستودع - ${today}`;
+      const cloneInv = document.getElementById('main-inventory-table').cloneNode(true);
+      cloneInv.querySelectorAll('button').forEach(b => b.remove());
+      bodyHtml = cloneInv.outerHTML;
+    } else if (reportType === 'trial') {
+      title = `ميزان المراجعة - ${today}`;
+      bodyHtml = document.getElementById('sub-report-trial').querySelector('.statement-table').outerHTML;
+    } else if (reportType === 'invoice_current') {
+      title = `فاتورة رقمية`;
+      bodyHtml = document.getElementById('digital-invoice-body').innerHTML;
+    }
+
+    const docContent = `
+      <!DOCTYPE html>
+      <html lang="ar" dir="rtl">
+      <head>
+        <meta charset="UTF-8">
+        <title>${title}</title>
+        <style>
+          @page { size: A4 portrait; margin: 12mm; }
+          body { font-family: sans-serif; padding: 15px; color: #000; background: #fff; margin: 0; }
+          .header-box { border-bottom: 2px solid #0f172a; padding-bottom: 8px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: flex-end; }
+          table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 11px; }
+          th, td { border: 1px solid #334155; padding: 6px 8px; text-align: right; }
+          th { background: #f1f5f9; font-weight: 800; }
+        </style>
+      </head>
+      <body>
+        <div class="header-box">
+          <div>
+            <div style="font-size: 16px; font-weight: 900;">المحاسب الذكي | Smart Ledger Pro</div>
+            <div style="font-size: 13px; font-weight: 700; color: #2563eb; margin-top: 2px;">${title}</div>
+          </div>
+          <div style="text-align: left; font-size: 10px;">
+            <div>التاريخ: ${today}</div>
+            <div>العملة: ${baseCurrency}</div>
+          </div>
+        </div>
+        ${bodyHtml}
+      </body>
+      </html>
+    `;
+
+    // تنزيل الملف فوراً ليفتحه عارض المستندات الرسمي في الموبايل ومعه زر الطباعة
+    const blob = new Blob([docContent], { type: 'text/html;charset=utf-8' });
+    const downloadUrl = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = `${title}.html`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showToast('تم تصدير المستند بنجاح جاهزاً للطباعة 🖨️');
+
+    // إذا كان يعمل على المتصفح بالكمبيوتر يستدعي الطباعة المباشرة أيضاً
+    try { window.print(); } catch(e){}
+  }
+
+  // ==============================================================
+  // المشاركة الشاملة لجميع تطبيقات الهاتف دون الدخول لحساب جوجل
+  // ==============================================================
+  async function universalShareAction(reportType) {
     const today = Utilities_getTodayStr();
     let shareTitle = "المحاسب الذكي";
     let shareText = "";
@@ -1952,23 +1996,23 @@
       const balEl = document.getElementById('final-balance');
       const bal = balEl ? balEl.innerText : "0.00";
       shareTitle = `كشف حساب - ${accName}`;
-      shareText = `📄 المحاسب الذكي | كشف حساب رسمي\nالحساب: ${accName}\nالتاريخ: ${today}\nالرصيد الدفتري الحالي: ${bal} ${baseCurrency}`;
+      shareText = `📄 المحاسب الذكي Pro | كشف حساب رسمي\nالحساب: ${accName}\nالتاريخ: ${today}\nالرصيد الدفتري الحالي: ${bal} ${baseCurrency}`;
     } else if (reportType === 'income') {
       const netProfEl = document.getElementById('rep-net-profit');
       const netProf = netProfEl ? netProfEl.innerText : "0.00";
       shareTitle = `قائمة الدخل - ${today}`;
-      shareText = `📊 المحاسب الذكي | قائمة الدخل الرسمية\nعن الفترة حتى: ${today}\nصافي الربح/الخسارة: ${netProf} ${baseCurrency}`;
+      shareText = `📊 المحاسب الذكي | قائمة الدخل الرسمية\nالتاريخ: ${today}\nصافي الربح/الخسارة: ${netProf} ${baseCurrency}`;
     } else if (reportType === 'balance_sheet') {
       const totAssetsEl = document.getElementById('bs-total-assets');
       const totAssets = totAssetsEl ? totAssetsEl.innerText : "0.00";
       shareTitle = `الميزانية العمومية - ${today}`;
-      shareText = `⚖️ المحاسب الذكي | الميزانية العمومية\nكما في تاريخ: ${today}\nإجمالي المركز المالي: ${totAssets} ${baseCurrency}`;
+      shareText = `⚖️ المحاسب الذكي | الميزانية العمومية\nالتاريخ: ${today}\nإجمالي المركز المالي: ${totAssets} ${baseCurrency}`;
     } else if (reportType === 'invoice_current') {
-      shareTitle = `فاتورة رسمية`;
-      shareText = `🧾 فاتورة صادرة من المحاسب الذكي\nالتاريخ: ${today}`;
+      shareTitle = `فاتورة رقمية`;
+      shareText = `🧾 فاتورة صادرة عبر نظام المحاسب الذكي Pro\nالتاريخ: ${today}`;
     } else {
       shareTitle = `تقرير مالي - ${today}`;
-      shareText = `📊 تقرير محاسبي صادر من المحاسب الذكي بتأريخ ${today}`;
+      shareText = `📊 تقرير محاسبي معتمد صادر من المحاسب الذكي بتاريخ ${today}`;
     }
 
     if (navigator.share) {
@@ -1981,14 +2025,18 @@
         return;
       } catch (err) {
         if (err.name !== 'AbortError') {
-          console.warn("المشاركة تعذرت:", err);
+          console.warn("المشاركة الأصلية:", err);
         }
       }
     }
 
+    // البديل المباشر في حال رفض الـ WebView: فتح رابط المشاركة المباشر أو النسخ
     if (navigator.clipboard) {
       navigator.clipboard.writeText(shareText);
-      showToast('تم نسخ التقرير إلى الحافظة بنجاح ✅');
+      showToast('تم نسخ التقرير إلى الحافظة بنجاح لمشاركته ✅');
+    } else {
+      const waUrl = "https://api.whatsapp.com/send?text=" + encodeURIComponent(shareText);
+      window.open(waUrl, '_blank');
     }
   }
 
@@ -2070,7 +2118,7 @@
     container.innerHTML = html;
   }
 
-  function openOnboardingModal(allowClose = true) {
+  function openOnboardingModal(allowClose) {
     const m = document.getElementById('modal-onboarding');
     if (m) m.classList.add('open');
   }
@@ -2375,7 +2423,7 @@
       fallbackInput.type = 'file';
       fallbackInput.accept = 'image/*';
       fallbackInput.capture = 'environment';
-      fallbackInput.onchange = () => handleSystemPhoto(fallbackInput);
+      fallbackInput.onchange = function() { handleSystemPhoto(fallbackInput); };
       fallbackInput.click();
     }
   }

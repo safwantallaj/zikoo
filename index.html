@@ -144,9 +144,6 @@
     #ocr-loading-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.85); z-index: 110; align-items: center; justify-content: center; flex-direction: column; color: white; text-align: center; padding: 20px; backdrop-filter: blur(5px); }
     .backup-item-card { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
 
-    /* ==============================================================
-       الطباعة النظيفة الرسمية المباشرة بنظام A4 (عبر نافذة النظام)
-       ============================================================== */
     .print-official-header { display: none; }
 
     @media print {
@@ -205,6 +202,7 @@
       </div>
     </div>
   </header>
+
   <main>
     
     <!-- Tab 1: Dashboard -->
@@ -720,7 +718,7 @@
 
   </main>
 
- <nav>
+  <nav>
     <div class="nav-item active" onclick="switchTab('tab-home')">
       <i class="fa-solid fa-house"></i>
       <span>الرئيسية</span>
@@ -742,6 +740,7 @@
       <span>الإعدادات</span>
     </div>
   </nav>
+
 </div>
 
 <!-- Modal: تسجيل سند صرف / مصروف -->
@@ -2095,7 +2094,7 @@
           <div style="font-size:10px; color:var(--text-muted);">${it.code}</div>
           <span class="stock-badge ${statusClass}">${statusText}</span>
         </td>
-        <td style="font-weight:700; font-size:14px;">${it.qty} ${it.unit || 'حبة'}</td>
+        <td style="font-weight:700; font-size:14px;">${it.qty}${it.unit || 'حبة'}</td>
         <td>${Number(it.cost).toFixed(2)}</td>
         <td style="font-weight:700; color:var(--primary);">${totalVal.toLocaleString(undefined, {minimumFractionDigits:2})}</td>
       `;
@@ -2948,4 +2947,40 @@
 
     cancelEditInvoiceMode();
     var stmtSel = document.getElementById('statement-account-selector');
-    if (stmtSel) { stmtSel.
+    if (stmtSel) { stmtSel.value = partyCode; switchTab('tab-statement'); }
+  }
+
+  function cancelEditInvoiceMode() {
+    document.getElementById('editing-invoice-id').value = '';
+    document.getElementById('invoice-form-title').innerText = 'إصدار فاتورة ذكية';
+    document.getElementById('btn-cancel-edit-inv').style.display = 'none';
+    document.getElementById('invoice-items-list').innerHTML = '';
+    addInvoiceItemRow();
+    calculateInvoiceTotals();
+  }
+
+  window.openInvoicePopup = function(invId, entryIndex) {
+    var inv = smartInvoices.find(function(x) { return x.id === invId; });
+    if (!inv) return showToast('لا توجد تفاصيل لهذه الفاتورة', true);
+
+    var currSym = baseCurrency;
+    if (inv.currency && inv.currency !== 'BASE') {
+      var cObj = foreignCurrencies.find(function(c) { return c.code === inv.currency; });
+      currSym = cObj ? cObj.symbol : inv.currency;
+    }
+
+    var itemsRows = '';
+    inv.items.forEach(function(it, idx) {
+      itemsRows += `
+        <tr>
+          <td>${idx + 1}</td><td><strong>${it.itemName}</strong></td>
+          <td style="text-align:center;">${it.qty}</td>
+          <td style="text-align:left;">${Number(it.unitPrice).toFixed(2)}</td>
+          <td style="text-align:left; font-weight:700;">${(Number(it.qty) * Number(it.unitPrice)).toFixed(2)}</td>
+        </tr>
+      `;
+    });
+
+    document.getElementById('digital-invoice-body').innerHTML = `
+      <div class="digital-invoice">
+        <div style="font-weight:800; margin-bottom:8px;">${inv.type === 'sales' ? 'فات

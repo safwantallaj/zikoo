@@ -1913,44 +1913,111 @@
   }
 
  // ==============================================================
-  // 1. محرك الطباعة المتوافق (مع تحويل للمتصفح الخارجي إن لزم)
+  // 1. محرك الطباعة المتوافق تماماً مع تطبيقات الموبايل والكمبيوتر
   // ==============================================================
   function directPrint(reportType) {
     var today = Utilities_getTodayStr();
     var dtEl = document.getElementById('print-date-display');
     if (dtEl) dtEl.innerText = today;
 
-    var subTitleEl = document.getElementById('print-sub-title');
-    if (subTitleEl) {
-      if (reportType === 'ledger') {
-        var sel = document.getElementById('statement-account-selector');
-        var accName = sel && sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text : "الحساب";
-        subTitleEl.innerText = 'كشف حساب تفصيلي معتمد - ' + accName;
-      } else if (reportType === 'income') {
-        subTitleEl.innerText = 'قائمة الدخل والأرباح والخسائر المعيارية';
-      } else if (reportType === 'balance_sheet') {
-        subTitleEl.innerText = 'قائمة المركز المالي (الميزانية العمومية)';
-      } else if (reportType === 'assets') {
-        subTitleEl.innerText = 'سجل حصر الأصول الثابتة والإهلاك (IAS 16)';
-      } else if (reportType === 'inventory') {
-        subTitleEl.innerText = 'تقرير جرد بضاعة المستودع (WAC)';
-      } else if (reportType === 'trial') {
-        subTitleEl.innerText = 'ميزان المراجعة بالأرصدة';
-      } else if (reportType === 'invoice_current') {
-        subTitleEl.innerText = 'فاتورة رسمية معتمدة';
-      }
+    var title = "تقرير محاسبي";
+    var tableHtml = "";
+
+    if (reportType === 'ledger') {
+      var sel = document.getElementById('statement-account-selector');
+      var accName = sel && sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text : "الحساب";
+      var balEl = document.getElementById('final-balance');
+      var bal = balEl ? balEl.innerText : "0.00";
+      title = "كشف حساب - " + accName;
+      
+      var tbl = document.getElementById('main-statement-table').cloneNode(true);
+      tbl.querySelectorAll('.btn-inv-tag, .btn-edit-tag, button').forEach(function(b) { b.remove(); });
+      
+      tableHtml = `
+        <div style="background:#f8fafc; padding:10px; border:1px solid #cbd5e1; border-radius:6px; margin-bottom:12px; display:flex; justify-content:space-between; font-size:12px;">
+          <span>الحساب: <strong>${accName}</strong></span>
+          <span>الرصيد الدفتري: <strong style="color:#2563eb;">${bal} ${baseCurrency}</strong></span>
+        </div>
+        ${tbl.outerHTML}
+      `;
+    } else if (reportType === 'income') {
+      title = "قائمة الدخل - " + today;
+      var incCard = document.getElementById('sub-report-income').querySelector('.report-card').cloneNode(true);
+      incCard.querySelectorAll('button').forEach(function(b) { b.remove(); });
+      tableHtml = incCard.innerHTML;
+    } else if (reportType === 'balance_sheet') {
+      title = "الميزانية العمومية - " + today;
+      var bsCard = document.getElementById('sub-report-balance-sheet').querySelector('.report-card').cloneNode(true);
+      bsCard.querySelectorAll('button').forEach(function(b) { b.remove(); });
+      tableHtml = bsCard.innerHTML;
+    } else if (reportType === 'assets') {
+      title = "سجل الأصول الثابتة - " + today;
+      var astCont = document.getElementById('fixed-assets-list-container').cloneNode(true);
+      astCont.querySelectorAll('button').forEach(function(b) { b.remove(); });
+      tableHtml = astCont.innerHTML;
+    } else if (reportType === 'inventory') {
+      title = "جرد المستودع - " + today;
+      var invTbl = document.getElementById('main-inventory-table').cloneNode(true);
+      invTbl.querySelectorAll('button').forEach(function(b) { b.remove(); });
+      tableHtml = invTbl.outerHTML;
+    } else if (reportType === 'trial') {
+      title = "ميزان المراجعة - " + today;
+      tableHtml = document.getElementById('sub-report-trial').querySelector('.statement-table').outerHTML;
+    } else if (reportType === 'invoice_current') {
+      title = "فاتورة رسمية";
+      tableHtml = document.getElementById('digital-invoice-body').innerHTML;
     }
 
-    // استدعاء نافذة الطباعة إذا كانت البيئة تدعمها
-    try {
+    // إذا كان يعمل على المتصفح بالكمبيوتر يستدعي الطباعة العادية
+    if (!navigator.userAgent.match(/Android|iPhone|iPad/i)) {
       window.print();
-    } catch(e) {
-      showToast('يرجى فتح الصفحة عبر المتصفح للطباعة المباشرة', true);
+      return;
     }
+
+    // على الهاتف: توليد مستند نظيف بصيغة HTML وتنزيله فوراً ليفتحه عارض مستندات الهاتف ومعه أمر الطباعة الرسمي
+    var fullDoc = `
+      <!DOCTYPE html>
+      <html lang="ar" dir="rtl">
+      <head>
+        <meta charset="UTF-8">
+        <title>${title}</title>
+        <style>
+          @page { size: A4 portrait; margin: 10mm; }
+          body { font-family: sans-serif; padding: 15px; color: #000; background: #fff; margin: 0; }
+          .header-box { border-bottom: 2px solid #000; padding-bottom: 8px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: flex-end; }
+          table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 11px; }
+          th, td { border: 1px solid #334155; padding: 6px 8px; text-align: right; }
+          th { background: #f1f5f9; font-weight: 800; }
+        </style>
+      </head>
+      <body>
+        <div class="header-box">
+          <div>
+            <div style="font-size: 16px; font-weight: 900;">المحاسب الذكي | Smart Ledger Pro</div>
+            <div style="font-size: 13px; font-weight: 700; color: #2563eb; margin-top: 2px;">${title}</div>
+          </div>
+          <div style="text-align: left; font-size: 10px;">
+            <div>التاريخ: ${today}</div>
+            <div>العملة: ${baseCurrency}</div>
+          </div>
+        </div>
+        ${tableHtml}
+      </body>
+      </html>
+    `;
+
+    var blob = new Blob([fullDoc], { type: 'text/html;charset=utf-8' });
+    var link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = title + ".html";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showToast('تم تصدير المستند بنجاح جاهزاً للطباعة 🖨️');
   }
 
   // ==============================================================
-  // 2. محرك المشاركة المتوافق دون التسبب بخطأ ERR_UNKNOWN_URL_SCHEME
+  // 2. محرك المشاركة الشامل (يفتح قائمة كافة التطبيقات)
   // ==============================================================
   async function directShare(reportType) {
     var today = Utilities_getTodayStr();
@@ -1982,7 +2049,7 @@
       shareText = '📊 تقرير محاسبي معتمد صادر من المحاسب الذكي بتاريخ ' + today;
     }
 
-    // محاولة استخدام مشاركة النظام الرسمية إذا كانت مدعومة ومفعلة
+    // تجربة استدعاء قائمة المشاركة الرسمية الشاملة
     if (navigator.share) {
       try {
         await navigator.share({
@@ -1992,18 +2059,17 @@
         showToast('تمت المشاركة بنجاح ✅');
         return;
       } catch (err) {
-        if (err.name === 'AbortError') return;
+        if (err.name !== 'AbortError') {
+          console.warn(err);
+        }
       }
     }
 
-    // البديل المضمون للـ WebView: فتح واتساب مباشرة مع نسخ التقرير للحافظة
+    // إذا حجب التطبيق نافذة المشاركة، يتم نسخ التقرير للحافظة فوراً لتلصقه في أي تطبيق تريده
     if (navigator.clipboard) {
       navigator.clipboard.writeText(shareText);
+      showToast('تم نسخ التقرير إلى الحافظة بنجاح، يمكنك لصقه بأي تطبيق ✅');
     }
-    
-    var waUrl = "https://api.whatsapp.com/send?text=" + encodeURIComponent(shareText);
-    window.open(waUrl, "_blank");
-    showToast('تم نسخ التقرير وفتح المشاركة عبر واتساب ✅');
   }
   function openAddMemberModal() {
     document.getElementById('new-member-email').value = '';

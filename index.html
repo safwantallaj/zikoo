@@ -161,7 +161,7 @@
 
 <div class="app-container">
 
-  <!-- شريط الترخيص الدائم النشط -->
+  <!-- شريط الترخيص الدائم -->
   <div id="license-banner">
     <div>
       <i class="fa-solid fa-crown" style="color:#10b981;"></i>
@@ -272,7 +272,6 @@
           </div>
         </div>
 
-        <!-- خيار العملات المتعددة وسعر الصرف اللحظي -->
         <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 10px; margin-bottom: 10px; background:#f8fafc; padding:8px; border-radius:10px; border:1px solid #e2e8f0;">
           <div>
             <label style="font-size:11px;">عملة الفاتورة</label>
@@ -426,14 +425,14 @@
         </div>
 
         <button class="btn btn-primary" style="margin-bottom: 12px; font-size: 13px;" onclick="triggerUniversalPrint('ledger')">
-          <i class="fa-solid fa-print"></i> طباعة كشف الحساب / تصدير PDF
+          <i class="fa-solid fa-print"></i> معاينة وطباعة كشف الحساب الرسمي
         </button>
 
         <div style="background: var(--bg); padding: 10px 14px; border-radius: 8px; margin-bottom: 10px; font-size: 13px; display: flex; justify-content: space-between;">
           <span id="active-acc-label">الحساب: -</span>
           <span>الرصيد: <strong id="final-balance" style="color: var(--primary);">0.00</strong> <span class="curr-symbol">ر.س</span></span>
         </div>
-        <table class="statement-table">
+        <table class="statement-table" id="main-statement-table">
           <thead><tr><th>التاريخ</th><th>البيان والإجراءات</th><th>مدين</th><th>دائن</th><th>الرصيد</th></tr></thead>
           <tbody id="statement-rows"></tbody>
         </table>
@@ -513,7 +512,7 @@
         </div>
       </div>
 
-      <!-- تبويب سجل الأصول الثابتة والإهلاك الدوري مع العرض السريع والمؤشرات -->
+      <!-- سجل الأصول الثابتة -->
       <div id="sub-report-depreciation" style="display: none;">
         <div class="report-card">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
@@ -588,7 +587,7 @@
               <button class="btn btn-primary" style="width:auto; padding:6px 12px; font-size:11px;" onclick="openItemCardModal()">+ إضافة صنف</button>
             </div>
           </div>
-          <table class="statement-table">
+          <table class="statement-table" id="main-inventory-table">
             <thead>
               <tr>
                 <th>الصنف والكود</th>
@@ -609,7 +608,7 @@
             <h4 style="color: var(--primary); margin:0;"><i class="fa-solid fa-table-list"></i> ميزان المراجعة بالأرصدة</h4>
             <button class="btn btn-primary" style="width:auto; padding:5px 10px; font-size:11px;" onclick="triggerUniversalPrint('trial')"><i class="fa-solid fa-print"></i> طباعة الميزان</button>
           </div>
-          <table class="statement-table">
+          <table class="statement-table" id="main-trial-table">
             <thead>
               <tr><th>الحساب</th><th>مدين</th><th>دائن</th></tr>
             </thead>
@@ -657,7 +656,6 @@
         </button>
       </div>
 
-      <!-- بطاقة جدول العملات المتعددة وأسعار الصرف وإعادة التقييم -->
       <div class="settings-card" style="border-color:#bfdbfe;">
         <div style="font-weight: 700; font-size: 14px; margin-bottom: 8px; color: var(--primary); display: flex; align-items: center; justify-content:space-between;">
           <span><i class="fa-solid fa-arrow-right-arrow-left"></i> العملات المتعددة وأسعار الصرف (IAS 21)</span>
@@ -723,17 +721,22 @@
 
 </div>
 
-<!-- Modal: معاينة وتصدير الطباعة للموبايل والأبليكيشن (Universal Print) -->
+<!-- Modal: معاينة A4 الرسمية للطباعة والمشاركة الشاملة -->
 <div class="modal-overlay" id="modal-print-preview">
-  <div class="modal-panel" style="max-height:92vh;">
-    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:8px; margin-bottom:12px;">
-      <h3 id="print-doc-title" style="font-size:15px; color:var(--primary);"><i class="fa-solid fa-file-pdf"></i> معاينة التقرير الجاهز للطباعة</h3>
+  <div class="modal-panel" style="max-height:94vh; padding:16px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:8px; margin-bottom:10px;">
+      <h3 id="print-doc-title" style="font-size:14px; color:var(--primary); font-weight:800;"><i class="fa-solid fa-file-pdf"></i> معاينة مستند A4 الرسمي</h3>
       <button style="border:none; background:none; font-size:22px; cursor:pointer;" onclick="closePrintPreviewModal()">×</button>
     </div>
-    <div id="print-doc-content" style="background:#fff; border:1px solid #cbd5e1; padding:16px; border-radius:10px; font-size:12px; max-height:60vh; overflow-y:auto;"></div>
+
+    <!-- حاوية محاكاة ورقة A4 البيضاء ذات الهوامش والترويسة الرسمية -->
+    <div style="background:#e2e8f0; padding:12px; border-radius:12px; overflow-x:auto;">
+      <div id="print-doc-content" style="background:#ffffff; color:#000000; width:100%; min-width:420px; min-height:580px; padding:24px 20px; box-shadow:0 4px 20px rgba(0,0,0,0.15); border-radius:4px; font-size:11px;"></div>
+    </div>
+
     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:14px;">
-      <button class="btn btn-primary" onclick="executeNativeIframePrint()"><i class="fa-solid fa-print"></i> طباعة فورية للمستند</button>
-      <button class="btn btn-secondary" onclick="executeNativeShare()"><i class="fa-solid fa-share-nodes"></i> مشاركة المستند</button>
+      <button class="btn btn-primary" onclick="executeNativeIframePrint()"><i class="fa-solid fa-print"></i> إرسال أمر الطباعة 🖨️</button>
+      <button class="btn btn-secondary" onclick="executeNativeShare()"><i class="fa-solid fa-share-nodes"></i> مشاركة التقرير 📲</button>
     </div>
   </div>
 </div>
@@ -875,7 +878,7 @@
   </div>
 </div>
 
-<!-- Modal: بطاقة صنف جديدة مع مرونة التعديل المباشر -->
+<!-- Modal: بطاقة صنف جديدة -->
 <div class="modal-overlay" id="modal-item-card">
   <div class="modal-panel">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
@@ -1075,7 +1078,7 @@
     </div>
     <div id="digital-invoice-body"></div>
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px;">
-      <button class="btn btn-primary" onclick="triggerUniversalPrint('invoice_current')"><i class="fa-solid fa-print"></i> طباعة / PDF</button>
+      <button class="btn btn-primary" onclick="triggerUniversalPrint('invoice_current')"><i class="fa-solid fa-print"></i> معاينة وطباعة A4</button>
       <button class="btn btn-secondary" onclick="closeViewInvoiceModal()">إغلاق</button>
     </div>
   </div>
@@ -1863,73 +1866,163 @@
     });
   }
 
-  let currentPrintDocumentData = { title: "", htmlContent: "" };
+  // ==============================================================
+  // محرك الطباعة والمشاركة النظيفة والشاملة للموبايل والحاسوب (A4 Engine)
+  // ==============================================================
+  let currentPrintDocumentData = { title: "", cleanContentHtml: "", rawSummaryText: "" };
+
+  function cleanTableHtmlForPrinting(tableElement) {
+    if (!tableElement) return '';
+    const clone = tableElement.cloneNode(true);
+    // إزالة أزرار الإجراءات (عرض، تعديل)
+    clone.querySelectorAll('.btn-inv-tag, .btn-edit-tag, button, .btn').forEach(el => el.remove());
+    return clone.outerHTML;
+  }
 
   function triggerUniversalPrint(reportType) {
-    let title = "";
-    let content = "";
+    let docTitle = "";
+    let bodyHtml = "";
+    let summaryText = "";
     const today = Utilities_getTodayStr();
 
     if (reportType === 'ledger') {
       const sel = document.getElementById('statement-account-selector');
       const accName = sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text : "الحساب";
       const bal = document.getElementById('final-balance').innerText;
-      title = `كشف حساب - ${accName}`;
-      content = `
-        <div style="text-align:center; border-bottom:2px solid #000; padding-bottom:8px; margin-bottom:12px;">
-          <h2 style="font-size:16px; margin:0;">المحاسب الذكي | كشف حساب رسمي</h2>
-          <div style="font-size:11px; margin-top:4px;">الحساب: <strong>${accName}</strong> | التاريخ: ${today} | الرصيد: <strong>${bal} ${baseCurrency}</strong></div>
+      docTitle = `كشف حساب - ${accName}`;
+      summaryText = `📄 كشف حساب معتمد: ${accName}\nالتاريخ: ${today}\nالرصيد الدفتري الحالي: ${bal} ${baseCurrency}`;
+
+      const cleanedTable = cleanTableHtmlForPrinting(document.getElementById('main-statement-table'));
+      bodyHtml = `
+        <div style="border-bottom:2px solid #0f172a; padding-bottom:8px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:flex-end;">
+          <div>
+            <div style="font-size:16px; font-weight:800; color:#0f172a;">المحاسب الذكي | Smart Ledger</div>
+            <div style="font-size:13px; font-weight:700; color:#2563eb; margin-top:2px;">كشف حساب تفصيلي رسمي</div>
+          </div>
+          <div style="text-align:left; font-size:10px; color:#475569;">
+            <div>التاريخ: <strong>${today}</strong></div>
+            <div>العملة: <strong>${baseCurrency}</strong></div>
+          </div>
         </div>
-        <table style="width:100%; border-collapse:collapse; font-size:11px;">
-          ${document.querySelector('.statement-table').innerHTML}
-        </table>
+        <div style="background:#f8fafc; padding:8px 12px; border:1px solid #cbd5e1; border-radius:6px; margin-bottom:12px; display:flex; justify-content:space-between; font-size:11px;">
+          <span>الحساب المالي: <strong>${accName}</strong></span>
+          <span>الرصيد النهائي: <strong style="font-size:13px; color:#2563eb;">${bal} ${baseCurrency}</strong></span>
+        </div>
+        ${cleanedTable}
       `;
     } else if (reportType === 'income') {
-      title = `قائمة الدخل - ${today}`;
-      content = `
-        <div style="text-align:center; border-bottom:2px solid #000; padding-bottom:8px; margin-bottom:12px;">
-          <h2 style="font-size:16px; margin:0;">قائمة الدخل والأرباح والخسائر</h2>
-          <div style="font-size:11px; margin-top:4px;">عن الفترة المنتهية في: ${today} (${baseCurrency})</div>
+      docTitle = `قائمة الدخل - ${today}`;
+      const netProf = document.getElementById('rep-net-profit').innerText;
+      summaryText = `📊 قائمة الدخل الرسمية حتى تاريخ ${today}\nصافي الربح/الخسارة للفترة: ${netProf} ${baseCurrency}`;
+      bodyHtml = `
+        <div style="border-bottom:2px solid #0f172a; padding-bottom:8px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:flex-end;">
+          <div>
+            <div style="font-size:16px; font-weight:800; color:#0f172a;">المحاسب الذكي | Smart Ledger</div>
+            <div style="font-size:13px; font-weight:700; color:#2563eb; margin-top:2px;">قائمة الدخل (الأرباح والخسائر) المعيارية</div>
+          </div>
+          <div style="text-align:left; font-size:10px; color:#475569;">
+            <div>الفترة حتى: <strong>${today}</strong></div>
+            <div>العملة: <strong>${baseCurrency}</strong></div>
+          </div>
         </div>
-        ${document.getElementById('sub-report-income').innerHTML}
+        ${document.getElementById('sub-report-income').querySelector('.report-card').innerHTML}
       `;
     } else if (reportType === 'balance_sheet') {
-      title = `الميزانية العمومية - ${today}`;
-      content = `
-        <div style="text-align:center; border-bottom:2px solid #000; padding-bottom:8px; margin-bottom:12px;">
-          <h2 style="font-size:16px; margin:0;">قائمة المركز المالي (الميزانية العمومية)</h2>
-          <div style="font-size:11px; margin-top:4px;">كما في تاريخ: ${today} (${baseCurrency})</div>
+      docTitle = `الميزانية العمومية - ${today}`;
+      const totAssets = document.getElementById('bs-total-assets').innerText;
+      summaryText = `⚖️ الميزانية العمومية وقائمة المركز المالي كما في ${today}\nإجمالي المركز المالي: ${totAssets} ${baseCurrency}`;
+      bodyHtml = `
+        <div style="border-bottom:2px solid #0f172a; padding-bottom:8px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:flex-end;">
+          <div>
+            <div style="font-size:16px; font-weight:800; color:#0f172a;">المحاسب الذكي | Smart Ledger</div>
+            <div style="font-size:13px; font-weight:700; color:#2563eb; margin-top:2px;">قائمة المركز المالي (الميزانية العمومية)</div>
+          </div>
+          <div style="text-align:left; font-size:10px; color:#475569;">
+            <div>كما في تاريخ: <strong>${today}</strong></div>
+            <div>العملة: <strong>${baseCurrency}</strong></div>
+          </div>
         </div>
-        ${document.getElementById('sub-report-balance-sheet').innerHTML}
+        ${document.getElementById('sub-report-balance-sheet').querySelector('.report-card').innerHTML}
       `;
     } else if (reportType === 'assets') {
-      title = `سجل الأصول الثابتة - ${today}`;
-      content = `
-        <div style="text-align:center; border-bottom:2px solid #000; padding-bottom:8px; margin-bottom:12px;">
-          <h2 style="font-size:16px; margin:0;">سجل الأصول الثابتة ومجمعات الإهلاك (IAS 16)</h2>
-          <div style="font-size:11px; margin-top:4px;">تاريخ الجرد والتقييم: ${today}</div>
+      docTitle = `سجل الأصول الثابتة - ${today}`;
+      const netAssets = document.getElementById('kpi-asset-net-book').innerText;
+      summaryText = `🏛️ سجل الأصول الثابتة والإهلاك الدوري (IAS 16)\nصافي القيمة الدفترية للأصول: ${netAssets} ${baseCurrency}`;
+      const cloneAssets = document.getElementById('fixed-assets-list-container').cloneNode(true);
+      cloneAssets.querySelectorAll('button, .btn-edit-tag').forEach(b => b.remove());
+      bodyHtml = `
+        <div style="border-bottom:2px solid #0f172a; padding-bottom:8px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:flex-end;">
+          <div>
+            <div style="font-size:16px; font-weight:800; color:#0f172a;">المحاسب الذكي | Smart Ledger</div>
+            <div style="font-size:13px; font-weight:700; color:#2563eb; margin-top:2px;">سجل حصر الأصول الثابتة ومجمعات الاستهلاك (IAS 16)</div>
+          </div>
+          <div style="text-align:left; font-size:10px; color:#475569;">
+            <div>تاريخ التقييم: <strong>${today}</strong></div>
+            <div>العملة: <strong>${baseCurrency}</strong></div>
+          </div>
         </div>
-        ${document.getElementById('sub-report-depreciation').innerHTML}
+        ${cloneAssets.innerHTML}
       `;
     } else if (reportType === 'inventory') {
-      title = `جرد المستودع - ${today}`;
-      content = `
-        <div style="text-align:center; border-bottom:2px solid #000; padding-bottom:8px; margin-bottom:12px;">
-          <h2 style="font-size:16px; margin:0;">تقرير جرد بضاعة المستودع بالمتوسط المرجح (WAC)</h2>
-          <div style="font-size:11px; margin-top:4px;">التاريخ: ${today}</div>
+      docTitle = `جرد المستودع - ${today}`;
+      const invTotal = document.getElementById('dash-inventory-val').innerText;
+      summaryText = `📦 تقرير جرد بضاعة المستودع بالمتوسط المرجح (WAC)\nالقيمة الإجمالية للمخزون: ${invTotal} ${baseCurrency}`;
+      const cleanedInvTable = cleanTableHtmlForPrinting(document.getElementById('main-inventory-table'));
+      bodyHtml = `
+        <div style="border-bottom:2px solid #0f172a; padding-bottom:8px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:flex-end;">
+          <div>
+            <div style="font-size:16px; font-weight:800; color:#0f172a;">المحاسب الذكي | Smart Ledger</div>
+            <div style="font-size:13px; font-weight:700; color:#2563eb; margin-top:2px;">جرد وتقييم مخزون المستودع (WAC)</div>
+          </div>
+          <div style="text-align:left; font-size:10px; color:#475569;">
+            <div>تاريخ الجرد: <strong>${today}</strong></div>
+            <div>العملة: <strong>${baseCurrency}</strong></div>
+          </div>
         </div>
-        <table style="width:100%; border-collapse:collapse; font-size:11px;">
-          ${document.getElementById('sub-report-inventory').querySelector('.statement-table').innerHTML}
-        </table>
+        ${cleanedInvTable}
+      `;
+    } else if (reportType === 'trial') {
+      docTitle = `ميزان المراجعة - ${today}`;
+      summaryText = `📑 ميزان المراجعة بالأرصدة كما في ${today}`;
+      bodyHtml = `
+        <div style="border-bottom:2px solid #0f172a; padding-bottom:8px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:flex-end;">
+          <div>
+            <div style="font-size:16px; font-weight:800; color:#0f172a;">المحاسب الذكي | Smart Ledger</div>
+            <div style="font-size:13px; font-weight:700; color:#2563eb; margin-top:2px;">ميزان المراجعة بالأرصدة</div>
+          </div>
+          <div style="text-align:left; font-size:10px; color:#475569;">
+            <div>كما في: <strong>${today}</strong></div>
+            <div>العملة: <strong>${baseCurrency}</strong></div>
+          </div>
+        </div>
+        ${document.getElementById('sub-report-trial').querySelector('.statement-table').outerHTML}
       `;
     } else if (reportType === 'invoice_current') {
-      title = `فاتورة رقمية`;
-      content = document.getElementById('digital-invoice-body').innerHTML;
+      docTitle = `فاتورة رقمية رسمية`;
+      summaryText = `🧾 فاتورة رسمية صادرة من المحاسب الذكي`;
+      bodyHtml = `
+        <div style="border-bottom:2px solid #0f172a; padding-bottom:8px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:flex-end;">
+          <div>
+            <div style="font-size:16px; font-weight:800; color:#0f172a;">المحاسب الذكي | Smart Ledger</div>
+            <div style="font-size:13px; font-weight:700; color:#2563eb; margin-top:2px;">فاتورة رسمية ضريبية</div>
+          </div>
+          <div style="text-align:left; font-size:10px; color:#475569;">
+            <div>التاريخ: <strong>${today}</strong></div>
+          </div>
+        </div>
+        ${document.getElementById('digital-invoice-body').innerHTML}
+      `;
     }
 
-    currentPrintDocumentData = { title, htmlContent: content };
-    document.getElementById('print-doc-title').innerText = title;
-    document.getElementById('print-doc-content').innerHTML = content;
+    // تنظيف تام من أي أزرار أو عناصر تفاعلية
+    const tempContainer = document.createElement('div');
+    tempContainer.innerHTML = bodyHtml;
+    tempContainer.querySelectorAll('button, .btn, .btn-inv-tag, .btn-edit-tag').forEach(b => b.remove());
+    bodyHtml = tempContainer.innerHTML;
+
+    currentPrintDocumentData = { title: docTitle, cleanContentHtml: bodyHtml, rawSummaryText: summaryText };
+    document.getElementById('print-doc-title').innerText = docTitle;
+    document.getElementById('print-doc-content').innerHTML = bodyHtml;
     document.getElementById('modal-print-preview').classList.add('open');
   }
 
@@ -1937,7 +2030,7 @@
     document.getElementById('modal-print-preview').classList.remove('open');
   }
 
- // 1. مسار الطباعة المباشرة المنفصل تماماً (مع زر طباعة عائم يراه المستخدم ويضغط عليه)
+  // 1. مسار الطباعة المباشرة بورقة A4 الرسمية المعزولة
   function executeNativeIframePrint() {
     const docData = currentPrintDocumentData;
     const cleanHtml = `
@@ -1949,32 +2042,38 @@
         <title>${docData.title}</title>
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
         <style>
           * { box-sizing: border-box; font-family: 'Cairo', sans-serif; }
-          body { padding: 15px; color: #000; background: #fff; margin: 0; }
+          body { padding: 12px; color: #000; background: #fff; margin: 0; }
           .print-toolbar {
             position: sticky; top: 0; background: #0f172a; padding: 12px; display: flex;
             justify-content: space-between; align-items: center; border-radius: 8px; margin-bottom: 20px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 9999;
           }
           .btn-print-action {
-            background: #2563eb; color: #fff; border: none; padding: 10px 20px; border-radius: 6px;
-            font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px;
+            background: #2563eb; color: #fff; border: none; padding: 10px 22px; border-radius: 6px;
+            font-size: 14px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 8px;
           }
           .btn-close-action {
             background: #334155; color: #fff; border: none; padding: 10px 16px; border-radius: 6px;
             font-size: 13px; font-weight: 700; cursor: pointer;
           }
+          .a4-sheet {
+            width: 100%; max-width: 210mm; min-height: 297mm; margin: 0 auto;
+            background: #fff; padding: 15mm; border: 1px solid #cbd5e1; border-radius: 4px;
+          }
           table { width: 100%; border-collapse: collapse; margin-top: 10px; page-break-inside: auto; }
           tr { page-break-inside: avoid; page-break-after: auto; }
-          th, td { border: 1px solid #000; padding: 6px 8px; text-align: right; font-size: 12px; }
-          th { background-color: #f1f5f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          th, td { border: 1px solid #334155; padding: 6px 8px; text-align: right; font-size: 11px; }
+          th { background-color: #f1f5f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; font-weight: 800; }
+          button, .btn, .btn-inv-tag, .btn-edit-tag { display: none !important; }
           
           @media print {
             .print-toolbar { display: none !important; }
-            body { padding: 0 !important; }
-            @page { size: A4 portrait; margin: 10mm; }
+            body { padding: 0 !important; background: #fff !important; }
+            .a4-sheet { border: none !important; box-shadow: none !important; width: 100% !important; padding: 0 !important; }
+            @page { size: A4 portrait; margin: 12mm; }
           }
         </style>
       </head>
@@ -1986,8 +2085,8 @@
           <button class="btn-close-action" onclick="window.close()">إغلاق النافذة</button>
         </div>
 
-        <div class="print-content">
-          ${docData.htmlContent}
+        <div class="a4-sheet">
+          ${docData.cleanContentHtml}
         </div>
       </body>
       </html>
@@ -2004,12 +2103,10 @@
     }
   }
 
-  // 2. مسار المشاركة الفورية المنفصل تماماً (مشاركة نصية ورقمية سريعة دون نوافذ ملفات)
+  // 2. مسار المشاركة الشاملة لجميع تطبيقات الهاتف (Native Share Sheet)
   async function executeNativeShare() {
     const docData = currentPrintDocumentData;
-    
-    // استخراج نص ملخص للتقرير لمشاركته عبر واتساب أو التطبيقات فوراً
-    const shareText = `📄 تقرير رسمي: ${docData.title}\nصادر من نظام المحاسب الذكي.\nالتاريخ: ${Utilities_getTodayStr()}`;
+    const shareText = `${docData.rawSummaryText}\n\nصادر عبر: المحاسب الذكي Pro\nتاريخ المستند: ${Utilities_getTodayStr()}`;
 
     if (navigator.share) {
       try {
@@ -2017,19 +2114,23 @@
           title: docData.title,
           text: shareText
         });
-        showToast('تم فتح نافذة المشاركة بنجاح ✅');
+        showToast('تمت المشاركة بنجاح ✅');
         return;
       } catch (err) {
         if (err.name !== 'AbortError') {
-          console.warn("المشاركة غير متاحة:", err);
+          console.warn("المشاركة المباشرة تعذرت:", err);
         }
       }
     }
 
-    // بديل عملي فوري عبر WhatsApp Web/App مباشرة إن تعذر أمر المشاركة الأصلي
-    const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`;
-    window.open(waUrl, '_blank');
+    // خيار بديل سريع بالنسخ إلى الحافظة
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(shareText);
+      showToast('تم نسخ ملخص التقرير إلى الحافظة لمشاركته ✅');
+    }
   }
+
+  // دوال فريق العمل
   function openAddMemberModal() {
     document.getElementById('new-member-email').value = '';
     document.getElementById('modal-add-member').classList.add('open');
@@ -3175,177 +3276,4 @@
         <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 8px;">
           <select class="account-selector"></select>
           <input type="number" placeholder="مدين" class="input-debit" value="0" oninput="calculateBalance()">
-          <input type="number" placeholder="دائن" class="input-credit" value="0" oninput="calculateBalance()">
-        </div>
-      </div>
-      <div class="entry-row">
-        <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 8px;">
-          <select class="account-selector"></select>
-          <input type="number" placeholder="مدين" class="input-debit" value="0" oninput="calculateBalance()">
-          <input type="number" placeholder="دائن" class="input-credit" value="0" oninput="calculateBalance()">
-        </div>
-      </div>
-    `;
-    populateAccountSelects();
-    calculateBalance();
-  }
-
-  function populateSingleAccountSelect(sel, selectedCode) {
-    let accHtml = '';
-    chartOfAccounts.forEach(a => accHtml += `<option value="${a.code}">${a.code} - ${a.name}</option>`);
-    sel.innerHTML = accHtml;
-    if (selectedCode) sel.value = selectedCode;
-  }
-
-  function addEntryRow() {
-    const list = document.getElementById('entries-list');
-    const div = document.createElement('div');
-    div.className = 'entry-row';
-    div.innerHTML = `
-      <button class="btn-remove-row" onclick="this.parentElement.remove(); calculateBalance();">×</button>
-      <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 8px;">
-        <select class="account-selector"></select>
-        <input type="number" placeholder="مدين" class="input-debit" value="0" oninput="calculateBalance()">
-        <input type="number" placeholder="دائن" class="input-credit" value="0" oninput="calculateBalance()">
-      </div>
-    `;
-    list.appendChild(div);
-    populateAccountSelects();
-  }
-
-  function calculateBalance() {
-    let deb = 0, crd = 0;
-    document.querySelectorAll('.input-debit').forEach(i => deb += parseFloat(i.value || 0));
-    document.querySelectorAll('.input-credit').forEach(i => crd += parseFloat(i.value || 0));
-    document.getElementById('total-debit').innerText = deb.toFixed(2);
-    document.getElementById('total-credit').innerText = crd.toFixed(2);
-
-    const b = document.getElementById('balance-status');
-    const btn = document.getElementById('btn-save-entry');
-    if (deb > 0 && Math.abs(deb - crd) < 0.01) {
-      b.className = 'status-badge balanced'; b.innerText = 'القيد متوازن ✓';
-      btn.disabled = false; btn.style.opacity = '1';
-    } else {
-      b.className = 'status-badge unbalanced'; b.innerText = deb === 0 ? 'أدخل أطراف القيد' : 'غير متوازن';
-      btn.disabled = true; btn.style.opacity = '0.5';
-    }
-  }
-
-  function saveEntryAction() {
-    const date = document.getElementById('entry-date').value;
-    const memo = document.getElementById('entry-memo').value || 'قيد يومية';
-    const editingNo = document.getElementById('editing-entry-no').value;
-    const isEditMode = !!editingNo;
-
-    const lines = [];
-    document.querySelectorAll('#entries-list .entry-row').forEach(r => {
-      const sel = r.querySelector('.account-selector');
-      const d = parseFloat(r.querySelector('.input-debit').value || 0);
-      const c = parseFloat(r.querySelector('.input-credit').value || 0);
-      if (d > 0 || c > 0) {
-        lines.push({
-          accountCode: sel.value,
-          accountName: sel.options[sel.selectedIndex].text.split(' - ')[1],
-          description: memo, debit: d, credit: c
-        });
-      }
-    });
-
-    if (lines.length < 2) return showToast('يجب إدخال طرفين على الأقل للقيد', true);
-
-    if (isEditMode) {
-      const targetNo = isNaN(editingNo) ? editingNo : Number(editingNo);
-      ledgerEntries = ledgerEntries.filter(e => e.entryNo !== targetNo);
-      lines.forEach(l => {
-        ledgerEntries.push({
-          entryNo: targetNo, date, refNo: "REF-" + targetNo,
-          accountCode: l.accountCode, accountName: l.accountName, desc: l.description,
-          debit: l.debit, credit: l.credit
-        });
-      });
-      persistData();
-      showToast('تم تعديل وحفظ القيد المحاسبي بنجاح ✅');
-      fetch(SCRIPT_URL, {
-        method: "POST",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({ action: "EDIT_ENTRY", spreadsheetId: localStorage.getItem("user_sheet_id"), entryNo: targetNo, entryDate: date, lines })
-      });
-      cancelEditEntryMode();
-      switchTab('tab-statement');
-    } else {
-      const generatedEntryNo = Date.now();
-      lines.forEach(l => {
-        ledgerEntries.push({
-          entryNo: generatedEntryNo, date, accountCode: l.accountCode,
-          accountName: l.accountName, desc: memo, debit: l.debit, credit: l.credit
-        });
-      });
-      persistData();
-      showToast('تم ترحيل القيد بنجاح');
-      document.getElementById('entry-memo').value = '';
-      document.querySelectorAll('.input-debit').forEach(i => i.value = 0);
-      document.querySelectorAll('.input-credit').forEach(i => i.value = 0);
-      calculateBalance();
-
-      fetch(SCRIPT_URL, {
-        method: "POST",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({ action: "NEW_ENTRY", spreadsheetId: localStorage.getItem("user_sheet_id"), entryDate: date, lines })
-      });
-    }
-  }
-
-  function updateDashboardStats() {
-    let cash = 0, cust = 0, vend = 0;
-    ledgerEntries.forEach(e => {
-      const accCodeStr = String(e.accountCode || "").trim();
-      const a = chartOfAccounts.find(x => String(x.code).trim() === accCodeStr);
-      const debitVal = Number(e.debit) || 0;
-      const creditVal = Number(e.credit) || 0;
-      const netMovement = debitVal - creditVal;
-
-      const isCashOrBank = (a && (a.base === 'cash' || a.base === 'bank')) ||
-                           accCodeStr.startsWith("111") ||
-                           (a && a.cat && (a.cat.includes("نقدية") || a.cat.includes("بنوك")));
-
-      const isCustomer = (a && a.base === 'customer') || accCodeStr.startsWith("112");
-      const isVendor = (a && a.base === 'vendor') || accCodeStr.startsWith("210");
-
-      if (isCashOrBank) cash += netMovement;
-      else if (isCustomer) cust += netMovement;
-      else if (isVendor) vend += (creditVal - debitVal);
-    });
-
-    let totalInvVal = 0;
-    inventoryItems.forEach(it => {
-      totalInvVal += ((Number(it.qty) || 0) * (Number(it.cost) || 0));
-    });
-
-    document.getElementById('dash-cash').innerText = cash.toLocaleString(undefined, {minimumFractionDigits: 2});
-    document.getElementById('dash-customers').innerText = Math.max(0, cust).toLocaleString(undefined, {minimumFractionDigits: 2});
-    document.getElementById('dash-vendors').innerText = Math.max(0, vend).toLocaleString(undefined, {minimumFractionDigits: 2});
-    const invValEl = document.getElementById('dash-inventory-val');
-    if (invValEl) invValEl.innerText = totalInvVal.toLocaleString(undefined, {minimumFractionDigits: 2});
-  }
-
-  window.addEventListener('DOMContentLoaded', function() {
-    const today = Utilities_getTodayStr();
-    if (document.getElementById('entry-date')) document.getElementById('entry-date').value = today;
-    if (document.getElementById('inv-date')) document.getElementById('inv-date').value = today;
-    if (document.getElementById('date-to')) document.getElementById('date-to').value = today;
-    if (document.getElementById('asset-start-date')) document.getElementById('asset-start-date').value = today;
-
-    applyBaseCurrency(localStorage.getItem('smart_base_currency') || 'ر.س');
-    populateAccountSelects();
-    populateItemSelectors();
-    addInvoiceItemRow();
-    updateDashboardStats();
-    updateLicenseUI();
-    renderTeamMembersList();
-    renderInventoryReport();
-    renderFixedAssetsDepreciationList();
-    renderCurrenciesTable();
-  });
-</script>
-</body>
-</html>
+          <input type="number" placeholder="

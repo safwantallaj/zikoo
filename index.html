@@ -1913,7 +1913,7 @@
   }
 
 // ==============================================================
-  // 1. محرك الطباعة المباشر والمعاينة الفورية (بدون تنزيل ملفات)
+  // 1. محرك الطباعة والمعاينة المتوافق 100% مع تطبيقات الهاتف
   // ==============================================================
   function directPrint(reportType) {
     var today = Utilities_getTodayStr();
@@ -1968,13 +1968,13 @@
       tableHtml = document.getElementById('digital-invoice-body').innerHTML;
     }
 
-    // إذا كان متصفح كمبيوتر يُنفذ أمر الطباعة فوراً
+    // متصفح الكمبيوتر العادي: طباعة مباشرة
     if (!navigator.userAgent.match(/Android|iPhone|iPad/i)) {
       window.print();
       return;
     }
 
-    // على الهاتف: فتح التقرير فوراً في شاشة عرض نظيفة كاملة داخل التطبيق
+    // شاشة المعاينة الفورية للهاتف مع زر حفظ/طباعة خارجي يتجاوز حظر الـ WebView
     var previewOverlay = document.getElementById('print-preview-overlay');
     if (!previewOverlay) {
       previewOverlay = document.createElement('div');
@@ -1983,14 +1983,49 @@
       document.body.appendChild(previewOverlay);
     }
 
+    // توليد ملف الصفحة لفتحه بالمتصفح الخارجي
+    var docContent = `
+      <!DOCTYPE html>
+      <html lang="ar" dir="rtl">
+      <head>
+        <meta charset="UTF-8">
+        <title>${title}</title>
+        <style>
+          @page { size: A4 portrait; margin: 10mm; }
+          body { font-family: sans-serif; padding: 15px; color: #000; background: #fff; margin: 0; }
+          .header-box { border-bottom: 2px solid #000; padding-bottom: 8px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: flex-end; }
+          table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 11px; }
+          th, td { border: 1px solid #334155; padding: 6px 8px; text-align: right; }
+          th { background: #f1f5f9; font-weight: 800; }
+        </style>
+      </head>
+      <body onload="window.print()">
+        <div class="header-box">
+          <div>
+            <div style="font-size: 16px; font-weight: 900;">المحاسب الذكي | Smart Ledger Pro</div>
+            <div style="font-size: 13px; font-weight: 700; color: #2563eb; margin-top: 2px;">${title}</div>
+          </div>
+          <div style="text-align: left; font-size: 10px;">
+            <div>التاريخ: ${today}</div>
+            <div>العملة: ${baseCurrency}</div>
+          </div>
+        </div>
+        ${tableHtml}
+      </body>
+      </html>
+    `;
+
+    window.currentPrintDoc = docContent;
+    window.currentPrintTitle = title;
+
     previewOverlay.innerHTML = `
       <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #0f172a; padding-bottom:10px; margin-bottom:15px;">
-        <button onclick="document.getElementById('print-preview-overlay').style.display='none'" style="background:#ef4444; color:#fff; border:none; padding:7px 16px; border-radius:8px; font-weight:700; cursor:pointer; font-size:12px;">إغلاق ✕</button>
+        <button onclick="document.getElementById('print-preview-overlay').style.display='none'" style="background:#ef4444; color:#fff; border:none; padding:7px 14px; border-radius:8px; font-weight:700; cursor:pointer; font-size:12px;">إغلاق ✕</button>
         <div style="text-align:center;">
-          <div style="font-size:15px; font-weight:900;">المحاسب الذكي | Smart Ledger Pro</div>
-          <div style="font-size:12px; color:#2563eb; font-weight:700;">${title}</div>
+          <div style="font-size:14px; font-weight:900;">المحاسب الذكي</div>
+          <div style="font-size:11px; color:#2563eb; font-weight:700;">${title}</div>
         </div>
-        <button onclick="window.print()" style="background:#2563eb; color:#fff; border:none; padding:7px 16px; border-radius:8px; font-weight:700; cursor:pointer; font-size:12px;">طباعة 🖨️</button>
+        <button onclick="executeMobilePrintDownload()" style="background:#10b981; color:#fff; border:none; padding:7px 14px; border-radius:8px; font-weight:700; cursor:pointer; font-size:12px;"><i class="fa-solid fa-print"></i> تصدير للطباعة / PDF</button>
       </div>
       <div>${tableHtml}</div>
     `;
@@ -1998,8 +2033,21 @@
     previewOverlay.style.display = 'block';
   }
 
+  // تنزيل المستند وفتحه بأمر الطباعة التلقائي (onload="window.print()")
+  function executeMobilePrintDownload() {
+    if (!window.currentPrintDoc) return;
+    var blob = new Blob([window.currentPrintDoc], { type: 'text/html;charset=utf-8' });
+    var link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = (window.currentPrintTitle || "تقرير") + ".html";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showToast('تم تصدير المستند! افتحه من الإشعارات للطباعة مباشرة 🖨️');
+  }
+
   // ==============================================================
-  // 2. محرك المشاركة المباشر والمضمون (واتساب + نسخ الحافظة)
+  // 2. محرك المشاركة الشامل لجميع التطبيقات
   // ==============================================================
   async function directShare(reportType) {
     var today = Utilities_getTodayStr();
@@ -2031,7 +2079,7 @@
       shareText = '📊 تقرير محاسبي معتمد صادر من المحاسب الذكي بتاريخ ' + today;
     }
 
-    // محاولة فتح قائمة المشاركة الأصلية إن كانت مفعلة
+    // 1. محاولة استدعاء مشاركة النظام الرسمية (تفتح جميع التطبيقات)
     if (navigator.share) {
       try {
         await navigator.share({
@@ -2045,14 +2093,32 @@
       }
     }
 
-    // إذا لم تدعم البيئة المشاركة العامة: يتم نسخ النص وفتح واتساب مباشرة
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(shareText);
+    // 2. إذا حجب الـ WebView المشاركة العامة، إظهار نافذة اختيار أنيقة بدلاً من فتح واتساب إجبارياً
+    var shareModal = document.getElementById('custom-share-modal');
+    if (!shareModal) {
+      shareModal = document.createElement('div');
+      shareModal.id = 'custom-share-modal';
+      shareModal.className = 'modal-overlay open';
+      shareModal.innerHTML = `
+        <div class="modal-panel" style="text-align:center;">
+          <div style="font-weight:800; font-size:16px; margin-bottom:12px; color:var(--primary);"><i class="fa-solid fa-share-nodes"></i> مشاركة التقرير المحاسبي</div>
+          <div style="display:grid; grid-template-columns:1fr; gap:10px; margin-bottom:14px;">
+            <button onclick="window.open('https://api.whatsapp.com/send?text=' + encodeURIComponent(window.pendingShareText), '_blank'); document.getElementById('custom-share-modal').remove();" class="btn btn-success" style="padding:10px; font-size:13px;">
+              <i class="fa-brands fa-whatsapp"></i> مشاركة عبر واتساب
+            </button>
+            <button onclick="window.open('https://t.me/share/url?url=&text=' + encodeURIComponent(window.pendingShareText), '_blank'); document.getElementById('custom-share-modal').remove();" class="btn btn-primary" style="padding:10px; font-size:13px;">
+              <i class="fa-brands fa-telegram"></i> مشاركة عبر تيليجرام
+            </button>
+            <button onclick="navigator.clipboard.writeText(window.pendingShareText); showToast('تم نسخ التقرير كاملاً للحافظة ✅'); document.getElementById('custom-share-modal').remove();" class="btn btn-secondary" style="padding:10px; font-size:13px;">
+              <i class="fa-solid fa-copy"></i> نسخ التقرير بالكامل (لصق بأي تطبيق)
+            </button>
+          </div>
+          <button onclick="document.getElementById('custom-share-modal').remove()" class="btn btn-outline" style="border-style:solid; padding:8px;">إلغاء</button>
+        </div>
+      `;
+      document.body.appendChild(shareModal);
     }
-    
-    var waUrl = "https://api.whatsapp.com/send?text=" + encodeURIComponent(shareText);
-    window.open(waUrl, "_blank");
-    showToast('تم نسخ التقرير وفتح واتساب للمشاركة ✅');
+    window.pendingShareText = shareText;
   }
   function openAddMemberModal() {
     document.getElementById('new-member-email').value = '';

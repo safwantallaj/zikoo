@@ -1912,19 +1912,19 @@
     });
   }
 
-  // ==============================================================
-  // 1. محرك الطباعة المباشرة الأصلي المستقل (Native Print)
+ // ==============================================================
+  // 1. محرك الطباعة المتوافق مع المتصفح وتطبيقات الـ WebView
   // ==============================================================
   function directPrint(reportType) {
-    const today = Utilities_getTodayStr();
-    const dtEl = document.getElementById('print-date-display');
+    var today = Utilities_getTodayStr();
+    var dtEl = document.getElementById('print-date-display');
     if (dtEl) dtEl.innerText = today;
 
-    const subTitleEl = document.getElementById('print-sub-title');
+    var subTitleEl = document.getElementById('print-sub-title');
     if (subTitleEl) {
       if (reportType === 'ledger') {
-        const sel = document.getElementById('statement-account-selector');
-        const accName = sel && sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text : "الحساب";
+        var sel = document.getElementById('statement-account-selector');
+        var accName = sel && sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text : "الحساب";
         subTitleEl.innerText = `كشف حساب تفصيلي معتمد - ${accName}`;
       } else if (reportType === 'income') {
         subTitleEl.innerText = `قائمة الدخل والأرباح والخسائر المعيارية`;
@@ -1941,33 +1941,37 @@
       }
     }
 
-    // استدعاء مباشر لمدير طباعة الهاتف/الكمبيوتر فوراً
-    window.print();
+    // محاولة الطباعة القياسية أولاً
+    try {
+      window.print();
+    } catch (e) {
+      console.warn("Standard print not supported in WebView, switching fallback");
+    }
   }
 
   // ==============================================================
-  // 2. محرك المشاركة الشامل المستقل تماماً (Native System Share)
+  // 2. محرك المشاركة الشامل عبر Android Intent
   // ==============================================================
   async function directShare(reportType) {
-    const today = Utilities_getTodayStr();
-    let shareTitle = "المحاسب الذكي";
-    let shareText = "";
+    var today = Utilities_getTodayStr();
+    var shareTitle = "المحاسب الذكي";
+    var shareText = "";
 
     if (reportType === 'ledger') {
-      const sel = document.getElementById('statement-account-selector');
-      const accName = sel && sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text : "الحساب";
-      const balEl = document.getElementById('final-balance');
-      const bal = balEl ? balEl.innerText : "0.00";
+      var sel = document.getElementById('statement-account-selector');
+      var accName = sel && sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text : "الحساب";
+      var balEl = document.getElementById('final-balance');
+      var bal = balEl ? balEl.innerText : "0.00";
       shareTitle = `كشف حساب - ${accName}`;
       shareText = `📄 المحاسب الذكي Pro | كشف حساب رسمي\nالحساب: ${accName}\nالتاريخ: ${today}\nالرصيد الدفتري الحالي: ${bal} ${baseCurrency}`;
     } else if (reportType === 'income') {
-      const netProfEl = document.getElementById('rep-net-profit');
-      const netProf = netProfEl ? netProfEl.innerText : "0.00";
+      var netProfEl = document.getElementById('rep-net-profit');
+      var netProf = netProfEl ? netProfEl.innerText : "0.00";
       shareTitle = `قائمة الدخل - ${today}`;
       shareText = `📊 المحاسب الذكي | قائمة الدخل الرسمية\nعن الفترة حتى: ${today}\nصافي الربح/الخسارة: ${netProf} ${baseCurrency}`;
     } else if (reportType === 'balance_sheet') {
-      const totAssetsEl = document.getElementById('bs-total-assets');
-      const totAssets = totAssetsEl ? totAssetsEl.innerText : "0.00";
+      var totAssetsEl = document.getElementById('bs-total-assets');
+      var totAssets = totAssetsEl ? totAssetsEl.innerText : "0.00";
       shareTitle = `الميزانية العمومية - ${today}`;
       shareText = `⚖️ المحاسب الذكي | الميزانية العمومية\nكما في تاريخ: ${today}\nإجمالي المركز المالي: ${totAssets} ${baseCurrency}`;
     } else if (reportType === 'invoice_current') {
@@ -1978,6 +1982,7 @@
       shareText = `📊 تقرير محاسبي معتمد صادر من المحاسب الذكي بتاريخ ${today}`;
     }
 
+    // 1. محاولة استخدام Web Share API القياسي
     if (navigator.share) {
       try {
         await navigator.share({
@@ -1987,22 +1992,25 @@
         showToast('تمت المشاركة بنجاح ✅');
         return;
       } catch (err) {
-        if (err.name !== 'AbortError') {
-          console.warn("المشاركة تعذرت:", err);
-        }
+        if (err.name === 'AbortError') return;
       }
     }
 
-    // بديل فوري بنسخ ملخص التقرير للحافظة في حال عدم دعم الـ Web Share API
+    // 2. محاولة إجبار نظام أندرويد على فتح نافذة المشاركة (Android Intent) داخل الـ WebView
+    try {
+      var intentUri = "intent:#Intent;action=android.intent.action.SEND;type=text/plain;S.android.intent.extra.TEXT=" + encodeURIComponent(shareText) + ";end";
+      window.location.href = intentUri;
+      return;
+    } catch (e) {
+      console.warn("Intent failed, falling back to clipboard");
+    }
+
+    // 3. في حال كان المتصفح لا يدعم Intent (مثل سطح المكتب)، يتم النسخ
     if (navigator.clipboard) {
       navigator.clipboard.writeText(shareText);
       showToast('تم نسخ ملخص التقرير إلى الحافظة بنجاح ✅');
-    } else {
-      const waUrl = "https://api.whatsapp.com/send?text=" + encodeURIComponent(shareText);
-      window.open(waUrl, '_blank');
     }
   }
-
   function openAddMemberModal() {
     document.getElementById('new-member-email').value = '';
     const m = document.getElementById('modal-add-member');

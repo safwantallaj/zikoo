@@ -1624,22 +1624,41 @@
   }
 
   // تهيئة النظام عند اكتمال تحميل الصفحة بشكل آمن ومرن
+ function applyBaseCurrency(symbol) {
+    if (!symbol) symbol = 'ر.س';
+    baseCurrency = symbol;
+    currentCurrency = symbol;
+    try {
+      localStorage.setItem('smart_base_currency', symbol);
+    } catch(e) {}
+    
+    var lbl = document.getElementById('header-curr-label');
+    if (lbl) lbl.innerText = symbol;
+    
+    document.querySelectorAll('.curr-symbol').forEach(function(el) {
+      el.innerText = symbol;
+    });
+    document.querySelectorAll('.base-curr-label').forEach(function(el) {
+      el.innerText = symbol;
+    });
+  }
+
   window.addEventListener('DOMContentLoaded', function() {
     try {
-      const today = Utilities_getTodayStr();
-      const eDate = document.getElementById('entry-date'); if(eDate) eDate.value = today;
-      const iDate = document.getElementById('inv-date'); if(iDate) iDate.value = today;
-      const dTo = document.getElementById('date-to'); if(dTo) dTo.value = today;
-      const aDate = document.getElementById('asset-start-date'); if(aDate) aDate.value = today;
+      var today = Utilities_getTodayStr();
+      var eDate = document.getElementById('entry-date'); if(eDate) eDate.value = today;
+      var iDate = document.getElementById('inv-date'); if(iDate) iDate.value = today;
+      var dTo = document.getElementById('date-to'); if(dTo) dTo.value = today;
+      var aDate = document.getElementById('asset-start-date'); if(aDate) aDate.value = today;
 
       applyBaseCurrency(localStorage.getItem('smart_base_currency') || 'ر.س');
       populateAccountSelects();
       populateItemSelectors();
       
-      const invList = document.getElementById('invoice-items-list');
+      var invList = document.getElementById('invoice-items-list');
       if (invList && invList.children.length === 0) addInvoiceItemRow();
 
-      const entList = document.getElementById('entries-list');
+      var entList = document.getElementById('entries-list');
       if (entList && entList.children.length === 0) {
         addEntryRow();
         addEntryRow();
@@ -1655,6 +1674,3 @@
       console.warn("Safe Init Exception handled:", err);
     }
   });
-</script>
-</body>
-</html>

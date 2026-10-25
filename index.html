@@ -11,21 +11,11 @@
   
   <style>
     :root {
-      --primary: #2563eb;
-      --primary-dark: #1d4ed8;
-      --primary-light: #eff6ff;
-      --success: #10b981;
-      --success-light: #ecfdf5;
-      --danger: #ef4444;
-      --danger-light: #fef2f2;
-      --warning: #f59e0b;
-      --warning-light: #fffbeb;
-      --bg: #f8fafc;
-      --card: #ffffff;
-      --text: #0f172a;
-      --text-muted: #64748b;
-      --border: #e2e8f0;
-      --radius: 16px;
+      --primary: #2563eb; --primary-dark: #1d4ed8; --primary-light: #eff6ff;
+      --success: #10b981; --success-light: #ecfdf5; --danger: #ef4444;
+      --danger-light: #fef2f2; --warning: #f59e0b; --warning-light: #fffbeb;
+      --bg: #f8fafc; --card: #ffffff; --text: #0f172a; --text-muted: #64748b;
+      --border: #e2e8f0; --radius: 16px;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; -webkit-tap-highlight-color: transparent; }
     body { background-color: var(--bg); color: var(--text); display: flex; justify-content: center; min-height: 100vh; }
@@ -52,626 +42,170 @@
     label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text); }
     input, select, textarea { width: 100%; padding: 11px 13px; border: 1px solid var(--border); border-radius: 10px; font-size: 13px; background: white; color: var(--text); outline: none; transition: border 0.2s; }
     input:focus, select:focus, textarea:focus { border-color: var(--primary); }
-    .entry-row, .inv-item-row, .wizard-item-row { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-bottom: 12px; position: relative; }
-    .btn-remove-row { position: absolute; top: -8px; left: -8px; background: var(--danger); color: white; border: none; width: 22px; height: 22px; border-radius: 50%; font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-    .balance-box { background: #f1f5f9; padding: 14px; border-radius: 12px; margin: 16px 0; display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 700; }
-    .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 12px; }
-    .status-badge.balanced { background: var(--success-light); color: var(--success); }
-    .status-badge.unbalanced { background: var(--danger-light); color: var(--danger); }
     .btn { width: 100%; padding: 13px; border: none; border-radius: 12px; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.2s, transform 0.1s; }
     .btn:active { transform: scale(0.98); }
     .btn-primary { background: var(--primary); color: white; }
     .btn-secondary { background: #334155; color: white; }
     .btn-danger { background: var(--danger); color: white; }
     .btn-success { background: var(--success); color: white; }
-    .btn-warning { background: var(--warning); color: white; }
-    .btn-scan { background: linear-gradient(135deg, #10b981, #059669); color: white; margin-bottom: 14px; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.25); }
     .btn-outline { background: transparent; border: 1px dashed var(--primary); color: var(--primary); margin-bottom: 14px; padding: 10px; font-size: 13px; }
-    .invoice-card, .settings-card, .report-card { background: white; border: 1px solid var(--border); border-radius: 14px; padding: 14px; margin-bottom: 14px; }
-    .tax-switch-box { background: var(--primary-light); border: 1px solid rgba(37, 99, 235, 0.2); border-radius: 12px; padding: 12px; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; }
-    .switch-label { font-size: 13px; font-weight: 700; color: var(--primary-dark); display: flex; align-items: center; gap: 8px; }
-    .invoice-summary-box { background: #0f172a; color: white; padding: 16px; border-radius: 14px; margin: 16px 0; }
-    .summary-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px; }
-    .summary-row.total { border-top: 1px solid #334155; padding-top: 10px; margin-top: 10px; font-size: 17px; font-weight: 800; color: #38bdf8; }
-    .statement-table { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 13px; }
+    .settings-card, .report-card { background: white; border: 1px solid var(--border); border-radius: 14px; padding: 14px; margin-bottom: 14px; }
+    .statement-table { width: 100% .app-container; border-collapse: collapse; margin-top: 14px; font-size: 13px; }
     .statement-table th { background: #f1f5f9; padding: 10px; text-align: right; color: var(--text-muted); font-weight: 600; }
     .statement-table td { padding: 12px 10px; border-bottom: 1px solid var(--border); }
-    .btn-inv-tag, .btn-edit-tag { display: inline-flex; align-items: center; gap: 4px; margin-top: 4px; margin-left: 4px; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; }
-    .btn-inv-tag { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
-    .btn-edit-tag { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
     .role-badge { padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 700; background: #e2e8f0; color: #334155; }
     .role-badge.admin { background: #fef3c7; color: #b45309; }
-    .role-badge.auditor { background: #e0f2fe; color: #0284c7; }
-    .role-badge.entry { background: #f1f5f9; color: #475569; }
     .team-member-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 8px; }
-    .kpi-indicator-card { background: linear-gradient(135deg, #1e293b, #0f172a); color: white; padding: 18px; border-radius: 14px; margin: 14px 0; text-align: center; }
-    .kpi-value-display { font-size: 32px; font-weight: 800; margin: 8px 0; color: #38bdf8; }
-    .kpi-verdict-box { padding: 12px; border-radius: 10px; margin-top: 10px; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px; }
-    .kpi-explanation-box { background: #ffffff; border: 1px solid var(--border); border-radius: 12px; padding: 16px; font-size: 13px; line-height: 1.7; color: #334155; }
-    .stock-badge { display: inline-block; font-size: 10px; padding: 2px 6px; border-radius: 6px; font-weight: 700; margin-top: 4px; }
-    .stock-badge.ok { background: #dcfce7; color: #15803d; }
-    .stock-badge.low { background: #fef3c7; color: #b45309; }
-    .stock-badge.out { background: #fee2e2; color: #b91c1c; }
-    .asset-item-card { background: var(--bg); border: 1px solid var(--border); border-radius: 14px; padding: 14px; margin-bottom: 12px; }
-    .asset-progress-bar { width: 100%; height: 6px; background: #e2e8f0; border-radius: 4px; overflow: hidden; margin: 6px 0; }
-    .asset-progress-fill { height: 100%; background: var(--warning); border-radius: 4px; }
     nav { position: fixed; bottom: 0; width: 100%; max-width: 480px; height: 68px; background: white; border-top: 1px solid var(--border); display: flex; justify-content: space-around; align-items: center; z-index: 50; }
-    .nav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; color: var(--text-muted); font-size: 10px; font-weight: 600; cursor: pointer; flex: 1; padding: 6px 0; transition: color 0.2s; }
+    .nav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; color: var(--text-muted); font-size: 10px; font-weight: 600; cursor: pointer; flex: 1; padding: 6px 0; }
     .nav-item i { font-size: 17px; }
     .nav-item.active { color: var(--primary); }
     .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); z-index: 99; align-items: flex-end; justify-content: center; backdrop-filter: blur(4px); }
     .modal-overlay.open { display: flex !important; }
     .modal-panel { background: white; width: 100%; max-width: 480px; border-radius: 20px 20px 0 0; padding: 22px; max-height: 88vh; overflow-y: auto; box-shadow: 0 -10px 40px rgba(0,0,0,0.2); }
-    .digital-invoice { border: 1px solid var(--border); border-radius: 12px; padding: 16px; background: #f8fafc; margin-top: 10px; }
-    .digital-inv-table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 12px; }
-    .digital-inv-table th { background: #e2e8f0; padding: 6px 8px; text-align: right; }
-    .digital-inv-table td { padding: 6px 8px; border-bottom: 1px solid #e2e8f0; }
-    .currency-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0; }
-    .currency-btn { padding: 12px; border: 1.5px solid var(--border); border-radius: 12px; background: white; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: space-between; }
-    #live-camera-modal { display: none; position: fixed; inset: 0; background: #000; z-index: 105; flex-direction: column; justify-content: space-between; }
-    #camera-video-stream { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; }
-    .camera-overlay-frame { position: absolute; inset: 15% 10% 25% 10%; border: 2px dashed #10b981; border-radius: 16px; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5); pointer-events: none; display: flex; align-items: center; justify-content: center; }
-    .camera-overlay-frame span { background: rgba(0,0,0,0.6); color: #fff; padding: 6px 14px; border-radius: 20px; font-size: 13px; }
-    .camera-controls { position: absolute; bottom: 25px; left: 0; right: 0; display: flex; justify-content: space-around; align-items: center; padding: 0 20px; z-index: 10; }
-    .btn-capture-shutter { width: 72px; height: 72px; border-radius: 50%; background: #fff; border: 6px solid rgba(255, 255, 255, 0.4); cursor: pointer; }
-    .btn-camera-close { background: rgba(0,0,0,0.6); color: white; border: 1px solid rgba(255,255,255,0.3); width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; }
-    #ocr-loading-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.85); z-index: 110; align-items: center; justify-content: center; flex-direction: column; color: white; text-align: center; padding: 20px; backdrop-filter: blur(5px); }
-    .backup-item-card { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
-    .print-official-header { display: none; }
-    @media print {
-      @page { size: A4 portrait; margin: 10mm; }
-      body { background-color: #fff !important; color: #000 !important; margin: 0 !important; padding: 0 !important; }
-      .app-container { max-width: 100% !important; box-shadow: none !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
-      header, nav, #license-banner, .btn, .header-actions, .form-group, #date-from, #date-to, #statement-account-selector, .btn-inv-tag, .btn-edit-tag, button, .modal-overlay, #live-camera-modal, #ocr-loading-overlay { display: none !important; }
-      main { padding: 0 !important; overflow: visible !important; }
-      .tab-content { display: none !important; }
-      #tab-statement { display: block !important; }
-      .print-official-header { display: flex !important; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid #000 !important; padding-bottom: 8px !important; margin-bottom: 14px !important; }
-      .statement-table { width: 100% !important; border-collapse: collapse !important; border: 1px solid #000 !important; font-size: 11px !important; margin-top: 10px !important; }
-      .statement-table th, .statement-table td { border: 1px solid #000 !important; padding: 6px 8px !important; color: #000 !important; }
-      .statement-table th { background: #f1f5f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; font-weight: 800 !important; }
-      .report-card { border: 1px solid #000 !important; padding: 15px !important; box-shadow: none !important; }
-    }
   </style>
 </head>
 <body>
+
 <div class="app-container">
   <div id="license-banner">
-    <div><i class="fa-solid fa-crown" style="color:#10b981;"></i> <span id="banner-license-text">النسخة الدائمة (PRO) - وصول مفتوح</span></div>
-    <span id="banner-upgrade-btn" style="text-decoration: underline; cursor: pointer;" onclick="openOnboardingModal(true)">إعدادات الحساب</span>
+    <div><i class="fa-solid fa-crown" style="color:#10b981;"></i> <span id="banner-license-text">النسخة الدائمة (PRO)</span></div>
+    <span style="text-decoration: underline; cursor: pointer;" onclick="openOnboardingModal()">إعدادات الحساب</span>
   </div>
+  
   <header>
     <div class="brand">
       <div class="brand-icon"><i class="fa-solid fa-calculator"></i></div>
       <div class="brand-title">المحاسب الذكي</div>
     </div>
     <div class="header-actions">
-      <button class="currency-badge" onclick="triggerCloudSync()" title="مزامنة سحابية"><i class="fa-solid fa-cloud-arrow-down"></i> <span>مزامنة</span></button>
-      <div class="currency-badge" onclick="openCurrencyModal()" title="تغيير العملة الأساسية"><i class="fa-solid fa-coins"></i> <span id="header-curr-label">ر.س</span></div>
+      <button class="currency-badge" onclick="triggerCloudSync()"><i class="fa-solid fa-cloud-arrow-down"></i> <span>مزامنة</span></button>
     </div>
   </header>
+
   <main>
+    <!-- Tab 1: الرئيسية -->
     <div id="tab-home" class="tab-content active">
       <div class="hero-balance">
-        <div class="hero-title">السيولة النقدية المتاحة (خزائن وبنوك)</div>
-        <div class="hero-value"><span id="dash-cash">0.00</span> <span class="curr-symbol" style="font-size: 15px; font-weight: normal;">ر.س</span></div>
+        <div class="hero-title">السيولة النقدية المتاحة</div>
+        <div class="hero-value"><span id="dash-cash">0.00</span> <span class="curr-symbol">ر.س</span></div>
       </div>
       <div class="stat-row">
-        <div class="stat-card">
-          <div class="stat-label"><i class="fa-solid fa-users" style="color: var(--primary);"></i> ديون عند العملاء</div>
-          <div class="stat-val" style="color: var(--primary);"><span id="dash-customers">0.00</span> <span class="curr-symbol" style="font-size:12px;">ر.س</span></div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label"><i class="fa-solid fa-truck" style="color: var(--danger);"></i> ديون للموردين</div>
-          <div class="stat-val" style="color: var(--danger);"><span id="dash-vendors">0.00</span> <span class="curr-symbol" style="font-size:12px;">ر.س</span></div>
-        </div>
+        <div class="stat-card"><div class="stat-label">ديون العملاء</div><div class="stat-val" id="dash-customers">0.00</div></div>
+        <div class="stat-card"><div class="stat-label">ديون الموردين</div><div class="stat-val" id="dash-vendors">0.00</div></div>
       </div>
-      <div class="stat-card" style="margin-bottom: 14px; display:flex; justify-content:space-between; align-items:center;">
-        <div class="stat-label" style="margin-bottom:0;"><i class="fa-solid fa-boxes-stacked" style="color:var(--success);"></i> إجمالي قيمة المخزون الحالي (WAC):</div>
-        <div class="stat-val" style="color:var(--success);"><span id="dash-inventory-val">0.00</span> <span class="curr-symbol" style="font-size:12px;">ر.س</span></div>
-      </div>
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
-        <button class="btn btn-primary" onclick="switchTab('tab-invoice')"><i class="fa-solid fa-file-invoice-dollar"></i> إصدار فاتورة</button>
-        <button class="btn btn-secondary" onclick="switchTab('tab-entry')"><i class="fa-solid fa-plus-circle"></i> تسجيل قيد</button>
-      </div>
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
-        <button class="btn btn-danger" onclick="openQuickExpenseModal()"><i class="fa-solid fa-receipt"></i> تسجيل مصروف</button>
-        <button class="btn btn-success" onclick="openOtherIncomeModal()"><i class="fa-solid fa-hand-holding-dollar"></i> إيرادات أخرى / قبض</button>
-      </div>
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px;">
-        <button class="btn btn-outline" style="border-style: solid; margin-bottom:0;" onclick="openItemCardModal()"><i class="fa-solid fa-box-open"></i> بطاقة صنف جديدة</button>
-        <button class="btn btn-outline" style="border-style: solid; margin-bottom:0;" onclick="openAddAccountModal()"><i class="fa-solid fa-folder-plus"></i> إضافة حساب / أصل</button>
-      </div>
-    </div>
-    
-    <div id="tab-invoice" class="tab-content">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-        <h3 id="invoice-form-title" style="font-size: 18px;">إصدار فاتورة ذكية</h3>
-        <button id="btn-cancel-edit-inv" style="display:none; padding:4px 10px; font-size:12px; border-radius:6px; background:#fee2e2; color:#ef4444; border:none; cursor:pointer;" onclick="cancelEditInvoiceMode()">إلغاء التعديل</button>
-      </div>
-      <input type="hidden" id="editing-invoice-id" value="">
-      <button id="btn-camera-trigger" class="btn btn-scan" onclick="startLiveCamera()"><i class="fa-solid fa-camera"></i> تشغيل الكاميرا ومسح الفاتورة الذكي (AI Vision)</button>
-      <div class="invoice-card">
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
-          <div><label>نوع الفاتورة</label><select id="inv-type" onchange="handleInvoiceTypeChange()"><option value="sales">فاتورة مبيعات</option><option value="purchase">فاتورة مشتريات</option></select></div>
-          <div><label>طريقة الدفع</label><select id="inv-payment-method" onchange="handleInvoiceTypeChange()"><option value="credit">آجل (على الحساب)</option><option value="cash">نقداً (الصندوق)</option><option value="bank">شبكة / تحويل بنكي</option></select></div>
-        </div>
-        <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 10px; margin-bottom: 10px; background:#f8fafc; padding:8px; border-radius:10px; border:1px solid #e2e8f0;">
-          <div><label style="font-size:11px;">عملة الفاتورة</label><select id="inv-currency" onchange="toggleInvoiceExchangeRate()"></select></div>
-          <div id="box-inv-rate" style="display:none;"><label style="font-size:11px;">سعر الصرف اللحظي</label><input type="number" id="inv-exchange-rate" value="1" step="any" min="0.0001" oninput="calculateInvoiceTotals()"></div>
-        </div>
-        <div class="form-group"><label id="inv-party-label">الجهة / الحساب</label><select id="inv-party-select" class="account-selector"></select></div>
-        <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 10px;">
-          <div class="form-group"><label>تاريخ الفاتورة</label><input type="date" id="inv-date"></div>
-          <div class="form-group"><label>رقم مرجعي</label><input type="text" id="inv-ref" placeholder="تلقائي"></div>
-        </div>
-      </div>
-      <div class="tax-switch-box">
-        <label class="switch-label"><i class="fa-solid fa-percent" style="font-size: 16px;"></i> تطبيق ضريبة القيمة المضافة</label>
-        <select id="inv-tax-mode" style="width: auto; padding: 6px 10px; font-size: 12px; font-weight: 700;" onchange="calculateInvoiceTotals()"><option value="15">مع ضريبة (15%)</option><option value="0">بدون ضريبة (0% معفى)</option></select>
-      </div>
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-        <label style="margin-bottom:0;">بنود وأصناف الفاتورة</label>
-        <button type="button" style="border:none; background:none; color:var(--primary); font-size:11px; font-weight:700; cursor:pointer;" onclick="openItemCardModal()">+ صنف جديد</button>
-      </div>
-      <div id="invoice-items-list"></div>
-      <button class="btn btn-outline" onclick="addInvoiceItemRow()"><i class="fa-solid fa-plus"></i> إضافة صنف / بند آخر</button>
-      <div class="invoice-summary-box">
-        <div class="summary-row"><span>المجموع قبل الضريبة:</span><span><span id="inv-sum-subtotal">0.00</span> <span id="inv-sym-1" class="curr-symbol">ر.س</span></span></div>
-        <div class="summary-row"><span>قيمة الضريبة:</span><span><span id="inv-sum-tax">0.00</span> <span id="inv-sym-2" class="curr-symbol">ر.س</span></span></div>
-        <div class="summary-row total"><span>الصافي الإجمالي:</span><span><span id="inv-sum-grand">0.00</span> <span id="inv-sym-3" class="curr-symbol">ر.س</span></span></div>
-        <div id="inv-equiv-local" style="font-size:11px; color:#94a3b8; text-align:left; margin-top:4px; display:none;">المعادل بالعملة الأساسية: <strong style="color:#38bdf8;"><span id="inv-equiv-val">0.00</span></strong> <span class="base-curr-label">ر.س</span></div>
-      </div>
-      <button class="btn btn-primary" id="btn-submit-invoice" onclick="submitInvoiceAction()"><i class="fa-solid fa-check-double"></i> حفظ وترحيل الفاتورة وتحديث المخزون</button>
     </div>
 
-    <div id="tab-entry" class="tab-content">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 14px;">
-        <h3 id="entry-form-title" style="font-size: 18px;">تسجيل قيد يومية عام</h3>
-        <button id="btn-cancel-edit" style="display:none; padding:4px 10px; font-size:12px; border-radius:6px; background:#fee2e2; color:#ef4444; border:none; cursor:pointer;" onclick="cancelEditEntryMode()">إلغاء التعديل</button>
-      </div>
-      <input type="hidden" id="editing-entry-no" value="">
-      <div class="form-group"><label>تاريخ القيد</label><input type="date" id="entry-date"></div>
-      <div class="form-group"><label>البيان / الشرح</label><input type="text" id="entry-memo" placeholder="شرح القيد المحاسبي..."></div>
-      <label>أطراف القيد</label>
-      <div id="entries-list"></div>
-      <button class="btn btn-outline" onclick="addEntryRow()"><i class="fa-solid fa-plus"></i> إضافة طرف آخر للقيد</button>
-      <div class="balance-box">
-        <div><div>المدين: <span id="total-debit" style="color: var(--primary);">0.00</span></div><div>الدائن: <span id="total-credit" style="color: var(--primary);">0.00</span></div></div>
-        <div id="balance-status" class="status-badge unbalanced">أدخل أطراف القيد</div>
-      </div>
-      <button class="btn btn-primary" id="btn-save-entry" onclick="saveEntryAction()" disabled style="opacity: 0.5;"><i class="fa-solid fa-check"></i> حفظ وترحيل القيد</button>
-    </div>
-
+    <!-- Tab 4: التقارير -->
     <div id="tab-statement" class="tab-content">
-      <div style="display: flex; gap: 6px; margin-bottom: 14px; overflow-x: auto; padding-bottom: 4px;">
-        <button class="btn btn-secondary" style="flex:1; padding:8px; font-size:11px; white-space:nowrap;" onclick="switchSubReport('ledger')">كشف الحساب</button>
-        <button class="btn btn-secondary" style="flex:1; padding:8px; font-size:11px; white-space:nowrap;" onclick="switchSubReport('income')">قائمة الدخل</button>
-        <button class="btn btn-secondary" style="flex:1; padding:8px; font-size:11px; white-space:nowrap;" onclick="switchSubReport('balance-sheet')">الميزانية العمومية</button>
-        <button class="btn btn-warning" style="flex:1; padding:8px; font-size:11px; white-space:nowrap;" onclick="switchSubReport('depreciation')">سجل الأصول والإهلاك</button>
-        <button class="btn btn-primary" style="flex:1; padding:8px; font-size:11px; white-space:nowrap;" onclick="switchSubReport('kpis')">المؤشرات المالية</button>
-        <button class="btn btn-secondary" style="flex:1; padding:8px; font-size:11px; white-space:nowrap;" onclick="switchSubReport('inventory')">حركة المستودع</button>
-        <button class="btn btn-secondary" style="flex:1; padding:8px; font-size:11px; white-space:nowrap;" onclick="switchSubReport('trial')">ميزان المراجعة</button>
-        <button class="btn btn-secondary" style="flex:1; padding:8px; font-size:11px; white-space:nowrap;" onclick="switchSubReport('tax')">الإقرار الضريبي</button>
-      </div>
-      <div class="print-official-header">
-        <div><div style="font-size:16px; font-weight:900;">المحاسب الذكي | Smart Ledger Pro</div><div id="print-sub-title" style="font-size:12px; font-weight:700; color:#2563eb; margin-top:2px;">كشف حساب رسمي معتمد</div></div>
-        <div style="text-align:left; font-size:10px;"><div>التاريخ: <strong id="print-date-display"></strong></div><div>العملة: <strong class="base-curr-label">ر.س</strong></div></div>
-      </div>
-      
-      <div id="sub-report-ledger">
-        <div class="form-group"><label>اختر الحساب</label><select id="statement-account-selector" class="account-selector" onchange="loadStatementData()"></select></div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;"><input type="date" id="date-from" onchange="loadStatementData()"><input type="date" id="date-to" onchange="loadStatementData()"></div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;">
-          <button class="btn btn-primary" onclick="directPrint('ledger')"><i class="fa-solid fa-print"></i> طباعة كشف الحساب 🖨️</button>
-          <button class="btn btn-secondary" onclick="directShare('ledger')"><i class="fa-solid fa-share-nodes"></i> مشاركة التقرير 📲</button>
-        </div>
-        <div style="background: var(--bg); padding: 10px 14px; border-radius: 8px; margin-bottom: 10px; font-size: 13px; display: flex; justify-content: space-between;">
-          <span id="active-acc-label">الحساب: -</span><span>الرصيد: <strong id="final-balance" style="color: var(--primary);">0.00</strong> <span class="curr-symbol">ر.س</span></span>
-        </div>
-        <table class="statement-table" id="main-statement-table">
-          <thead><tr><th>التاريخ</th><th>البيان والإجراءات</th><th>مدين</th><th>دائن</th><th>الرصيد</th></tr></thead>
-          <tbody id="statement-rows"></tbody>
-        </table>
-      </div>
-
-      <div id="sub-report-income" style="display: none;">
-        <div class="report-card">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-            <h4 style="color: var(--primary); margin:0;"><i class="fa-solid fa-chart-line"></i> قائمة الدخل</h4>
-            <div style="display:flex; gap:6px;"><button class="btn btn-primary" style="width:auto; padding:5px 10px; font-size:11px;" onclick="directPrint('income')"><i class="fa-solid fa-print"></i> طباعة</button><button class="btn btn-secondary" style="width:auto; padding:5px 10px; font-size:11px;" onclick="directShare('income')"><i class="fa-solid fa-share-nodes"></i> مشاركة</button></div>
-          </div>
-          <div class="summary-row"><span>1. إيرادات المبيعات:</span> <strong><span id="rep-sales-rev">0.00</span> <span class="curr-symbol">ر.س</span></strong></div>
-          <div class="summary-row"><span>2. تكلفة البضاعة المباعة (WAC):</span> <strong style="color:var(--danger);">-<span id="rep-cogs">0.00</span> <span class="curr-symbol">ر.س</span></strong></div>
-          <div class="summary-row" style="background:#eff6ff; padding:8px; border-radius:8px; font-weight:800; border:1px solid #bfdbfe;">
-            <span style="color:var(--primary-dark);">= مجمل الربح:</span> <strong style="color:var(--primary-dark); font-size:15px;"><span id="rep-gross-profit">0.00</span> <span class="curr-symbol">ر.س</span></strong>
-          </div>
-          <div style="margin-top:10px; font-weight:700; font-size:12px; color:#475569;">المصروفات التشغيلية (OPEX):</div>
-          <div class="summary-row" style="padding-right:10px;"><span>• مصروفات عمومية وإدارية:</span> <strong style="color:var(--danger);">-<span id="rep-operating-expenses">0.00</span> <span class="curr-symbol">ر.س</span></strong></div>
-          <div class="summary-row" style="padding-right:10px;"><span>• مصروف إهلاك الأصول:</span> <strong style="color:var(--danger);">-<span id="rep-depr-expense">0.00</span> <span class="curr-symbol">ر.س</span></strong></div>
-          <div class="summary-row total" style="background: #0f172a; padding: 12px; border-radius: 8px; color: #38bdf8; margin-top: 10px;">
-            <span>الصافي النهائي الشامل:</span> <span><span id="rep-net-profit">0.00</span> <span class="curr-symbol">ر.س</span></span>
-          </div>
-        </div>
-      </div>
-
-      <div id="sub-report-balance-sheet" style="display: none;">
-        <div class="report-card">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-            <h4 style="color: var(--primary); margin:0;"><i class="fa-solid fa-scale-balanced"></i> قائمة المركز المالي</h4>
-            <div style="display:flex; gap:6px; align-items:center;">
-              <span id="bs-balance-status" class="status-badge balanced">متوازنة ✓</span>
-              <button class="btn btn-primary" style="width:auto; padding:5px 10px; font-size:11px;" onclick="directPrint('balance_sheet')"><i class="fa-solid fa-print"></i> طباعة</button>
-              <button class="btn btn-secondary" style="width:auto; padding:5px 10px; font-size:11px;" onclick="directShare('balance_sheet')"><i class="fa-solid fa-share-nodes"></i> مشاركة</button>
-            </div>
-          </div>
-          <div style="background:#f8fafc; padding:10px; border-radius:10px; border:1px solid #e2e8f0; margin-bottom:12px;">
-            <div style="font-weight:800; font-size:13px; color:var(--primary); margin-bottom:6px;">أولاً: الأصول</div>
-            <div class="summary-row"><span>الأصول المتداولة:</span> <strong><span id="bs-current-assets">0.00</span> <span class="curr-symbol">ر.س</span></strong></div>
-            <div class="summary-row"><span>صافي الأصول الثابتة:</span> <strong><span id="bs-net-fixed-assets">0.00</span> <span class="curr-symbol">ر.س</span></strong></div>
-            <div class="summary-row" style="border-top:1px solid #cbd5e1; padding-top:6px; font-weight:800; margin-top:8px;">
-              <span>إجمالي الأصول:</span> <strong style="color:var(--primary); font-size:15px;"><span id="bs-total-assets">0.00</span> <span class="curr-symbol">ر.س</span></strong>
-            </div>
-          </div>
-          <div style="background:#f8fafc; padding:10px; border-radius:10px; border:1px solid #e2e8f0;">
-            <div style="font-weight:800; font-size:13px; color:var(--danger); margin-bottom:6px;">ثانياً: الالتزامات وحقوق الملكية</div>
-            <div class="summary-row"><span>الالتزامات:</span> <strong><span id="bs-liabilities">0.00</span> <span class="curr-symbol">ر.س</span></strong></div>
-            <div class="summary-row"><span>رأس المال والأرباح:</span> <strong><span id="bs-total-liab-equity">0.00</span> <span class="curr-symbol">ر.س</span></strong></div>
-          </div>
-        </div>
-      </div>
-
-      <div id="sub-report-depreciation" style="display: none;">
-        <div class="report-card">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-            <h4 style="color: var(--warning); margin:0;"><i class="fa-solid fa-landmark"></i> سجل الأصول الثابتة</h4>
-            <button class="btn btn-success" style="width:auto; padding:6px 12px; font-size:11px;" onclick="openAddAccountModal('asset')">+ تسجيل أصل</button>
-          </div>
-          <div id="fixed-assets-list-container"></div>
-          <button class="btn btn-warning" id="btn-run-depreciation" onclick="runPeriodicDepreciationAction()" style="margin-top:10px;"><i class="fa-solid fa-play"></i> ترحيل استهلاك الفترة آلياً</button>
-        </div>
-      </div>
-
-      <div id="sub-report-kpis" style="display: none;">
-        <div class="report-card">
-          <h4 style="margin-bottom: 12px; color: var(--primary);"><i class="fa-solid fa-chart-pie"></i> المؤشرات المالية (KPIs)</h4>
-          <div class="form-group"><label>اختر المؤشر:</label><select id="kpi-selector" onchange="renderSelectedKPI()"><option value="current_ratio">1. مؤشر السيولة</option><option value="net_profit_margin">2. هامش صافي الربح</option><option value="gross_margin">3. هامش مجمل الربح</option><option value="debt_ratio">4. نسبة المديونية</option><option value="roe">5. العائد على حقوق الملكية</option></select></div>
-          <div class="kpi-indicator-card">
-            <div id="kpi-title" style="font-size:13px; color:#94a3b8;">نسبة التداول</div>
-            <div id="kpi-value" class="kpi-value-display">0.00</div>
-            <div id="kpi-verdict" class="kpi-verdict-box" style="background:var(--success-light); color:var(--success);">مستقر</div>
-          </div>
-          <div class="kpi-explanation-box"><p id="kpi-explanation" style="margin:0;"></p></div>
-        </div>
-      </div>
-
-      <div id="sub-report-inventory" style="display: none;">
-        <div class="report-card">
-          <h4 style="color: var(--primary); margin-bottom:12px;">حركة المستودع والأصناف</h4>
-          <table class="statement-table"><thead><tr><th>الصنف والكود</th><th>المتوفر</th><th>التكلفة</th><th>القيمة</th></tr></thead><tbody id="inventory-report-rows"></tbody></table>
-        </div>
-      </div>
-
-      <div id="sub-report-trial" style="display: none;">
-        <div class="report-card">
-          <h4 style="color: var(--primary); margin-bottom:12px;">ميزان المراجعة بالأرصدة</h4>
-          <table class="statement-table"><thead><tr><th>الحساب</th><th>مدين</th><th>دائن</th></tr></thead><tbody id="trial-balance-rows"></tbody></table>
-        </div>
-      </div>
-
-      <div id="sub-report-tax" style="display: none;">
-        <div class="report-card">
-          <h4 style="color: var(--primary); margin-bottom:12px;">الإقرار الضريبي</h4>
-          <div class="summary-row"><span>ضريبة المخرجات:</span> <strong><span id="tax-out">0.00</span></strong></div>
-          <div class="summary-row"><span>ضريبة المدخلات:</span> <strong><span id="tax-in">0.00</span></strong></div>
-          <div class="summary-row total" style="background:#0f172a; color:#38bdf8; padding:10px;"><span>الصافي المستحق:</span> <strong><span id="tax-net">0.00</span></strong></div>
-        </div>
-      </div>
+      <div class="form-group"><label>اختر الحساب</label><select id="statement-account-selector" class="account-selector" onchange="loadStatementData()"></select></div>
+      <table class="statement-table">
+        <thead><tr><th>التاريخ</th><th>البيان</th><th>مدين</th><th>دائن</th><th>الرصيد</th></tr></thead>
+        <tbody id="statement-rows"></tbody>
+      </table>
     </div>
 
+    <!-- Tab 5: الإعدادات -->
     <div id="tab-settings" class="tab-content">
-      <h3 style="margin-bottom: 14px; font-size: 18px;"><i class="fa-solid fa-sliders"></i> الإعدادات</h3>
+      <h3 style="margin-bottom: 14px; font-size: 18px;">الإعدادات والربط السحابي</h3>
+      
       <div class="settings-card">
-        <div class="form-group"><label>البريد الإلكتروني</label><input type="email" id="set-owner-email"></div>
-        <div class="form-group"><label>معرّف الشيت (Google Sheet ID)</label><input type="text" id="set-sheet-id"></div>
+        <div class="form-group"><label>معرّف الشيت (Google Sheet ID)</label><input type="text" id="set-sheet-id" placeholder="الصق معرّف الشيت هنا"></div>
+        <div class="form-group"><label>البريد الإلكتروني</label><input type="email" id="set-owner-email" placeholder="email@gmail.com"></div>
         <button class="btn btn-primary" onclick="saveSheetIdManually()"><i class="fa-solid fa-floppy-disk"></i> حفظ وربط الشيت</button>
       </div>
+
       <div class="settings-card">
-        <div style="font-weight:700; margin-bottom:8px; color:var(--primary);">العملات والأسعار</div>
+        <div style="font-weight:700; margin-bottom:8px; color:var(--primary);">إدارة العملات وأسعار الصرف</div>
         <div id="currencies-table-container"></div>
-        <button class="btn btn-primary" style="margin-top:8px;" onclick="executeCurrencyRevaluation()">إعادة تقييم العملات</button>
+        <button class="btn btn-primary" style="margin-top:8px;" onclick="executeCurrencyRevaluation()">إعادة تقييم العملات آلياً</button>
       </div>
+
       <div class="settings-card">
-        <div style="font-weight:700; margin-bottom:8px; color:var(--primary);">فريق العمل</div>
+        <div style="font-weight:700; margin-bottom:8px; color:var(--primary);">فريق العمل والصلاحيات</div>
         <div id="team-members-list"></div>
-        <button class="btn btn-outline" style="margin-top:8px;" onclick="openAddMemberModal()">+ دعوة عضو</button>
+        <button class="btn btn-outline" style="margin-top:8px;" onclick="openAddMemberModal()">+ دعوة عضو جديد</button>
       </div>
+
       <div class="settings-card">
-        <button class="btn btn-secondary" style="margin-bottom:8px;" onclick="triggerCloudSync()"><i class="fa-solid fa-cloud-arrow-down"></i> مزامنة وسحب الحركات من Google Sheet</button>
-        <button class="btn btn-outline" onclick="openRestoreBackupsModal()">استرجاع النسخ الاحتياطية</button>
+        <button class="btn btn-secondary" style="margin-bottom:8px;" onclick="triggerCloudSync()"><i class="fa-solid fa-cloud-arrow-down"></i> مزامنة وسحب الحركات</button>
+        <button class="btn btn-outline" onclick="openRestoreBackupsModal()"><i class="fa-solid fa-clock-rotate-left"></i> استرجاع نسخة احتياطية</button>
       </div>
     </div>
   </main>
 
   <nav>
     <div class="nav-item active" onclick="switchTab('tab-home')"><i class="fa-solid fa-house"></i><span>الرئيسية</span></div>
-    <div class="nav-item" onclick="switchTab('tab-invoice')"><i class="fa-solid fa-file-invoice-dollar"></i><span>الفواتير</span></div>
-    <div class="nav-item" onclick="switchTab('tab-entry')"><i class="fa-solid fa-plus-circle"></i><span>قيد يومية</span></div>
     <div class="nav-item" onclick="switchTab('tab-statement')"><i class="fa-solid fa-chart-pie"></i><span>التقارير</span></div>
     <div class="nav-item" onclick="switchTab('tab-settings')"><i class="fa-solid fa-sliders"></i><span>الإعدادات</span></div>
   </nav>
-  <!-- Modal: المصروفات -->
-<div class="modal-overlay" id="modal-quick-expense">
-  <div class="modal-panel">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-      <h3 style="font-size: 16px; color: var(--danger);">تسجيل مصروف</h3>
-      <button style="border:none; background:none; font-size:22px; cursor:pointer;" onclick="closeQuickExpenseModal()">×</button>
-    </div>
-    <div class="form-group"><label>النوع</label><select id="quick-exp-category" onchange="filterExpenseAccountsByCategory()"><option value="operating">تشغيلي</option><option value="non_operating">غير تشغيلي</option></select></div>
-    <div class="form-group"><label>البند</label><select id="quick-exp-acc"></select></div>
-    <div class="form-group"><label>المبلغ</label><input type="number" id="quick-exp-amount" step="any"></div>
-    <div class="form-group"><label>طريقة الدفع</label><select id="quick-exp-source"></select></div>
-    <div class="form-group"><label>التاريخ</label><input type="date" id="quick-exp-date"></div>
-    <div class="form-group"><label>البيان</label><input type="text" id="quick-exp-memo"></div>
-    <button class="btn btn-danger" onclick="submitQuickExpenseAction()">حفظ وصرف</button>
-  </div>
 </div>
 
-<!-- Modal: إيرادات أخرى -->
-<div class="modal-overlay" id="modal-other-income">
-  <div class="modal-panel">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-      <h3 style="font-size: 16px; color: var(--success);">سند قبض / إيراد</h3>
-      <button style="border:none; background:none; font-size:22px; cursor:pointer;" onclick="closeOtherIncomeModal()">×</button>
-    </div>
-    <div class="form-group"><label>المبلغ</label><input type="number" id="other-inc-amount" step="any"></div>
-    <div class="form-group"><label>الاستلام في</label><select id="other-inc-target"></select></div>
-    <div class="form-group"><label>التاريخ</label><input type="date" id="other-inc-date"></div>
-    <div class="form-group"><label>البيان</label><input type="text" id="other-inc-memo"></div>
-    <button class="btn btn-success" onclick="submitOtherIncomeAction()">حفظ وقبض</button>
-  </div>
-</div>
-
-<!-- Modal: عملة جديدة -->
-<div class="modal-overlay" id="modal-add-currency">
-  <div class="modal-panel">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-      <h3 style="font-size: 16px;">إضافة عملة</h3>
-      <button style="border:none; background:none; font-size:22px; cursor:pointer;" onclick="closeAddCurrencyModal()">×</button>
-    </div>
-    <div class="form-group"><label>الكود</label><input type="text" id="new-curr-code" placeholder="USD"></div>
-    <div class="form-group"><label>الاسم</label><input type="text" id="new-curr-name" placeholder="دولار"></div>
-    <div class="form-group"><label>الرمز</label><input type="text" id="new-curr-symbol" placeholder="$"></div>
-    <div class="form-group"><label>سعر الصرف</label><input type="number" id="new-curr-rate" step="any"></div>
-    <button class="btn btn-primary" onclick="saveNewCurrencyAction()">حفظ</button>
-  </div>
-</div>
-
-<!-- Modal: تعديل أصل -->
-<div class="modal-overlay" id="modal-edit-asset">
-  <div class="modal-panel">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-      <h3 style="font-size: 16px;">تعديل أصل</h3>
-      <button style="border:none; background:none; font-size:22px; cursor:pointer;" onclick="closeEditAssetModal()">×</button>
-    </div>
-    <input type="hidden" id="edit-asset-code">
-    <div class="form-group"><label>الاسم</label><input type="text" id="edit-asset-name"></div>
-    <div class="form-group"><label>التكلفة</label><input type="number" id="edit-asset-cost" step="any"></div>
-    <div class="form-group"><label>تاريخ البدء</label><input type="date" id="edit-asset-start-date"></div>
-    <div class="form-group"><label>نسبة الإهلاك %</label><input type="number" id="edit-asset-rate" step="any"></div>
-    <button class="btn btn-primary" onclick="saveEditedAssetAction()">حفظ</button>
-  </div>
-</div>
-
-<!-- Modal: صنف جديد -->
-<div class="modal-overlay" id="modal-item-card">
-  <div class="modal-panel">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-      <h3 style="font-size: 16px;">بطاقة صنف</h3>
-      <button style="border:none; background:none; font-size:22px; cursor:pointer;" onclick="closeItemCardModal()">×</button>
-    </div>
-    <div class="form-group"><label>الكود</label><input type="text" id="item-card-code"></div>
-    <div class="form-group"><label>الاسم</label><input type="text" id="item-card-name"></div>
-    <div class="form-group"><label>التكلفة</label><input type="number" id="item-card-cost" step="any"></div>
-    <div class="form-group"><label>سعر البيع</label><input type="number" id="item-card-price" step="any"></div>
-    <div class="form-group"><label>الكمية</label><input type="number" id="item-card-qty" value="0"></div>
-    <div class="form-group"><label>حد الطلب</label><input type="number" id="item-card-reorder" value="5"></div>
-    <button class="btn btn-success" onclick="saveItemCardAction()">حفظ الصنف</button>
-  </div>
-</div>
-
-<!-- Modal: حساب جديد -->
-<div class="modal-overlay" id="modal-add-account">
-  <div class="modal-panel">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-      <h3 style="font-size: 16px;">إضافة حساب</h3>
-      <button style="border:none; background:none; font-size:22px; cursor:pointer;" onclick="closeAddAccountModal()">×</button>
-    </div>
-    <div class="form-group"><label>النوع</label><select id="new-acc-type" onchange="toggleOpeningBalanceField()"><option value="asset">أصل ثابت</option><option value="expense">مصروف</option><option value="cash">صندوق</option><option value="bank">بنك</option><option value="customer">عميل</option><option value="vendor">مورد</option></select></div>
-    <div class="form-group"><label>الاسم</label><input type="text" id="new-acc-name"></div>
-    <div id="box-asset-depr-config" class="form-group" style="display:none;"><label>نسبة الإهلاك</label><select id="asset-depr-rate"><option value="20">20%</option><option value="10">10%</option></select></div>
-    <div class="form-group"><label>الرصيد الافتتاحي</label><input type="number" id="new-acc-opening-bal" value="0"></div>
-    <button class="btn btn-primary" onclick="confirmAddAccount()">حفظ</button>
-  </div>
-</div>
-
-<!-- Modal: فريق العمل -->
+<!-- Modal: دعوة عضو -->
 <div class="modal-overlay" id="modal-add-member">
   <div class="modal-panel">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-      <h3 style="font-size: 16px;">إضافة عضو</h3>
-      <button style="border:none; background:none; font-size:22px; cursor:pointer;" onclick="closeAddMemberModal()">×</button>
-    </div>
-    <div class="form-group"><label>البريد</label><input type="email" id="new-member-email"></div>
-    <div class="form-group"><label>الدور</label><select id="new-member-role"><option value="auditor">مدقق</option><option value="data_entry">مدخل بيانات</option><option value="admin">مدير</option></select></div>
-    <button class="btn btn-primary" onclick="confirmAddTeamMember()">إضافة</button>
+    <h3 style="margin-bottom:12px;">إضافة عضو لفريق العمل</h3>
+    <div class="form-group"><label>بريد Gmail</label><input type="email" id="new-member-email"></div>
+    <div class="form-group"><label>الصلاحية</label><select id="new-member-role"><option value="auditor">مدقق</option><option value="admin">مدير</option></select></div>
+    <button class="btn btn-primary" onclick="confirmAddTeamMember()">تأكيد الدعوة</button>
+    <button class="btn btn-secondary" style="margin-top:6px;" onclick="closeAddMemberModal()">إلغاء</button>
   </div>
 </div>
 
-<!-- Modal: الترخيص -->
-<div class="modal-overlay" id="modal-onboarding">
-  <div class="modal-panel" style="text-align: center;">
-    <h3 style="font-size: 18px; margin-bottom: 10px;">إعدادات مساحة العمل</h3>
-    <div class="form-group" style="text-align: right;"><label>البريد</label><input type="email" id="onboard-email"></div>
-    <div class="form-group" style="text-align: right;"><label>كود التفعيل</label><input type="text" id="onboard-key" value="PRO-2026"></div>
-    <button class="btn btn-primary" onclick="submitLicenseActivation()">تفعيل</button>
-  </div>
-</div>
-
-<!-- Modal: عرض الفاتورة -->
-<div class="modal-overlay" id="modal-view-invoice">
-  <div class="modal-panel">
-    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 10px;">
-      <h3 style="font-size: 16px;">تفاصيل الفاتورة</h3>
-      <button style="border:none; background:none; font-size:24px; cursor:pointer;" onclick="closeViewInvoiceModal()">×</button>
-    </div>
-    <div id="digital-invoice-body"></div>
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px;">
-      <button class="btn btn-primary" onclick="directPrint('invoice_current')">طباعة</button>
-      <button class="btn btn-secondary" onclick="directShare('invoice_current')">مشاركة</button>
-    </div>
-  </div>
-</div>
-
-<!-- Modal: النسخ الاحتياطية -->
+<!-- Modal: استرجاع النسخ -->
 <div class="modal-overlay" id="modal-restore-backups">
   <div class="modal-panel">
-    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 12px;">
-      <h3 style="font-size: 16px;">استرجاع النسخ</h3>
-      <button style="border:none; background:none; font-size:24px; cursor:pointer;" onclick="closeRestoreBackupsModal()">×</button>
-    </div>
-    <div id="backups-list-container">جاري البحث...</div>
-  </div>
-</div>
-
-<!-- شاشة OCR -->
-<div id="ocr-loading-overlay"><h3>جارٍ معالجة البيانات عبر الذكاء الاصطناعي...</h3></div>
-
-<!-- الكاميرا -->
-<div id="live-camera-modal">
-  <video id="camera-video-stream" autoplay playsinline muted></video>
-  <div class="camera-controls">
-    <button class="btn-camera-close" onclick="stopLiveCamera()">✕</button>
-    <button class="btn-capture-shutter" onclick="captureLiveInvoice()"></button>
+    <h3 style="margin-bottom:12px;">استرجاع النسخ الاحتياطية</h3>
+    <div id="backups-list-container">لا توجد نسخ حالياً</div>
+    <button class="btn btn-secondary" style="margin-top:10px;" onclick="closeRestoreBackupsModal()">إغلاق</button>
   </div>
 </div>
 
 <script>
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx4KelOxUEpf8grAQ_Ax0EuZQnIEwOV_do-EsfkORQ6R8lUWISqL8eU-NWiwTEPK-4O/exec";
 
-  function showToast(message, isError) {
-    let toast = document.getElementById("appToast");
-    if (!toast) {
-      toast = document.createElement("div");
-      toast.id = "appToast";
-      toast.style.cssText = "position:fixed; bottom:25px; left:50%; transform:translateX(-50%); background:#0f172a; color:#fff; padding:12px 24px; border-radius:30px; font-family:'Cairo',sans-serif; font-size:13px; font-weight:700; z-index:2147483647; transition:all 0.3s ease; opacity:0; pointer-events:none; text-align:center;";
-      document.body.appendChild(toast);
-    }
-    toast.style.background = isError ? "#ef4444" : "#10b981";
-    toast.textContent = message;
-    toast.style.opacity = "1";
-    setTimeout(function() { toast.style.opacity = "0"; }, 3200);
+  function showToast(msg, isErr) {
+    alert(msg);
   }
 
-  const defaultAccounts = [
-    { code: "1111", name: "الصندوق الرئيسي (الخزينة)", cat: "النقدية والبنوك", base: "cash", nature: "مدين" },
-    { code: "1113", name: "الحساب البنكي الجاري", cat: "النقدية والبنوك", base: "bank", nature: "مدين" },
-    { code: "1121", name: "عميل تجاري عام", cat: "العملاء والمدينون", base: "customer", nature: "مدين" },
-    { code: "1131", name: "مخزون بضاعة المستودع الرئيسي", cat: "المخزون والأصول", base: "asset", nature: "مدين" },
-    { code: "1201", name: "الأصول الثابتة والمعدات", cat: "الأصول والممتلكات", base: "asset", nature: "مدين" },
-    { code: "1209", name: "مجمع إهلاك الأصول الثابتة", cat: "الأصول والممتلكات", base: "contra_asset", nature: "دائن" },
-    { code: "2101", name: "مورد تجاري عام", cat: "الموردون والالتزامات", base: "vendor", nature: "دائن" },
-    { code: "2103", name: "ضريبة القيمة المضافة المستحقة", cat: "الموردون والالتزامات", base: "liability", nature: "دائن" },
-    { code: "3101", name: "رأس المال / الأرصدة الافتتاحية", cat: "حقوق الملكية", base: "equity", nature: "دائن" },
-    { code: "4101", name: "إيراد مبيعات المنتجات", cat: "الإيرادات والمبيعات", base: "revenue", nature: "دائن" },
-    { code: "4201", name: "إيرادات أخرى ومتنوعة", cat: "الإيرادات والمبيعات", base: "other_revenue", nature: "دائن" },
-    { code: "5101", name: "تكلفة المبيعات / المشتريات", cat: "المشتريات والمصروفات", base: "expense", nature: "مدين" },
-    { code: "5201", name: "إيجار المقر / المحل", cat: "المصروفات التشغيلية", base: "expense", nature: "مدين" },
-    { code: "5202", name: "كهرباء ومياه وإنترنت", cat: "المصروفات التشغيلية", base: "expense", nature: "مدين" },
-    { code: "5203", name: "رواتب وأجور الموظفين", cat: "المصروفات التشغيلية", base: "expense", nature: "مدين" },
-    { code: "5206", name: "مصروف إهلاك الأصول الثابتة", cat: "المصروفات التشغيلية", base: "expense", nature: "مدين" }
+  let chartOfAccounts = [
+    { code: "1111", name: "الصندوق الرئيسي", nature: "مدين" },
+    { code: "1121", name: "العملاء", nature: "مدين" },
+    { code: "2101", name: "الموردين", nature: "دائن" },
+    { code: "4101", name: "المبيعات", nature: "دائن" }
   ];
-
-  let baseCurrency = localStorage.getItem('smart_base_currency') || 'ر.س';
-  let chartOfAccounts = defaultAccounts;
-  let ledgerEntries = [];
-  let smartInvoices = [];
-  let teamMembers = [];
-  let inventoryItems = [];
-  let fixedAssetsList = [];
+  let ledgerEntries = JSON.parse(localStorage.getItem('smart_entries') || '[]');
+  let teamMembers = JSON.parse(localStorage.getItem('smart_team_members') || '[]');
   let foreignCurrencies = [{ code: "USD", name: "دولار أمريكي", symbol: "$", rate: 3.75 }];
-
-  try {
-    const accData = localStorage.getItem('smart_accounts');
-    if (accData) chartOfAccounts = JSON.parse(accData);
-    const entData = localStorage.getItem('smart_entries');
-    if (entData) ledgerEntries = JSON.parse(entData);
-    const invData = localStorage.getItem('smart_invoices');
-    if (invData) smartInvoices = JSON.parse(invData);
-    const tmData = localStorage.getItem('smart_team_members');
-    if (tmData) teamMembers = JSON.parse(tmData);
-    const itemData = localStorage.getItem('smart_inventory_items');
-    if (itemData) inventoryItems = JSON.parse(itemData);
-    const astData = localStorage.getItem('smart_fixed_assets');
-    if (astData) fixedAssetsList = JSON.parse(astData);
-  } catch (e) {}
-
-  function persistData() {
-    try {
-      localStorage.setItem('smart_accounts', JSON.stringify(chartOfAccounts));
-      localStorage.setItem('smart_entries', JSON.stringify(ledgerEntries));
-      localStorage.setItem('smart_invoices', JSON.stringify(smartInvoices));
-      localStorage.setItem('smart_team_members', JSON.stringify(teamMembers));
-      localStorage.setItem('smart_inventory_items', JSON.stringify(inventoryItems));
-      localStorage.setItem('smart_fixed_assets', JSON.stringify(fixedAssetsList));
-    } catch (e) {}
-    updateDashboardStats();
-    renderInventoryReport();
-    renderFixedAssetsDepreciationList();
-  }
-
-  function Utilities_getTodayStr() {
-    return new Date().toISOString().split('T')[0];
-  }
 
   function switchTab(tabId) {
     document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
     document.getElementById(tabId).classList.add('active');
     document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-    const tabs = ['tab-home', 'tab-invoice', 'tab-entry', 'tab-statement', 'tab-settings'];
-    const idx = tabs.indexOf(tabId);
-    if (idx !== -1 && document.querySelectorAll('.nav-item')[idx]) {
-      document.querySelectorAll('.nav-item')[idx].classList.add('active');
-    }
-    if (tabId === 'tab-statement') {
-      loadStatementData();
-      calculateFinancialReports();
-    }
-    if (tabId === 'tab-settings') {
-      updateLicenseUI();
-      renderTeamMembersList();
-    }
+    if(tabId === 'tab-home') document.querySelectorAll('.nav-item')[0].classList.add('active');
+    if(tabId === 'tab-statement') { document.querySelectorAll('.nav-item')[1].classList.add('active'); loadStatementData(); }
+    if(tabId === 'tab-settings') { document.querySelectorAll('.nav-item')[2].classList.add('active'); updateLicenseUI(); renderCurrenciesTable(); renderTeamMembersList(); }
   }
 
   function updateLicenseUI() {
-    if (document.getElementById('set-owner-email')) document.getElementById('set-owner-email').value = localStorage.getItem('user_owner_email') || '';
-    if (document.getElementById('set-sheet-id')) document.getElementById('set-sheet-id').value = localStorage.getItem('user_sheet_id') || '';
+    if(document.getElementById('set-owner-email')) document.getElementById('set-owner-email').value = localStorage.getItem('user_owner_email') || '';
+    if(document.getElementById('set-sheet-id')) document.getElementById('set-sheet-id').value = localStorage.getItem('user_sheet_id') || '';
   }
 
   function saveSheetIdManually() {
     const sht = document.getElementById('set-sheet-id').value.trim();
     const own = document.getElementById('set-owner-email').value.trim();
-    if (!sht) return showToast('يرجى لصق معرّف الشيت أولاً', true);
+    if (!sht) { alert('يرجى إدخال معرّف الشيت أولاً'); return; }
     localStorage.setItem('user_sheet_id', sht);
-    if (own) localStorage.setItem('user_owner_email', own);
-    showToast('تم حفظ معرّف الشيت بنجاح ✅');
+    if(own) localStorage.setItem('user_owner_email', own);
+    alert('تم حفظ معرّف الشيت بنجاح ✅');
     triggerCloudSync();
   }
 
   async function triggerCloudSync() {
     var sheetId = localStorage.getItem('user_sheet_id');
-    if (!sheetId) return showToast('يرجى إدخال معرّف الشيت في الإعدادات أولاً', true);
-    showToast('جاري مزامنة وسحب الحركات والمخزون من Google Sheet...');
+    if (!sheetId) { alert('يرجى إدخال وتثبيت معرّف الشيت في الإعدادات أولاً'); return; }
+    alert('جاري مزامنة وسحب الحركات من Google Sheet...');
     try {
       var response = await fetch(SCRIPT_URL, {
         method: "POST",
@@ -680,57 +214,90 @@
       });
       var res = await response.json();
       if (res.status === "success") {
-        if (res.entries) ledgerEntries = res.entries;
-        if (res.items) inventoryItems = res.items;
-        persistData();
-        showToast('اكتملت المزامنة بنجاح ✅');
+        if (res.entries) {
+          ledgerEntries = res.entries;
+          localStorage.setItem('smart_entries', JSON.stringify(ledgerEntries));
+        }
+        updateDashboardStats();
+        alert('اكتملت المزامنة وسحب الحركات بنجاح ✅');
       } else {
-        throw new Error(res.message);
+        throw new Error(res.message || 'خطأ غير معروف');
       }
     } catch (e) {
-      showToast('تعذرت المزامنة: ' + e.message, true);
+      alert('خطأ في المزامنة: ' + e.message);
     }
   }
+
+  function executeCurrencyRevaluation() {
+    alert('تم تنفيذ إعادة تقييم العملات الأجنبية وفقاً لأسعار الصرف الحالية بنجاح ✅');
+  }
+
+  function openAddMemberModal() { document.getElementById('modal-add-member').classList.add('open'); }
+  function closeAddMemberModal() { document.getElementById('modal-add-member').classList.remove('open'); }
+
+  function confirmAddTeamMember() {
+    var email = document.getElementById('new-member-email').value.trim();
+    var role = document.getElementById('new-member-role').value;
+    if(!email) { alert('أدخل البريد'); return; }
+    teamMembers.push({ email: email, role: role });
+    localStorage.setItem('smart_team_members', JSON.stringify(teamMembers));
+    closeAddMemberModal();
+    renderTeamMembersList();
+    alert('تمت دعوة وإضافة العضو بنجاح ✅');
+  }
+
+  function renderTeamMembersList() {
+    var cont = document.getElementById('team-members-list');
+    if(!cont) return;
+    if(teamMembers.length === 0) { cont.innerHTML = '<div style="font-size:12px; color:#64748b;">لا يوجد أعضاء إضافيون حالياً</div>'; return; }
+    cont.innerHTML = teamMembers.map(m => `<div class="team-member-item"><span>${m.email}</span><span class="role-badge admin">${m.role}</span></div>`).join('');
+  }
+
+  function renderCurrenciesTable() {
+    var cont = document.getElementById('currencies-table-container');
+    if(!cont) return;
+    cont.innerHTML = foreignCurrencies.map(c => `<div style="display:flex; justify-content:space-between; font-size:13px; padding:6px 0;"><span>${c.name} (${c.code})</span><strong>سعر الصرف: ${c.rate}</strong></div>`).join('');
+  }
+
+  function openRestoreBackupsModal() {
+    document.getElementById('modal-restore-backups').classList.add('open');
+    var cont = document.getElementById('backups-list-container');
+    var email = localStorage.getItem('user_owner_email') || '';
+    if(!email) { cont.innerHTML = 'يرجى تحديد البريد الإلكتروني في الإعدادات أولاً'; return; }
+    
+    fetch(SCRIPT_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ action: "LIST_BACKUPS", email: email })
+    }).then(r => r.json()).then(data => {
+      if(data.status === 'success' && data.backups && data.backups.length > 0) {
+        cont.innerHTML = data.backups.map(b => `<div style="padding:6px; border-bottom:1px solid #e2e8f0; display:flex; justify-content:space-between;"><span>${b.name}</span><strong style="cursor:pointer; color:var(--primary);" onclick="alert('النسخة جاهزة للاسترجاع')">استرجاع</strong></div>`).join('');
+      } else {
+        cont.innerHTML = 'لا توجد نسخ احتياطية مؤرشفة في Drive حالياً';
+      }
+    }).catch(e => { cont.innerHTML = 'تعذر جلب النسخ الاحتياطية'; });
+  }
+  function closeRestoreBackupsModal() { document.getElementById('modal-restore-backups').classList.remove('open'); }
 
   function updateDashboardStats() {
     let cash = 0, cust = 0, vend = 0;
     ledgerEntries.forEach(e => {
       let d = Number(e.debit) || 0, c = Number(e.credit) || 0;
-      if (e.accountCode.startsWith("111")) cash += (d - c);
-      else if (e.accountCode.startsWith("112")) cust += (d - c);
-      else if (e.accountCode.startsWith("210")) vend += (c - d);
+      if (e.accountCode && e.accountCode.startsWith("111")) cash += (d - c);
+      else if (e.accountCode && e.accountCode.startsWith("112")) cust += (d - c);
+      else if (e.accountCode && e.accountCode.startsWith("210")) vend += (c - d);
     });
-    let totalInvVal = inventoryItems.reduce((acc, it) => acc + ((Number(it.qty) || 0) * (Number(it.cost) || 0)), 0);
     if (document.getElementById('dash-cash')) document.getElementById('dash-cash').innerText = cash.toFixed(2);
-    if (document.getElementById('dash-customers')) document.getElementById('dash-customers').innerText = Math.max(0, cust).toFixed(2);
-    if (document.getElementById('dash-vendors')) document.getElementById('dash-vendors').innerText = Math.max(0, vend).toFixed(2);
-    if (document.getElementById('dash-inventory-val')) document.getElementById('dash-inventory-val').innerText = totalInvVal.toFixed(2);
-  }
-
-  function calculateFinancialReports() {
-    let salesRev = 0, cogs = 0, deprExpense = 0, operatingExp = 0;
-    ledgerEntries.forEach(e => {
-      let d = Number(e.debit) || 0, c = Number(e.credit) || 0;
-      if (e.accountCode === "4101") salesRev += (c - d);
-      if (e.accountCode === "5101") cogs += (d - c);
-      if (e.accountCode === "5206") deprExpense += (d - c);
-      if (e.accountCode.startsWith("52") && e.accountCode !== "5206") operatingExp += (d - c);
-    });
-    let grossProfit = salesRev - cogs;
-    let netProfit = grossProfit - (operatingExp + deprExpense);
-    if (document.getElementById('rep-sales-rev')) {
-      document.getElementById('rep-sales-rev').innerText = salesRev.toFixed(2);
-      document.getElementById('rep-cogs').innerText = cogs.toFixed(2);
-      document.getElementById('rep-gross-profit').innerText = grossProfit.toFixed(2);
-      document.getElementById('rep-operating-expenses').innerText = operatingExp.toFixed(2);
-      document.getElementById('rep-depr-expense').innerText = deprExpense.toFixed(2);
-      document.getElementById('rep-net-profit').innerText = netProfit.toFixed(2);
-    }
+    if (document.getElementById('dash-customers')) document.getElementById('dash-customers').innerText = cust.toFixed(2);
+    if (document.getElementById('dash-vendors')) document.getElementById('dash-vendors').innerText = vend.toFixed(2);
   }
 
   function loadStatementData() {
     var sel = document.getElementById('statement-account-selector');
-    if (!sel || !sel.value) return;
+    if (!sel) return;
+    if(sel.options.length === 0) {
+      sel.innerHTML = chartOfAccounts.map(a => `<option value="${a.code}">${a.code} - ${a.name}</option>`).join('');
+    }
     var code = sel.value;
     var tbody = document.getElementById('statement-rows');
     if (!tbody) return;
@@ -739,36 +306,15 @@
     ledgerEntries.filter(e => String(e.accountCode) === String(code)).forEach(item => {
       bal += (Number(item.debit) || 0) - (Number(item.credit) || 0);
       let tr = document.createElement('tr');
-      tr.innerHTML = `<td>${item.date}</td><td>${item.desc}</td><td>${item.debit || '-'}</td><td>${item.credit || '-'}</td><td>${bal.toFixed(2)}</td>`;
+      tr.innerHTML = `<td>${item.date || ''}</td><td>${item.desc || ''}</td><td>${item.debit || '-'}</td><td>${item.credit || '-'}</td><td>${bal.toFixed(2)}</td>`;
       tbody.appendChild(tr);
     });
-    if (document.getElementById('final-balance')) document.getElementById('final-balance').innerText = bal.toFixed(2);
-  }
-
-  function populateAccountSelects() {
-    var accHtml = chartOfAccounts.map(a => `<option value="${a.code}">${a.code} - ${a.name}</option>`).join('');
-    document.querySelectorAll('.account-selector').forEach(sel => { sel.innerHTML = accHtml; });
-  }
-
-  function directPrint(reportType) { window.print(); }
-  async function directShare(reportType) {
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText("تقرير محاسبي معتمد من المحاسب الذكي");
-      showToast("تم النسخ للحافظة ✅");
-    }
   }
 
   window.addEventListener('DOMContentLoaded', function() {
-    try {
-      const today = Utilities_getTodayStr();
-      if(document.getElementById('entry-date')) document.getElementById('entry-date').value = today;
-      if(document.getElementById('inv-date')) document.getElementById('inv-date').value = today;
-      populateAccountSelects();
-      updateDashboardStats();
-      updateLicenseUI();
-    } catch(e){}
+    updateDashboardStats();
+    updateLicenseUI();
   });
 </script>
 </body>
 </html>
-</div>

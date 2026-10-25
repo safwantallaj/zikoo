@@ -59,7 +59,7 @@
     input, select, textarea { width: 100%; padding: 11px 13px; border: 1px solid var(--border); border-radius: 10px; font-size: 13px; background: white; color: var(--text); outline: none; transition: border 0.2s; }
     input:focus, select:focus, textarea:focus { border-color: var(--primary); }
 
-    .entry-row, .inv-item-row { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-bottom: 12px; position: relative; }
+    .entry-row, .inv-item-row, .wizard-item-row { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-bottom: 12px; position: relative; }
     .btn-remove-row { position: absolute; top: -8px; left: -8px; background: var(--danger); color: white; border: none; width: 22px; height: 22px; border-radius: 50%; font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 
     .balance-box { background: #f1f5f9; padding: 14px; border-radius: 12px; margin: 16px 0; display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 700; }
@@ -122,8 +122,8 @@
     .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); z-index: 2147483647; align-items: flex-end; justify-content: center; backdrop-filter: blur(4px); }
     .modal-overlay.open { display: flex !important; }
     .modal-panel { background: white; width: 100%; max-width: 480px; border-radius: 20px 20px 0 0; padding: 22px; max-height: 88vh; overflow-y: auto; box-shadow: 0 -10px 40px rgba(0,0,0,0.2); }
-    #modal-onboarding, #modal-add-member, #modal-item-card, #modal-edit-asset, #modal-other-income, #modal-add-account, #modal-restore-backups, #modal-view-invoice, #modal-add-currency { align-items: center; padding: 20px; background: rgba(15, 23, 42, 0.95); }
-    #modal-onboarding .modal-panel, #modal-add-member .modal-panel, #modal-item-card .modal-panel, #modal-edit-asset .modal-panel, #modal-other-income .modal-panel, #modal-add-account .modal-panel, #modal-restore-backups .modal-panel, #modal-view-invoice .modal-panel, #modal-add-currency .modal-panel { border-radius: 24px; max-height: 90vh; }
+    #modal-onboarding, #modal-opening-wizard, #modal-add-member, #modal-item-card, #modal-edit-asset, #modal-other-income, #modal-add-account, #modal-restore-backups, #modal-view-invoice, #modal-add-currency { align-items: center; padding: 20px; background: rgba(15, 23, 42, 0.95); }
+    #modal-onboarding .modal-panel, #modal-opening-wizard .modal-panel, #modal-add-member .modal-panel, #modal-item-card .modal-panel, #modal-edit-asset .modal-panel, #modal-other-income .modal-panel, #modal-add-account .modal-panel, #modal-restore-backups .modal-panel, #modal-view-invoice .modal-panel, #modal-add-currency .modal-panel { border-radius: 24px; max-height: 90vh; }
 
     .digital-invoice { border: 1px solid var(--border); border-radius: 12px; padding: 16px; background: #f8fafc; margin-top: 10px; }
     .digital-inv-table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 12px; }
@@ -145,7 +145,7 @@
     .backup-item-card { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
 
     /* ==============================================================
-       قواعد الطباعة النظيفة والرسمية المستقلة تماماً (Native Print CSS)
+       الطباعة النظيفة الرسمية المستقلة بنظام A4
        ============================================================== */
     .print-official-header { display: none; }
 
@@ -432,7 +432,7 @@
         <button class="btn btn-secondary" style="flex:1; padding:8px; font-size:11px; white-space:nowrap;" onclick="switchSubReport('tax')">الإقرار الضريبي</button>
       </div>
 
-      <!-- ترويسة رسمية تظهر فقط عند أمر الطباعة على ورقة A4 -->
+      <!-- ترويسة رسمية تظهر حصراً عند خروج الورقة من الطابعة A4 -->
       <div class="print-official-header">
         <div>
           <div style="font-size:16px; font-weight:900;">المحاسب الذكي | Smart Ledger Pro</div>
@@ -1045,6 +1045,62 @@
     <button class="btn btn-primary" id="btn-activate-license" style="padding: 14px; font-size: 15px;" onclick="submitLicenseActivation()">
       <i class="fa-solid fa-rocket"></i> تفعيل مساحة العمل السحابية
     </button>
+  </div>
+</div>
+
+<!-- Modal: معالج الأرصدة الافتتاحية -->
+<div class="modal-overlay" id="modal-opening-wizard">
+  <div class="modal-panel">
+    <div style="text-align: center; margin-bottom: 16px;">
+      <div style="width: 52px; height: 52px; background: var(--primary-light); color: var(--primary); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 8px;">
+        <i class="fa-solid fa-wand-magic-sparkles"></i>
+      </div>
+      <h3 style="font-size: 18px; font-weight: 800;">معالج الأرصدة الافتتاحية وبدء النشاط</h3>
+      <p style="font-size: 12px; color: var(--text-muted);">أدخل أرصدتك وبضائعك الحالية وسيقوم النظام بموازنة رأس المال وتأسيس دفاترك تلقائياً.</p>
+    </div>
+
+    <div class="settings-card" style="background:#f8fafc;">
+      <div style="font-weight:700; font-size:13px; margin-bottom:8px; color:var(--primary);"><i class="fa-solid fa-money-bill-wave"></i> 1. السيولة المتوفرة حالياً</div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+        <div>
+          <label style="font-size:11px;">نقدية في الصندوق</label>
+          <input type="number" id="wiz-cash" value="0" min="0">
+        </div>
+        <div>
+          <label style="font-size:11px;">أرصدة في البنك</label>
+          <input type="number" id="wiz-bank" value="0" min="0">
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-card" style="background:#f8fafc;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <div style="font-weight:700; font-size:13px; color:var(--primary);"><i class="fa-solid fa-users"></i> 2. ديون عند الزبائن (لك)</div>
+        <button type="button" style="border:none; background:none; color:var(--primary); font-weight:700; font-size:12px; cursor:pointer;" onclick="addWizardCustomerRow()">+ إضافة زبون</button>
+      </div>
+      <div id="wiz-customers-container"></div>
+    </div>
+
+    <div class="settings-card" style="background:#f8fafc;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <div style="font-weight:700; font-size:13px; color:var(--danger);"><i class="fa-solid fa-truck"></i> 3. ديون للموردين (عليك)</div>
+        <button type="button" style="border:none; background:none; color:var(--danger); font-weight:700; font-size:12px; cursor:pointer;" onclick="addWizardVendorRow()">+ إضافة مورد</button>
+      </div>
+      <div id="wiz-vendors-container"></div>
+    </div>
+
+    <div class="settings-card" style="background:#f8fafc;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <div style="font-weight:700; font-size:13px; color:var(--success);"><i class="fa-solid fa-boxes-stacked"></i> 4. بضاعة أول المدة بالمستودع</div>
+        <button type="button" style="border:none; background:none; color:var(--success); font-weight:700; font-size:12px; cursor:pointer;" onclick="addWizardStockRow()">+ إضافة بضاعة</button>
+      </div>
+      <div id="wiz-stocks-container"></div>
+    </div>
+
+    <button class="btn btn-primary" id="btn-submit-wizard" onclick="submitOpeningBalancesWizard()">
+      <i class="fa-solid fa-check-double"></i> ترحيل الأرصدة وبدء العمل
+    </button>
+    <button class="btn btn-outline" style="border-style:solid; margin-top:8px;" onclick="closeOpeningWizardModal()">تخطي والبدء بأرصدة صفرية</button>
   </div>
 </div>
 
@@ -1913,6 +1969,171 @@
   }
 
   // ==============================================================
+  // معالج الأرصدة الافتتاحية التأسيسي (كامل الوظائف)
+  // ==============================================================
+  function openOpeningWizardModal() {
+    const m = document.getElementById('modal-opening-wizard');
+    if (m) {
+      m.classList.add('open');
+      const cCont = document.getElementById('wiz-customers-container');
+      const vCont = document.getElementById('wiz-vendors-container');
+      const sCont = document.getElementById('wiz-stocks-container');
+      if (cCont && cCont.children.length === 0) addWizardCustomerRow();
+      if (vCont && vCont.children.length === 0) addWizardVendorRow();
+      if (sCont && sCont.children.length === 0) addWizardStockRow();
+    }
+  }
+
+  function closeOpeningWizardModal() {
+    const m = document.getElementById('modal-opening-wizard');
+    if (m) m.classList.remove('open');
+  }
+
+  function addWizardCustomerRow() {
+    const container = document.getElementById('wiz-customers-container');
+    if (!container) return;
+    const div = document.createElement('div');
+    div.className = 'wizard-item-row';
+    div.innerHTML = `
+      <button class="btn-remove-row" onclick="this.parentElement.remove()">×</button>
+      <div style="display:grid; grid-template-columns: 2fr 1fr; gap:6px;">
+        <input type="text" class="wiz-cust-name" placeholder="اسم الزبون / العميل">
+        <input type="number" class="wiz-cust-bal" placeholder="المبلغ عليه" min="0">
+      </div>
+    `;
+    container.appendChild(div);
+  }
+
+  function addWizardVendorRow() {
+    const container = document.getElementById('wiz-vendors-container');
+    if (!container) return;
+    const div = document.createElement('div');
+    div.className = 'wizard-item-row';
+    div.innerHTML = `
+      <button class="btn-remove-row" onclick="this.parentElement.remove()">×</button>
+      <div style="display:grid; grid-template-columns: 2fr 1fr; gap:6px;">
+        <input type="text" class="wiz-vend-name" placeholder="اسم المورد">
+        <input type="number" class="wiz-vend-bal" placeholder="المبلغ له" min="0">
+      </div>
+    `;
+    container.appendChild(div);
+  }
+
+  function addWizardStockRow() {
+    const container = document.getElementById('wiz-stocks-container');
+    if (!container) return;
+    const div = document.createElement('div');
+    div.className = 'wizard-item-row';
+    div.innerHTML = `
+      <button class="btn-remove-row" onclick="this.parentElement.remove()">×</button>
+      <div style="display:grid; grid-template-columns: 2fr 1fr 1fr; gap:6px;">
+        <input type="text" class="wiz-stock-name" placeholder="اسم الصنف">
+        <input type="number" class="wiz-stock-qty" placeholder="الكمية" min="1" value="1">
+        <input type="number" class="wiz-stock-cost" placeholder="سعر التكلفة" min="0">
+      </div>
+    `;
+    container.appendChild(div);
+  }
+
+  async function submitOpeningBalancesWizard() {
+    const cash = parseFloat(document.getElementById('wiz-cash').value) || 0;
+    const bank = parseFloat(document.getElementById('wiz-bank').value) || 0;
+    const date = Utilities_getTodayStr();
+
+    const lines = [];
+    const stockItems = [];
+    let totalAssets = cash + bank;
+    let totalLiabilities = 0;
+
+    if (cash > 0) lines.push({ accountCode: "1111", accountName: "الصندوق الرئيسي (الخزينة)", category: "النقدية والبنوك", nature: "مدين", debit: cash, credit: 0, description: "رصيد نقدية افتتاحي" });
+    if (bank > 0) lines.push({ accountCode: "1113", accountName: "الحساب البنكي الجاري", category: "النقدية والبنوك", nature: "مدين", debit: bank, credit: 0, description: "رصيد بنكي افتتاحي" });
+
+    document.querySelectorAll('#wiz-customers-container .wizard-item-row').forEach(row => {
+      const name = row.querySelector('.wiz-cust-name').value.trim();
+      const bal = parseFloat(row.querySelector('.wiz-cust-bal').value) || 0;
+      if (name && bal > 0) {
+        const code = "112" + Math.floor(10 + Math.random() * 89);
+        chartOfAccounts.push({ code: code, name: name, cat: "العملاء والمدينون", base: "customer", nature: "مدين" });
+        lines.push({ accountCode: code, accountName: name, category: "العملاء والمدينون", nature: "مدين", debit: bal, credit: 0, description: "رصيد افتتاحي مستحق على العميل" });
+        totalAssets += bal;
+      }
+    });
+
+    document.querySelectorAll('#wiz-vendors-container .wizard-item-row').forEach(row => {
+      const name = row.querySelector('.wiz-vend-name').value.trim();
+      const bal = parseFloat(row.querySelector('.wiz-vend-bal').value) || 0;
+      if (name && bal > 0) {
+        const code = "210" + Math.floor(10 + Math.random() * 89);
+        chartOfAccounts.push({ code: code, name: name, cat: "الموردون والالتزامات", base: "vendor", nature: "دائن" });
+        lines.push({ accountCode: code, accountName: name, category: "الموردون والالتزامات", nature: "دائن", debit: 0, credit: bal, description: "رصيد افتتاحي مستحق للمورد" });
+        totalLiabilities += bal;
+      }
+    });
+
+    let stockTotalVal = 0;
+    document.querySelectorAll('#wiz-stocks-container .wizard-item-row').forEach(row => {
+      const name = row.querySelector('.wiz-stock-name').value.trim();
+      const qty = parseFloat(row.querySelector('.wiz-stock-qty').value) || 0;
+      const cost = parseFloat(row.querySelector('.wiz-stock-cost').value) || 0;
+      if (name && qty > 0) {
+        stockItems.push({ name: name, qty: qty, cost: cost, price: cost * 1.3 });
+        stockTotalVal += (qty * cost);
+
+        inventoryItems.push({
+          code: 'SKU-' + Math.floor(1000 + Math.random() * 9000),
+          name: name,
+          unit: 'حبة',
+          cost: cost,
+          price: cost * 1.3,
+          qty: qty,
+          reorder: 5
+        });
+      }
+    });
+
+    if (stockTotalVal > 0) {
+      lines.push({ accountCode: "1131", accountName: "مخزون بضاعة المستودع الرئيسي", category: "المخزون والأصول", nature: "مدين", debit: stockTotalVal, credit: 0, description: "بضاعة أول المدة" });
+      totalAssets += stockTotalVal;
+    }
+
+    const equityVal = totalAssets - totalLiabilities;
+    if (equityVal > 0) {
+      lines.push({ accountCode: "3101", accountName: "رأس المال / الأرصدة الافتتاحية", category: "حقوق الملكية", nature: "دائن", debit: 0, credit: equityVal, description: "رأس المال الافتتاحي التأسيسي" });
+    }
+
+    if (lines.length === 0) {
+      closeOpeningWizardModal();
+      return;
+    }
+
+    const genNo = Date.now();
+    lines.forEach(l => {
+      ledgerEntries.push({
+        entryNo: genNo, date: date, accountCode: l.accountCode, accountName: l.accountName,
+        desc: l.description, debit: l.debit, credit: l.credit
+      });
+    });
+
+    persistData();
+    populateAccountSelects();
+    populateItemSelectors();
+    closeOpeningWizardModal();
+    showToast('تم تأسيس الأرصدة وبطاقات المخزون بنجاح ✅');
+
+    fetch(SCRIPT_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({
+        action: "SETUP_OPENING_BALANCES",
+        spreadsheetId: localStorage.getItem("user_sheet_id"),
+        entryDate: date,
+        lines: lines,
+        inventoryItems: stockItems
+      })
+    });
+  }
+
+  // ==============================================================
   // 1. محرك الطباعة المباشرة الأصلي المستقل (Native Print)
   // ==============================================================
   function directPrint(reportType) {
@@ -1941,7 +2162,6 @@
       }
     }
 
-    // استدعاء مباشر لمدير طباعة الهاتف/الكمبيوتر فوراً
     window.print();
   }
 
@@ -1993,7 +2213,6 @@
       }
     }
 
-    // بديل فوري بنسخ ملخص التقرير للحافظة في حال عدم دعم الـ Web Share API
     if (navigator.clipboard) {
       navigator.clipboard.writeText(shareText);
       showToast('تم نسخ ملخص التقرير إلى الحافظة بنجاح ✅');
@@ -2736,4 +2955,107 @@
     });
     calculateFinancialReports();
     if (subId === 'depreciation') renderFixedAssetsDepreciationList();
-    if (subId === 'kpis
+    if (subId === 'kpis') renderSelectedKPI();
+    if (subId === 'inventory') renderInventoryReport();
+  }
+
+  function populateAccountSelects() {
+    let accHtml = '';
+    chartOfAccounts.forEach(a => {
+      accHtml += `<option value="${a.code}">${a.code} - ${a.name}</option>`;
+    });
+    document.querySelectorAll('.account-selector').forEach(sel => {
+      const cur = sel.value;
+      sel.innerHTML = accHtml;
+      if (cur) sel.value = cur;
+    });
+    handleInvoiceTypeChange();
+  }
+
+  function handleInvoiceTypeChange() {
+    const typeEl = document.getElementById('inv-type');
+    if (!typeEl) return;
+    const type = typeEl.value;
+    const partySel = document.getElementById('inv-party-select');
+    const partyLabel = document.getElementById('inv-party-label');
+    const payMethodEl = document.getElementById('inv-payment-method');
+    const payMethod = payMethodEl ? payMethodEl.value : 'credit';
+
+    if (type === 'sales') {
+      if (partyLabel) partyLabel.innerText = payMethod === 'credit' ? 'العميل (ذمم مدينة)' : 'حساب الإيداع / الخزينة';
+      let options = chartOfAccounts.filter(a => payMethod === 'credit' ? a.base === 'customer' : (a.base === 'cash' || a.base === 'bank'));
+      if (partySel) partySel.innerHTML = options.map(a => `<option value="${a.code}">${a.code} - ${a.name}</option>`).join('');
+    } else {
+      if (partyLabel) partyLabel.innerText = payMethod === 'credit' ? 'المورد (ذمم دائنة)' : 'حساب الدفع / الخزينة';
+      let options = chartOfAccounts.filter(a => payMethod === 'credit' ? a.base === 'vendor' : (a.base === 'cash' || a.base === 'bank'));
+      if (partySel) partySel.innerHTML = options.map(a => `<option value="${a.code}">${a.code} - ${a.name}</option>`).join('');
+    }
+  }
+
+  function addInvoiceItemRow(name = "", qty = 1, price = 0, cost = 0, code = "") {
+    const container = document.getElementById('invoice-items-list');
+    if (!container) return;
+    const div = document.createElement('div');
+    div.className = 'inv-item-row';
+
+    let itemSelectHtml = `<select class="inv-item-select" onchange="onInvoiceItemChosen(this)">`;
+    itemSelectHtml += `<option value="">-- اختر صنف من المستودع --</option>`;
+    inventoryItems.forEach(it => {
+      const isSel = (code && it.code === code) || (name && it.name === name);
+      itemSelectHtml += `<option value="${it.code}" data-cost="${it.cost}" data-price="${it.price}" data-qty="${it.qty}" data-name="${it.name}" ${isSel ? 'selected' : ''}>${it.name} (المتوفر: ${it.qty})</option>`;
+    });
+    itemSelectHtml += `</select>`;
+
+    div.innerHTML = `
+      <button class="btn-remove-row" onclick="this.parentElement.remove(); calculateInvoiceTotals();">×</button>
+      <div style="margin-bottom:6px;">
+        <label style="font-size:11px;">الصنف المسجل بالمستودع</label>
+        ${itemSelectHtml}
+      </div>
+      <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 8px;">
+        <div>
+          <label style="font-size:11px;">البيان بالفاتورة</label>
+          <input type="text" class="inv-item-name" placeholder="اسم الصنف" value="${name || (inventoryItems[0] ? inventoryItems[0].name : 'بضاعة')}">
+          <input type="hidden" class="inv-item-code" value="${code}">
+          <input type="hidden" class="inv-item-cost" value="${cost}">
+        </div>
+        <div>
+          <label style="font-size:11px;">الكمية</label>
+          <input type="number" class="inv-item-qty" value="${qty}" min="1" oninput="validateRowQty(this); calculateInvoiceTotals();">
+        </div>
+        <div>
+          <label style="font-size:11px;">سعر الوحدة</label>
+          <input type="number" class="inv-item-price" value="${price || (inventoryItems[0] ? inventoryItems[0].price : 100)}" min="0" oninput="calculateInvoiceTotals()">
+        </div>
+      </div>
+      <div class="row-stock-warn" style="font-size:11px; margin-top:4px; font-weight:700;"></div>
+    `;
+    container.appendChild(div);
+    validateRowQty(div.querySelector('.inv-item-qty'));
+    calculateInvoiceTotals();
+  }
+
+  function onInvoiceItemChosen(sel) {
+    const row = sel.closest('.inv-item-row');
+    const opt = sel.options[sel.selectedIndex];
+    if (opt && opt.value) {
+      const code = opt.value;
+      const name = opt.getAttribute('data-name');
+      const cost = parseFloat(opt.getAttribute('data-cost')) || 0;
+      const price = parseFloat(opt.getAttribute('data-price')) || 0;
+      const invType = document.getElementById('inv-type').value;
+
+      row.querySelector('.inv-item-name').value = name;
+      row.querySelector('.inv-item-code').value = code;
+      row.querySelector('.inv-item-cost').value = cost;
+      row.querySelector('.inv-item-price').value = (invType === 'purchase') ? cost : price;
+
+      validateRowQty(row.querySelector('.inv-item-qty'));
+      calculateInvoiceTotals();
+    }
+  }
+
+  function validateRowQty(inputEl) {
+    if (!inputEl) return;
+    const row = inputEl.closest('.inv-item-row');
+    const warnEl = row.querySelector('.row-stock-

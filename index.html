@@ -1937,6 +1937,7 @@
     document.getElementById('modal-print-preview').classList.remove('open');
   }
 
+ // 1. مسار الطباعة المباشرة المنفصل تماماً (مع زر طباعة عائم يراه المستخدم ويضغط عليه)
   function executeNativeIframePrint() {
     const docData = currentPrintDocumentData;
     const cleanHtml = `
@@ -1944,18 +1945,50 @@
       <html lang="ar" dir="rtl">
       <head>
         <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>${docData.title}</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
         <style>
-          @page { size: A4 portrait; margin: 12mm; }
-          body { font-family: 'Cairo', sans-serif; padding: 10px; color: #000; background: #fff; margin: 0; }
-          table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-          th, td { border: 1px solid #334155; padding: 6px 8px; text-align: right; font-size: 11px; }
-          th { background-color: #f1f5f9 !important; }
-          .btn, button, .btn-inv-tag, .btn-edit-tag { display: none !important; }
+          * { box-sizing: border-box; font-family: 'Cairo', sans-serif; }
+          body { padding: 15px; color: #000; background: #fff; margin: 0; }
+          .print-toolbar {
+            position: sticky; top: 0; background: #0f172a; padding: 12px; display: flex;
+            justify-content: space-between; align-items: center; border-radius: 8px; margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 9999;
+          }
+          .btn-print-action {
+            background: #2563eb; color: #fff; border: none; padding: 10px 20px; border-radius: 6px;
+            font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px;
+          }
+          .btn-close-action {
+            background: #334155; color: #fff; border: none; padding: 10px 16px; border-radius: 6px;
+            font-size: 13px; font-weight: 700; cursor: pointer;
+          }
+          table { width: 100%; border-collapse: collapse; margin-top: 10px; page-break-inside: auto; }
+          tr { page-break-inside: avoid; page-break-after: auto; }
+          th, td { border: 1px solid #000; padding: 6px 8px; text-align: right; font-size: 12px; }
+          th { background-color: #f1f5f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          
+          @media print {
+            .print-toolbar { display: none !important; }
+            body { padding: 0 !important; }
+            @page { size: A4 portrait; margin: 10mm; }
+          }
         </style>
       </head>
       <body>
-        ${docData.htmlContent}
+        <div class="print-toolbar">
+          <button class="btn-print-action" onclick="window.print()">
+            🖨️ إرسال أمر الطباعة الآن
+          </button>
+          <button class="btn-close-action" onclick="window.close()">إغلاق النافذة</button>
+        </div>
+
+        <div class="print-content">
+          ${docData.htmlContent}
+        </div>
       </body>
       </html>
     `;
@@ -1966,54 +1999,37 @@
       printWin.document.write(cleanHtml);
       printWin.document.close();
       printWin.focus();
-      setTimeout(function() { printWin.print(); }, 500);
     } else {
       window.print();
     }
   }
 
+  // 2. مسار المشاركة الفورية المنفصل تماماً (مشاركة نصية ورقمية سريعة دون نوافذ ملفات)
   async function executeNativeShare() {
     const docData = currentPrintDocumentData;
-    const cleanHtml = `
-      <!DOCTYPE html>
-      <html lang="ar" dir="rtl">
-      <head>
-        <meta charset="UTF-8">
-        <title>${docData.title}</title>
-        <style>
-          body { font-family: sans-serif; padding: 15px; }
-          table { width: 100%; border-collapse: collapse; }
-          th, td { border: 1px solid #ccc; padding: 6px; text-align: right; }
-        </style>
-      </head>
-      <body>${docData.htmlContent}</body>
-      </html>
-    `;
+    
+    // استخراج نص ملخص للتقرير لمشاركته عبر واتساب أو التطبيقات فوراً
+    const shareText = `📄 تقرير رسمي: ${docData.title}\nصادر من نظام المحاسب الذكي.\nالتاريخ: ${Utilities_getTodayStr()}`;
 
-    try {
-      const file = new File([cleanHtml], `${docData.title}.html`, { type: 'text/html' });
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    if (navigator.share) {
+      try {
         await navigator.share({
-          files: [file],
           title: docData.title,
-          text: `تقرير محاسبي معتمد: ${docData.title}`
+          text: shareText
         });
+        showToast('تم فتح نافذة المشاركة بنجاح ✅');
         return;
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          console.warn("المشاركة غير متاحة:", err);
+        }
       }
-    } catch (err) {
-      console.warn("المشاركة كملف غير مدعومة، التحويل للتنزيل المباشر...", err);
     }
 
-    const blob = new Blob([cleanHtml], { type: 'text/html;charset=utf-8' });
-    const downloadLink = document.createElement('a');
-    downloadLink.href = URL.createObjectURL(blob);
-    downloadLink.download = `${docData.title}.html`;
-    document.body.appendChild(downloadLink);
-    downloadLink.click();
-    document.body.removeChild(downloadLink);
-    showToast('تم تنزيل المستند بنجاح على هاتفك ✅');
+    // بديل عملي فوري عبر WhatsApp Web/App مباشرة إن تعذر أمر المشاركة الأصلي
+    const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`;
+    window.open(waUrl, '_blank');
   }
-
   function openAddMemberModal() {
     document.getElementById('new-member-email').value = '';
     document.getElementById('modal-add-member').classList.add('open');

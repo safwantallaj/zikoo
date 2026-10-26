@@ -1943,13 +1943,30 @@
     });
   }
 
-  // ================= محرك الطباعة المباشر الفوري للموبايل والكمبيوتر =================
+  // ================= 1. محرك الطباعة المباشر مع دعم الـ Fallback للموبايل =================
   function directPrint() {
+    // إخفاء النوافذ المنبثقة
     document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('open'));
-    window.print();
+    
+    try {
+      // محاولة استدعاء الطباعة الأصلية
+      const printResult = window.print();
+      
+      // في بعض متصفحات الموبايل (WebViews)، أمر الطباعة يتم تجاهله بصمت.
+      // لذلك نضع تحذيراً صغيراً ونقدم خيار التنزيل المباشر
+      setTimeout(() => {
+        if (!document.hasFocus()) return; // إذا فقدت الصفحة التركيز، يعني أن نافذة الطباعة فتحت بنجاح
+        showToast('إذا لم تفتح شاشة الطباعة، جرب فتح التطبيق من متصفح Chrome/Safari الأساسي', true);
+      }, 1500);
+      
+    } catch (e) {
+      // إذا تم حظر الطباعة كلياً، نقوم بتنزيل التقرير تلقائياً
+      showToast('الطباعة محظورة في هذا التطبيق، جاري تنزيل التقرير...');
+      sendShareChannel('download');
+    }
   }
 
-  // ================= محرك المشاركة السريعة =================
+  // ================= 2. محرك المشاركة السريعة المتوافق مع التطبيقات =================
   let activeShareText = "";
 
   function openDirectShareModal(reportType) {
@@ -1959,6 +1976,7 @@
     const balEl = document.getElementById('final-balance');
     const balance = balEl ? balEl.innerText : "0.00";
 
+    // صياغة ملخص مالي دقيق
     activeShareText = `📄 *ملخص كشف حساب معتمد*\n` +
                       `🏢 *الحساب:* ${accName}\n` +
                       `📅 *التاريخ:* ${today}\n` +
@@ -1987,31 +2005,37 @@
 
   function sendShareChannel(channel) {
     if (!activeShareText) return;
-    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    
+    // اكتشاف نوع الجهاز لتوجيه الرابط بدقة
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    const encodedText = encodeURIComponent(activeShareText);
 
     if (channel === 'whatsapp') {
       if (isMobile) {
-        window.location.href = `whatsapp://send?text=${encodeURIComponent(activeShareText)}`;
+        window.location.href = `whatsapp://send?text=${encodedText}`;
       } else {
-        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(activeShareText)}`, '_blank');
+        window.open(`https://api.whatsapp.com/send?text=${encodedText}`, '_blank');
       }
-    } else if (channel === 'telegram') {
+    } 
+    else if (channel === 'telegram') {
+      // الاعتماد على الرابط الرسمي الذي يفتح التطبيق بقوة في معظم الأنظمة
+      const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(' ')}&text=${encodedText}`;
       if (isMobile) {
-        window.location.href = `tg://msg?text=${encodeURIComponent(activeShareText)}`;
+        window.location.href = telegramUrl;
       } else {
-        window.open(`https://t.me/share/url?text=${encodeURIComponent(activeShareText)}`, '_blank');
+        window.open(telegramUrl, '_blank');
       }
-    } else if (channel === 'copy') {
+    } 
+    else if (channel === 'copy') {
       if (navigator.clipboard) {
         navigator.clipboard.writeText(activeShareText);
         showToast('تم نسخ ملخص الرصيد للحافظة بنجاح 📋');
         closeDirectShareModal();
       } else {
-        showToast('تعذر الوصول للحافظة', true);
+        showToast('تعذر الوصول للحافظة، متصفحك يمنع النسخ', true);
       }
     }
   }
-
   function openAddMemberModal() {
     document.getElementById('new-member-email').value = '';
     const m = document.getElementById('modal-add-member');

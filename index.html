@@ -817,7 +817,33 @@
     </div>
   </div>
 </div>
+<!-- Modal: نافذة المشاركة السريعة والمباشرة -->
+<div class="modal-overlay" id="modal-quick-share" style="z-index: 2147483647;">
+  <div class="modal-panel" style="border-radius: 20px; padding: 20px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 14px;">
+      <h3 style="font-size: 15px; color: var(--primary); font-weight: 800;">
+        <i class="fa-solid fa-share-nodes"></i> مشاركة ملخص الحساب
+      </h3>
+      <button style="border:none; background:none; font-size:24px; cursor:pointer; color:#64748b;" onclick="closeDirectShareModal()">×</button>
+    </div>
 
+    <div style="background: var(--bg); padding: 12px; border-radius: 10px; border: 1px solid var(--border); font-size: 12px; margin-bottom: 14px;" id="share-summary-preview">
+      جاري تجهيز الملخص...
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      <button class="btn" style="background: #25D366; color: white;" onclick="sendShareChannel('whatsapp')">
+        <i class="fa-brands fa-whatsapp" style="font-size: 18px;"></i> إرسال عبر واتساب (WhatsApp)
+      </button>
+      <button class="btn" style="background: #229ED9; color: white;" onclick="sendShareChannel('telegram')">
+        <i class="fa-brands fa-telegram" style="font-size: 18px;"></i> إرسال عبر تليجرام (Telegram)
+      </button>
+      <button class="btn btn-secondary" onclick="sendShareChannel('copy')">
+        <i class="fa-solid fa-copy"></i> نسخ نص الملخص للحافظة
+      </button>
+    </div>
+  </div>
+</div>
 <!-- Modal: تسجيل سند صرف / مصروف -->
 <div class="modal-overlay" id="modal-quick-expense">
   <div class="modal-panel">
@@ -2146,120 +2172,69 @@
     if (m) m.classList.remove('open');
   }
 
-  // ================= محرك الطباعة المباشر للموبايل والكمبيوتر =================
-  function executeNativeIframePrint() {
-    const docData = currentPrintDocumentData;
-    if (!docData || !docData.cleanContentHtml) {
-      return showToast('لا توجد بيانات جاهزة للطباعة', true);
-    }
+  // ================= 1. محرك الطباعة المباشر الفوري للموبايل والكمبيوتر =================
+  function directPrint() {
+    // إغلاق أي نوافذ منبثقة إن وجدت لضمان استجابة متصفح الهاتف فوراً
+    document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('open'));
     
-    // استدعاء مباشر لنافذة الطباعة الرسمية لنظام التشغيل (iOS / Android / Windows)
-    // تنسيق @media print سيتولى إظهار ورقة A4 فقط وإخفاء باقي التطبيق
-    try {
+    // استدعاء نافذة الطباعة الرسمية لنظام التشغيل مباشرة عبر نقرة المستخدم
+    setTimeout(() => {
       window.print();
-    } catch (e) {
-      shareViaChannel('download');
-    }
+    }, 100);
   }
 
-  // ================= محرك المشاركة الشامل متعدد القنوات =================
-  function executeNativeShare() {
-    const docData = currentPrintDocumentData;
-    if (!docData) return showToast('لا توجد بيانات للمشاركة', true);
+  // ================= 2. محرك المشاركة السريعة المركزة =================
+  let activeShareText = "";
 
-    const modal = document.getElementById('modal-share-sheet');
+  function openDirectShareModal(reportType) {
+    const today = Utilities_getTodayStr();
+    const sel = document.getElementById('statement-account-selector');
+    const accName = sel && sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text : "الحساب";
+    const balEl = document.getElementById('final-balance');
+    const balance = balEl ? balEl.innerText : "0.00";
+
+    // صياغة ملخص مالي دقيق وخفيف يتوافق مع حدود روابط الموبايل ولا يتعطل
+    activeShareText = `📄 *ملخص كشف حساب معتمد*\n` +
+                      `🏢 *الحساب:* ${accName}\n` +
+                      `📅 *التاريخ:* ${today}\n` +
+                      `💰 *الرصيد الدفتري الحالي:* ${balance} ${baseCurrency}\n\n` +
+                      `_صادر عبر نظام المحاسب الذكي Pro_`;
+
+    const previewEl = document.getElementById('share-summary-preview');
+    if (previewEl) {
+      previewEl.innerHTML = `
+        <div><strong>الحساب:</strong> ${accName}</div>
+        <div><strong>التاريخ:</strong> ${today}</div>
+        <div style="margin-top:4px; color:var(--primary); font-weight:800; font-size:13px;">
+          الرصيد: ${balance} ${baseCurrency}
+        </div>
+      `;
+    }
+
+    const modal = document.getElementById('modal-quick-share');
     if (modal) modal.classList.add('open');
   }
 
-  function closeShareSheetModal() {
-    const modal = document.getElementById('modal-share-sheet');
+  function closeDirectShareModal() {
+    const modal = document.getElementById('modal-quick-share');
     if (modal) modal.classList.remove('open');
   }
 
-  async function shareViaChannel(channel) {
-    const docData = currentPrintDocumentData;
-    if (!docData) return;
+  function sendShareChannel(channel) {
+    if (!activeShareText) return;
 
-    const todayStr = Utilities_getTodayStr();
-    const shareTitle = docData.title || "تقرير مالي معتمد";
-    const shareText = `${docData.rawSummaryText}\n\nصادر عبر: المحاسب الذكي Pro\nتاريخ التقرير: ${todayStr}`;
-
-    switch (channel) {
-      case 'whatsapp':
-        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`, '_blank');
-        break;
-
-      case 'telegram':
-        window.open(`https://t.me/share/url?url=${encodeURIComponent(' ')}&text=${encodeURIComponent(shareText)}`, '_blank');
-        break;
-
-      case 'email':
-        window.location.href = `mailto:?subject=${encodeURIComponent(shareTitle)}&body=${encodeURIComponent(shareText)}`;
-        break;
-
-      case 'sms':
-        window.location.href = `sms:?body=${encodeURIComponent(shareText)}`;
-        break;
-
-      case 'native':
-        if (navigator.share) {
-          try {
-            await navigator.share({ title: shareTitle, text: shareText });
-            showToast('تمت المشاركة بنجاح ✅');
-            closeShareSheetModal();
-          } catch (err) {
-            if (err.name !== 'AbortError') {
-              showToast('مشاركة النظام غير مدعومة في هذا المتصفح', true);
-            }
-          }
-        } else {
-          showToast('مشاركة النظام غير مدعومة في بيئة هذا المتصفح', true);
-        }
-        break;
-
-      case 'copy':
-        if (navigator.clipboard) {
-          navigator.clipboard.writeText(shareText);
-          showToast('تم نسخ التقرير كاملاً للحافظة بنجاح 📋');
-          closeShareSheetModal();
-        } else {
-          showToast('تعذر الوصول للحافظة', true);
-        }
-        break;
-
-      case 'download':
-        const fullHtml = `
-          <!DOCTYPE html>
-          <html lang="ar" dir="rtl">
-          <head>
-            <meta charset="UTF-8">
-            <title>${shareTitle}</title>
-            <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800&display=swap" rel="stylesheet">
-            <style>
-              body { font-family: 'Cairo', sans-serif; padding: 15mm; color: #000; background: #fff; }
-              table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-              th, td { border: 1px solid #334155; padding: 8px; text-align: right; font-size: 12px; }
-              th { background: #f1f5f9; font-weight: 800; }
-              @page { size: A4 portrait; margin: 10mm; }
-            </style>
-          </head>
-          <body>
-            ${docData.cleanContentHtml}
-          </body>
-          </html>
-        `;
-        const blob = new Blob([fullHtml], { type: 'text/html;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${shareTitle}.html`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        showToast('تم تنزيل المستند بنجاح 💾');
-        closeShareSheetModal();
-        break;
+    if (channel === 'whatsapp') {
+      window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(activeShareText)}`, '_blank');
+    } else if (channel === 'telegram') {
+      window.open(`https://t.me/share/url?url=${encodeURIComponent(' ')}&text=${encodeURIComponent(activeShareText)}`, '_blank');
+    } else if (channel === 'copy') {
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(activeShareText);
+        showToast('تم نسخ ملخص الرصيد للحافظة بنجاح 📋');
+        closeDirectShareModal();
+      } else {
+        showToast('تعذر الوصول للحافظة', true);
+      }
     }
   }
   function openAddMemberModal() {

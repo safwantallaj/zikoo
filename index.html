@@ -467,9 +467,10 @@
           <input type="date" id="date-to" onchange="loadStatementData()">
         </div>
 
-        <button class="btn btn-primary" style="margin-bottom: 12px; font-size: 13px;" onclick="triggerUniversalPrint('ledger')">
-          <i class="fa-solid fa-print"></i> معاينة وطباعة كشف الحساب الرسمي
-        </button>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;">
+  <button class="btn btn-primary" style="font-size: 13px;" onclick="directPrint()"><i class="fa-solid fa-print"></i> طباعة كشف الحساب 🖨️</button>
+  <button class="btn btn-secondary" style="font-size: 13px;" onclick="openDirectShareModal('ledger')"><i class="fa-solid fa-share-nodes"></i> مشاركة الملخص 📲</button>
+</div>
 
         <div style="background: var(--bg); padding: 10px 14px; border-radius: 8px; margin-bottom: 10px; font-size: 13px; display: flex; justify-content: space-between;">
           <span id="active-acc-label">الحساب: -</span>
@@ -764,24 +765,6 @@
 
 </div>
 
-<!-- Modal: معاينة A4 الرسمية للطباعة والمشاركة الشاملة -->
-<div class="modal-overlay" id="modal-print-preview">
-  <div class="modal-panel" style="max-height:94vh; padding:16px;">
-    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:8px; margin-bottom:10px;">
-      <h3 id="print-doc-title" style="font-size:14px; color:var(--primary); font-weight:800;"><i class="fa-solid fa-file-pdf"></i> معاينة مستند A4 الرسمي</h3>
-      <button style="border:none; background:none; font-size:22px; cursor:pointer;" onclick="closePrintPreviewModal()">×</button>
-    </div>
-
-    <div style="background:#e2e8f0; padding:12px; border-radius:12px; overflow-x:auto;">
-      <div id="print-doc-content" style="background:#ffffff; color:#000000; width:100%; min-width:420px; min-height:580px; padding:24px 20px; box-shadow:0 4px 20px rgba(0,0,0,0.15); border-radius:4px; font-size:11px;"></div>
-    </div>
-
-    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:14px;">
-      <button class="btn btn-primary" onclick="executeNativeIframePrint()"><i class="fa-solid fa-print"></i> إرسال أمر الطباعة 🖨️</button>
-      <button class="btn btn-secondary" onclick="executeNativeShare()"><i class="fa-solid fa-share-nodes"></i> مشاركة التقرير 📲</button>
-    </div>
-  </div>
-</div>
   <!-- Modal: نافذة المشاركة الشاملة متعددة القنوات -->
 <div class="modal-overlay" id="modal-share-sheet" style="z-index: 2147483647;">
   <div class="modal-panel" style="border-radius: 24px; padding: 20px;">

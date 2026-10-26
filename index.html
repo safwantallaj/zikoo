@@ -2197,108 +2197,122 @@
     if (m) m.classList.remove('open');
   }
 
-  // 1. محرك الطباعة الشامل المباشر (متوافق مع الكمبيوتر والموبايل عبر Hidden Iframe)
+  // ================= محرك الطباعة المباشر للموبايل والكمبيوتر =================
   function executeNativeIframePrint() {
     const docData = currentPrintDocumentData;
     if (!docData || !docData.cleanContentHtml) {
       return showToast('لا توجد بيانات جاهزة للطباعة', true);
     }
-
-    const cleanHtml = `
-      <!DOCTYPE html>
-      <html lang="ar" dir="rtl">
-      <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>${docData.title}</title>
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-        <style>
-          * { box-sizing: border-box; font-family: 'Cairo', sans-serif; margin: 0; padding: 0; }
-          body { padding: 12mm; color: #000; background: #fff; font-size: 11px; }
-          table { width: 100%; border-collapse: collapse; margin-top: 10px; page-break-inside: auto; }
-          tr { page-break-inside: avoid; page-break-after: auto; }
-          th, td { border: 1px solid #334155; padding: 6px 8px; text-align: right; font-size: 11px; }
-          th { background-color: #f1f5f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; font-weight: 800; }
-          button, .btn, .btn-inv-tag, .btn-edit-tag { display: none !important; }
-          @page { size: A4 portrait; margin: 10mm; }
-        </style>
-      </head>
-      <body>
-        ${docData.cleanContentHtml}
-      </body>
-      </html>
-    `;
-
-    // إنشاء إطار مخفي مؤقت للطباعة المباشرة دون فتح نوافذ مبوبة محظورة
-    let printFrame = document.getElementById('hidden_universal_print_frame');
-    if (printFrame) printFrame.remove();
-
-    printFrame = document.createElement('iframe');
-    printFrame.id = 'hidden_universal_print_frame';
-    printFrame.style.position = 'fixed';
-    printFrame.style.right = '0';
-    printFrame.style.bottom = '0';
-    printFrame.style.width = '0';
-    printFrame.style.height = '0';
-    printFrame.style.border = '0';
-    document.body.appendChild(printFrame);
-
-    const frameDoc = printFrame.contentWindow.document;
-    frameDoc.open();
-    frameDoc.write(cleanHtml);
-    frameDoc.close();
-
-    // تشغيل أمر الطباعة فور اكتمال تحميل الإطار
-    printFrame.onload = function() {
-      setTimeout(function() {
-        try {
-          printFrame.contentWindow.focus();
-          printFrame.contentWindow.print();
-        } catch (e) {
-          // في حال حظر الإطار في بعض بيئات الموبايل القديمة، يتم استدعاء الطباعة الأصلية
-          window.print();
-        }
-      }, 350);
-    };
+    
+    // استدعاء مباشر لنافذة الطباعة الرسمية لنظام التشغيل (iOS / Android / Windows)
+    // تنسيق @media print سيتولى إظهار ورقة A4 فقط وإخفاء باقي التطبيق
+    try {
+      window.print();
+    } catch (e) {
+      shareViaChannel('download');
+    }
   }
 
-  // 2. محرك المشاركة المباشر للموبايل والكمبيوتر (مع مسار مباشر للواتساب)
-  async function executeNativeShare() {
+  // ================= محرك المشاركة الشامل متعدد القنوات =================
+  function executeNativeShare() {
     const docData = currentPrintDocumentData;
     if (!docData) return showToast('لا توجد بيانات للمشاركة', true);
 
-    const shareText = `${docData.rawSummaryText}\n\nصادر عبر: المحاسب الذكي Pro\nالتاريخ: ${Utilities_getTodayStr()}`;
-
-    // 1. محاولة استخدام قائمة المشاركة الأصلية للموبايل (Native Web Share API)
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: docData.title,
-          text: shareText
-        });
-        showToast('تمت المشاركة بنجاح ✅');
-        return;
-      } catch (err) {
-        if (err.name === 'AbortError') return; // المستخدم ألغى النافذة بنفسه
-      }
-    }
-
-    // 2. إذا كانت المشاركة محظورة أو غير مدعومة (مثل متصفحات داخل التطبيقات)، يتم توفير خيار الواتساب المباشر
-    const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`;
-    const confirmWhatsApp = confirm("هل ترغب في مشاركة التقرير مباشرة عبر واتساب؟\n(موافق: فتح واتساب / إلغاء: نسخ إلى الحافظة)");
-
-    if (confirmWhatsApp) {
-      window.open(whatsappUrl, '_blank');
-    } else {
-      if (navigator.clipboard) {
-        navigator.clipboard.writeText(shareText);
-        showToast('تم نسخ نص التقرير للحافظة بنجاح 📋');
-      }
-    }
+    const modal = document.getElementById('modal-share-sheet');
+    if (modal) modal.classList.add('open');
   }
 
+  function closeShareSheetModal() {
+    const modal = document.getElementById('modal-share-sheet');
+    if (modal) modal.classList.remove('open');
+  }
+
+  async function shareViaChannel(channel) {
+    const docData = currentPrintDocumentData;
+    if (!docData) return;
+
+    const todayStr = Utilities_getTodayStr();
+    const shareTitle = docData.title || "تقرير مالي معتمد";
+    const shareText = `${docData.rawSummaryText}\n\nصادر عبر: المحاسب الذكي Pro\nتاريخ التقرير: ${todayStr}`;
+
+    switch (channel) {
+      case 'whatsapp':
+        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`, '_blank');
+        break;
+
+      case 'telegram':
+        window.open(`https://t.me/share/url?url=${encodeURIComponent(' ')}&text=${encodeURIComponent(shareText)}`, '_blank');
+        break;
+
+      case 'email':
+        window.location.href = `mailto:?subject=${encodeURIComponent(shareTitle)}&body=${encodeURIComponent(shareText)}`;
+        break;
+
+      case 'sms':
+        window.location.href = `sms:?body=${encodeURIComponent(shareText)}`;
+        break;
+
+      case 'native':
+        if (navigator.share) {
+          try {
+            await navigator.share({ title: shareTitle, text: shareText });
+            showToast('تمت المشاركة بنجاح ✅');
+            closeShareSheetModal();
+          } catch (err) {
+            if (err.name !== 'AbortError') {
+              showToast('مشاركة النظام غير مدعومة في هذا المتصفح', true);
+            }
+          }
+        } else {
+          showToast('مشاركة النظام غير مدعومة في بيئة هذا المتصفح', true);
+        }
+        break;
+
+      case 'copy':
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText(shareText);
+          showToast('تم نسخ التقرير كاملاً للحافظة بنجاح 📋');
+          closeShareSheetModal();
+        } else {
+          showToast('تعذر الوصول للحافظة', true);
+        }
+        break;
+
+      case 'download':
+        const fullHtml = `
+          <!DOCTYPE html>
+          <html lang="ar" dir="rtl">
+          <head>
+            <meta charset="UTF-8">
+            <title>${shareTitle}</title>
+            <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800&display=swap" rel="stylesheet">
+            <style>
+              body { font-family: 'Cairo', sans-serif; padding: 15mm; color: #000; background: #fff; }
+              table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+              th, td { border: 1px solid #334155; padding: 8px; text-align: right; font-size: 12px; }
+              th { background: #f1f5f9; font-weight: 800; }
+              @page { size: A4 portrait; margin: 10mm; }
+            </style>
+          </head>
+          <body>
+            ${docData.cleanContentHtml}
+          </body>
+          </html>
+        `;
+        const blob = new Blob([fullHtml], { type: 'text/html;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${shareTitle}.html`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showToast('تم تنزيل المستند بنجاح 💾');
+        closeShareSheetModal();
+        break;
+    }
+  }
   function openAddMemberModal() {
     document.getElementById('new-member-email').value = '';
     const m = document.getElementById('modal-add-member');

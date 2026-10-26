@@ -143,6 +143,95 @@
 
     #ocr-loading-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.85); z-index: 2147483649; align-items: center; justify-content: center; flex-direction: column; color: white; text-align: center; padding: 20px; backdrop-filter: blur(5px); }
     .backup-item-card { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+    /* ================= تنسيقات الطباعة الرسمية A4 للموبايل والكمبيوتر ================= */
+    @media print {
+      body {
+        background: #ffffff !important;
+        color: #000000 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+      header, nav, #license-banner, .btn, button, .header-actions, .camera-controls, 
+      .modal-overlay:not(#modal-print-preview) {
+        display: none !important;
+      }
+      .app-container, main {
+        box-shadow: none !important;
+        max-width: 100% !important;
+        width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: visible !important;
+      }
+      .tab-content {
+        display: none !important;
+      }
+      #modal-print-preview {
+        display: block !important;
+        position: static !important;
+        background: none !important;
+        backdrop-filter: none !important;
+        padding: 0 !important;
+        width: 100% !important;
+        overflow: visible !important;
+      }
+      #modal-print-preview .modal-panel {
+        background: none !important;
+        box-shadow: none !important;
+        border: none !important;
+        border-radius: 0 !important;
+        padding: 0 !important;
+        max-width: 100% !important;
+        width: 100% !important;
+        max-height: none !important;
+        overflow: visible !important;
+      }
+      #modal-print-preview .modal-panel > div:first-child,
+      #modal-print-preview .modal-panel > div:last-child {
+        display: none !important;
+      }
+      #modal-print-preview .modal-panel > div:nth-child(2) {
+        background: transparent !important;
+        padding: 0 !important;
+        border-radius: 0 !important;
+      }
+      #print-doc-content {
+        background: #ffffff !important;
+        color: #000000 !important;
+        box-shadow: none !important;
+        border: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100% !important;
+        min-width: 100% !important;
+        font-size: 11pt !important;
+      }
+      table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+        page-break-inside: auto !important;
+      }
+      tr {
+        page-break-inside: avoid !important;
+        page-break-after: auto !important;
+      }
+      th, td {
+        border: 1px solid #334155 !important;
+        padding: 6px 8px !important;
+        text-align: right !important;
+        font-size: 10pt !important;
+      }
+      th {
+        background-color: #f1f5f9 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        font-weight: 800 !important;
+      }
+      @page {
+        size: A4 portrait;
+        margin: 10mm;
+      }
+    }
   </style>
 </head>
 <body>

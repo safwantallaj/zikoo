@@ -1943,30 +1943,85 @@
     });
   }
 
-  // ================= 1. محرك الطباعة المباشر مع دعم الـ Fallback للموبايل =================
+  // ================= 1. محرك الطباعة المباشر للموبايل والكمبيوتر =================
   function directPrint() {
-    // إخفاء النوافذ المنبثقة
     document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('open'));
+    const docData = currentPrintDocumentData;
     
-    try {
-      // محاولة استدعاء الطباعة الأصلية
-      const printResult = window.print();
-      
-      // في بعض متصفحات الموبايل (WebViews)، أمر الطباعة يتم تجاهله بصمت.
-      // لذلك نضع تحذيراً صغيراً ونقدم خيار التنزيل المباشر
-      setTimeout(() => {
-        if (!document.hasFocus()) return; // إذا فقدت الصفحة التركيز، يعني أن نافذة الطباعة فتحت بنجاح
-        showToast('إذا لم تفتح شاشة الطباعة، جرب فتح التطبيق من متصفح Chrome/Safari الأساسي', true);
-      }, 1500);
-      
-    } catch (e) {
-      // إذا تم حظر الطباعة كلياً، نقوم بتنزيل التقرير تلقائياً
-      showToast('الطباعة محظورة في هذا التطبيق، جاري تنزيل التقرير...');
-      sendShareChannel('download');
+    if (!docData || !docData.cleanContentHtml) {
+      // إذا لم تكن هناك بيانات معالجة مسبقاً للطباعة المعقدة (مثل التقارير)، قم بطباعة الشاشة الحالية
+      window.print();
+      return;
+    }
+
+    // بناء صفحة الطباعة المستقلة (التي نجحت معك مسبقاً في الموبايل) مع حماية زر الطباعة من الإخفاء
+    const cleanHtml = `
+      <!DOCTYPE html>
+      <html lang="ar" dir="rtl">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>${docData.title}</title>
+        <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+        <style>
+          * { box-sizing: border-box; font-family: 'Cairo', sans-serif; }
+          body { padding: 12px; color: #000; background: #f8fafc; margin: 0; }
+          
+          /* شريط الطباعة العلوي المحمي من الإخفاء */
+          .mobile-print-toolbar {
+            position: sticky; top: 0; background: #0f172a; padding: 12px; display: flex;
+            justify-content: space-between; align-items: center; border-radius: 8px; margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 9999;
+          }
+          .btn-print-action {
+            background: #2563eb; color: #fff; border: none; padding: 10px 22px; border-radius: 6px;
+            font-size: 14px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 8px;
+          }
+          .btn-close-action {
+            background: #334155; color: #fff; border: none; padding: 10px 16px; border-radius: 6px;
+            font-size: 13px; font-weight: 700; cursor: pointer;
+          }
+          
+          .a4-sheet {
+            width: 100%; max-width: 210mm; min-height: 297mm; margin: 0 auto;
+            background: #fff; padding: 15mm; border: 1px solid #cbd5e1; border-radius: 4px;
+          }
+          table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+          th, td { border: 1px solid #334155; padding: 6px 8px; text-align: right; font-size: 12px; }
+          th { background-color: #f1f5f9 !important; -webkit-print-color-adjust: exact; font-weight: 800; }
+          
+          /* إخفاء شريط الأدوات فقط عند إرسال الورقة للطابعة فعلياً */
+          @media print {
+            .mobile-print-toolbar { display: none !important; }
+            body { padding: 0 !important; background: #fff !important; }
+            .a4-sheet { border: none !important; box-shadow: none !important; width: 100% !important; padding: 0 !important; }
+            @page { size: A4 portrait; margin: 12mm; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="mobile-print-toolbar">
+          <button class="btn-print-action" onclick="window.print()">🖨️ اضغط هنا لطباعة التقرير</button>
+          <button class="btn-close-action" onclick="window.close()">إغلاق</button>
+        </div>
+        <div class="a4-sheet">${docData.cleanContentHtml}</div>
+      </body>
+      </html>
+    `;
+
+    // فتح نافذة الموبايل المستقلة وكتابة التقرير وزر الطباعة بداخلها
+    const printWin = window.open('', '_blank');
+    if (printWin) {
+      printWin.document.open();
+      printWin.document.write(cleanHtml);
+      printWin.document.close();
+      printWin.focus();
+    } else {
+      window.print(); // Fallback للكمبيوتر
     }
   }
 
-  // ================= 2. محرك المشاركة السريعة المتوافق مع التطبيقات =================
+  // ================= 2. محرك المشاركة السريعة =================
   let activeShareText = "";
 
   function openDirectShareModal(reportType) {
@@ -1976,7 +2031,6 @@
     const balEl = document.getElementById('final-balance');
     const balance = balEl ? balEl.innerText : "0.00";
 
-    // صياغة ملخص مالي دقيق
     activeShareText = `📄 *ملخص كشف حساب معتمد*\n` +
                       `🏢 *الحساب:* ${accName}\n` +
                       `📅 *التاريخ:* ${today}\n` +
@@ -2005,9 +2059,7 @@
 
   function sendShareChannel(channel) {
     if (!activeShareText) return;
-    
-    // اكتشاف نوع الجهاز لتوجيه الرابط بدقة
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
     const encodedText = encodeURIComponent(activeShareText);
 
     if (channel === 'whatsapp') {
@@ -2016,26 +2068,24 @@
       } else {
         window.open(`https://api.whatsapp.com/send?text=${encodedText}`, '_blank');
       }
-    } 
-    else if (channel === 'telegram') {
-      // الاعتماد على الرابط الرسمي الذي يفتح التطبيق بقوة في معظم الأنظمة
-      const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(' ')}&text=${encodedText}`;
+    } else if (channel === 'telegram') {
+      // إصلاح التليجرام: إجبار الهاتف على فتح التطبيق عبر بروتوكول الـ App Link العميق
       if (isMobile) {
-        window.location.href = telegramUrl;
+        window.location.href = `tg://msg?text=${encodedText}`;
       } else {
-        window.open(telegramUrl, '_blank');
+        window.open(`https://t.me/share/url?text=${encodedText}`, '_blank');
       }
-    } 
-    else if (channel === 'copy') {
+    } else if (channel === 'copy') {
       if (navigator.clipboard) {
         navigator.clipboard.writeText(activeShareText);
         showToast('تم نسخ ملخص الرصيد للحافظة بنجاح 📋');
         closeDirectShareModal();
       } else {
-        showToast('تعذر الوصول للحافظة، متصفحك يمنع النسخ', true);
+        showToast('تعذر الوصول للحافظة', true);
       }
     }
   }
+
   function openAddMemberModal() {
     document.getElementById('new-member-email').value = '';
     const m = document.getElementById('modal-add-member');

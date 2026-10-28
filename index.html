@@ -467,7 +467,7 @@
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;">
   <button class="btn btn-primary" style="font-size: 13px;" onclick="window.print()"><i class="fa-solid fa-print"></i> طباعة كشف الحساب 🖨️</button>
-  <button class="btn btn-secondary" style="font-size: 13px;" onclick="openDirectShareModal('ledger')"><i class="fa-solid fa-share-nodes"></i> مشاركة الملخص 📲</button>
+  <button class="btn btn-secondary" style="font-size: 13px;" onclick="openShareModal('ledger')"><i class="fa-solid fa-share-nodes"></i> مشاركة الملخص 📲</button>
 </div>
 
         <div style="background: var(--bg); padding: 10px 14px; border-radius: 8px; margin-bottom: 10px; font-size: 13px; display: flex; justify-content: space-between;">
@@ -485,7 +485,7 @@
         <div class="report-card">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
             <h4 style="color: var(--primary); margin:0;"><i class="fa-solid fa-chart-line"></i> قائمة الدخل (المعايير المحاسبية)</h4>
-            <button class="btn btn-primary" style="width:auto; padding:5px 10px; font-size:11px;" onclick="directPrint('income')"><i class="fa-solid fa-print"></i> طباعة</button>
+            <button class="btn btn-primary" style="width:auto; padding:5px 10px; font-size:11px;" onclick="window.print()"><i class="fa-solid fa-print"></i> طباعة</button>
           </div>
           
           <div class="summary-row"><span>1. إيرادات المبيعات الرئيسية:</span> <strong><span id="rep-sales-rev">0.00</span> <span class="curr-symbol">ر.س</span></strong></div>
@@ -522,7 +522,7 @@
             <h4 style="color: var(--primary); margin:0;"><i class="fa-solid fa-scale-balanced"></i> قائمة المركز المالي (الميزانية)</h4>
             <div style="display:flex; gap:6px; align-items:center;">
               <span id="bs-balance-status" class="status-badge balanced">متوازنة ✓</span>
-              <button class="btn btn-primary" style="width:auto; padding:5px 10px; font-size:11px;" onclick="directPrint('balance_sheet')"><i class="fa-solid fa-print"></i> طباعة</button>
+              <button class="btn btn-primary" style="width:auto; padding:5px 10px; font-size:11px;" onclick="window.print()"><i class="fa-solid fa-print"></i> طباعة</button>
             </div>
           </div>
 
@@ -560,7 +560,7 @@
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
             <h4 style="color: var(--warning); margin:0;"><i class="fa-solid fa-landmark"></i> سجل الأصول الثابتة والتحليل الرقابي</h4>
             <div style="display:flex; gap:6px;">
-              <button class="btn btn-primary" style="width:auto; padding:6px 12px; font-size:11px;" onclick="directPrint('assets')"><i class="fa-solid fa-print"></i> طباعة السجل</button>
+              <button class="btn btn-primary" style="width:auto; padding:6px 12px; font-size:11px;" onclick="window.print()"><i class="fa-solid fa-print"></i> طباعة السجل</button>
               <button class="btn btn-success" style="width:auto; padding:6px 12px; font-size:11px;" onclick="openAddAccountModal('asset')">+ تسجيل أصل</button>
             </div>
           </div>
@@ -625,7 +625,7 @@
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
             <h4 style="color: var(--primary); margin:0;"><i class="fa-solid fa-boxes-stacked"></i> جرد المستودع وبطاقات الأصناف</h4>
             <div style="display:flex; gap:6px;">
-              <button class="btn btn-secondary" style="width:auto; padding:6px 10px; font-size:11px;" onclick="directPrint('inventory')"><i class="fa-solid fa-print"></i> طباعة الجرد</button>
+              <button class="btn btn-secondary" style="width:auto; padding:6px 10px; font-size:11px;" onclick="window.print()"><i class="fa-solid fa-print"></i> طباعة الجرد</button>
               <button class="btn btn-primary" style="width:auto; padding:6px 12px; font-size:11px;" onclick="openItemCardModal()">+ إضافة صنف</button>
             </div>
           </div>
@@ -648,7 +648,7 @@
         <div class="report-card">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
             <h4 style="color: var(--primary); margin:0;"><i class="fa-solid fa-table-list"></i> ميزان المراجعة بالأرصدة</h4>
-            <button class="btn btn-primary" style="width:auto; padding:5px 10px; font-size:11px;" onclick="directPrint('trial')"><i class="fa-solid fa-print"></i> طباعة الميزان</button>
+            <button class="btn btn-primary" style="width:auto; padding:5px 10px; font-size:11px;" onclick="window.print()"><i class="fa-solid fa-print"></i> طباعة الميزان</button>
           </div>
           <table class="statement-table" id="main-trial-table">
             <thead>
@@ -1996,10 +1996,20 @@
   // ==============================================================
   // محرك الطباعة والمشاركة النظيفة والشاملة للموبايل والحاسوب (A4 Engine)
   // ==============================================================
-  // ================= محرك المشاركة الشامل المتعدد =================
+  // ================= 1. دالة الطباعة المباشرة والنظيفة =================
+  function printReportA4(reportType) {
+    // الطباعة المباشرة تستفيد من الـ CSS المخصص لطباعة الشاشة المفتوحة حالياً
+    // هذا الكود متوافق 100% مع الـ APK ولا يفتح نوافذ جديدة
+    document.querySelectorAll('.modal-overlay').forEach(m => {
+        if(m.id !== 'modal-view-invoice') m.classList.remove('open');
+    });
+    window.print();
+  }
+
+  // ================= 2. دالة المشاركة السريعة والمستقلة =================
   let activeShareText = "";
 
-  function openDirectShareModal(reportType) {
+  function openShareModal(reportType) {
     const today = Utilities_getTodayStr();
     const sel = document.getElementById('statement-account-selector');
     const accName = sel && sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text : "الحساب";
@@ -2040,7 +2050,7 @@
     if (channel === 'whatsapp') {
       window.location.href = `whatsapp://send?text=${encodedText}`;
     } else if (channel === 'telegram') {
-      // إجبار الهاتف على فتح التطبيق عبر بروتوكول الـ App Link العميق
+      // إجبار الهاتف على فتح التطبيق الأصلي لتليجرام
       if (isMobile) {
         window.location.href = `tg://msg?text=${encodedText}`;
       } else {

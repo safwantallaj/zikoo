@@ -2271,7 +2271,7 @@
   }
 
   // ================= 2. دالة المشاركة السريعة والمستقلة =================
-tion openShareModal(reportType) {
+function openShareModal(reportType) {
     const today = Utilities_getTodayStr();
     const sel = document.getElementById('statement-account-selector');
     const accName = sel && sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text : "الحساب";
@@ -2312,19 +2312,14 @@ tion openShareModal(reportType) {
 
     if (channel === 'whatsapp') {
       window.location.href = `whatsapp://send?text=${encodedText}`;
+      setTimeout(() => {
+         window.open(`https://api.whatsapp.com/send?text=${encodedText}`, '_blank');
+      }, 1500);
     } else if (channel === 'telegram') {
-      // إجبار الهاتف على فتح تطبيق التليجرام باستخدام مسار الـ Intent القوي في الأندرويد
-      if (isMobile) {
-        // محاولة مسار الأندرويد القوي أولاً
-        window.location.href = `intent://msg?text=${encodedText}#Intent;scheme=tg;package=org.telegram.messenger;end;`;
-        
-        // مسار احتياطي عام بعد نصف ثانية إذا فشل المسار الأول
-        setTimeout(() => {
-           window.location.href = `tg://msg?text=${encodedText}`;
-        }, 500);
-      } else {
-        window.open(`https://t.me/share/url?url=${encodeURIComponent(' ')}&text=${encodedText}`, '_blank');
-      }
+      window.location.href = `tg://msg?text=${encodedText}`;
+      setTimeout(() => {
+         window.open(`https://t.me/share/url?url=${encodeURIComponent(' ')}&text=${encodedText}`, '_blank');
+      }, 1500);
     } else if (channel === 'copy') {
       if (navigator.clipboard) {
         navigator.clipboard.writeText(activeShareText);

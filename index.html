@@ -1993,50 +1993,92 @@
     });
   }
 
-  // ==============================================================
-  // محرك الطباعة والمشاركة النظيفة والشاملة للموبايل والحاسوب (A4 Engine)
-  // ==============================================================
   // ================= 1. دالة الطباعة المباشرة والنظيفة =================
   function printReportA4(reportType) {
-    // الطباعة المباشرة تستفيد من الـ CSS المخصص لطباعة الشاشة المفتوحة حالياً
-    // هذا الكود متوافق 100% مع الـ APK ولا يفتح نوافذ جديدة
-    document.querySelectorAll('.modal-overlay').forEach(m => {
-        if(m.id !== 'modal-view-invoice') m.classList.remove('open');
-    });
-    window.print();
-  }
-
-  // ================= 2. دالة المشاركة السريعة والمستقلة =================
-  let activeShareText = "";
-
-  function openShareModal(reportType) {
-    const today = Utilities_getTodayStr();
-    const sel = document.getElementById('statement-account-selector');
-    const accName = sel && sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text : "الحساب";
-    const balEl = document.getElementById('final-balance');
-    const balance = balEl ? balEl.innerText : "0.00";
-
-    activeShareText = `📄 *ملخص كشف حساب معتمد*\n` +
-                      `🏢 *الحساب:* ${accName}\n` +
-                      `📅 *التاريخ:* ${today}\n` +
-                      `💰 *الرصيد الدفتري الحالي:* ${balance} ${baseCurrency}\n\n` +
-                      `_صادر عبر نظام المحاسب الذكي Pro_`;
-
-    const previewEl = document.getElementById('share-summary-preview');
-    if (previewEl) {
-      previewEl.innerHTML = `
-        <div><strong>الحساب:</strong> ${accName}</div>
-        <div><strong>التاريخ:</strong> ${today}</div>
-        <div style="margin-top:4px; color:var(--primary); font-weight:800; font-size:13px;">
-          الرصيد: ${balance} ${baseCurrency}
-        </div>
-      `;
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    
+    if (isMobile) {
+      // إظهار تنبيه يوضح كيفية الطباعة من الموبايل
+      showToast('الطباعة المباشرة غير مدعومة في التطبيق. سيتم تنزيل المستند لطباعته من المتصفح.', true);
+      
+      // تأخير بسيط قبل تنزيل الملف للسماح للمستخدم بقراءة التنبيه
+      setTimeout(() => {
+        // يمكنك استخدام نفس دالة التنزيل التي سنضيفها لاحقاً 
+        // أو دمج منطق التنزيل هنا إذا أردت
+        downloadReportAsHtml(reportType); 
+      }, 2500);
+    } else {
+        document.querySelectorAll('.modal-overlay').forEach(m => {
+            if(m.id !== 'modal-view-invoice') m.classList.remove('open');
+        });
+        window.print();
     }
-
-    const modal = document.getElementById('modal-quick-share');
-    if (modal) modal.classList.add('open');
   }
 
+  // دالة مساعدة لتنزيل التقرير كملف HTML 
+  function downloadReportAsHtml(reportType) {
+    // يمكنك جلب محتوى التقرير المطلوب بناءً على نوعه
+    let contentToDownload = ''; 
+    let fileName = 'تقرير_المحاسب_الذكي.html';
+
+    if (reportType === 'ledger') {
+        contentToDownload = document.getElementById('main-statement-table').outerHTML;
+        fileName = 'كشف_حساب.html';
+    } 
+    // أضف بقية الأنواع هنا (income, balance_sheet, إلخ)
+
+    if (contentToDownload) {
+      const fullHtml = `
+          <!DOCTYPE html>
+          <html lang="ar" dir="rtl">
+          <head>
+            <meta charset="UTF-8">
+            <title>${fileName}</title>
+            <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800&display=swap" rel="stylesheet">
+            <style>
+              body { font-family: 'Cairo', sans-serif; padding: 15mm; color: #000; background: #fff; }
+              table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+              th, td { border: 1px solid #334155; padding: 8px; text-align: right; font-size: 12px; }
+              th { background: #f1f5f9; font-weight: 800; }
+            </style>
+          </head>
+          <body onload="window.print()"> <!-- محاولة طباعة تلقائية عند فتح الملف في المتصفح -->
+            ${contentToDownload}
+          </body>
+          </html>
+        `;
+      const blob = new Blob([fullHtml], { type: 'text/html;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+  }
+
+ function sendShareChannel(channel) {
+    if (!activeShareText) return;
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    const encodedText = encodeURIComponent(activeShareText);
+
+    if (channel === 'whatsapp') {
+      window.location.href = `whatsapp://send?text=${encodedText}`;
+    } else if (channel === 'telegram') {
+      // الاعتماد كلياً على tg:// لفتح التطبيق، حتى في بيئة الكمبيوتر (Desktop App)
+      window.location.href = `tg://msg?text=${encodedText}`; 
+    } else if (channel === 'copy') {
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(activeShareText);
+        showToast('تم نسخ ملخص الرصيد للحافظة بنجاح 📋');
+        closeDirectShareModal();
+      } else {
+        showToast('تعذر الوصول للحافظة', true);
+      }
+    }
+  }
   function closeDirectShareModal() {
     const modal = document.getElementById('modal-quick-share');
     if (modal) modal.classList.remove('open');

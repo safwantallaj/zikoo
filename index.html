@@ -1956,12 +1956,7 @@
   // ==============================================================
   let currentPrintDocumentData = { title: "", cleanContentHtml: "", rawSummaryText: "" };
 
-  function cleanTableHtmlForPrinting(tableElement) {
-    if (!tableElement) return '';
-    const clone = tableElement.cloneNode(true);
-    clone.querySelectorAll('.btn-inv-tag, .btn-edit-tag, button, .btn').forEach(el => el.remove());
-    return clone.outerHTML;
-  }
+  
 
   function triggerUniversalPrint(reportType) {
     let docTitle = "";
@@ -2128,18 +2123,6 @@
     if (m) m.classList.remove('open');
   }
 
-  // ================= 1. محرك الطباعة المباشر الفوري للموبايل والكمبيوتر =================
-  // ================= 1. محرك الطباعة الشامل (متوافق مع APK والكمبيوتر) =================
-  let currentPrintDocumentData = { title: "", cleanContentHtml: "", rawSummaryText: "" };
-
-  function cleanTableHtmlForPrinting(tableElement) {
-    if (!tableElement) return '';
-    const clone = tableElement.cloneNode(true);
-    clone.querySelectorAll('.btn-inv-tag, .btn-edit-tag, button, .btn').forEach(el => el.remove());
-    return clone.outerHTML;
-  }
-
-  
   // ================= محرك تصدير الـ PDF المخصص لتطبيقات הـ APK =================
   function cleanTableHtmlForPrinting(tableElement) {
     if (!tableElement) return '';

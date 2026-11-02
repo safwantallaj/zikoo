@@ -197,8 +197,6 @@
       }
     }
   </style>
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
 
@@ -468,7 +466,7 @@
         </div>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;">
-  <button class="btn btn-primary" style="font-size: 13px;" onclick="printReportA4('ledger')"><i class="fa-solid fa-file-pdf"></i> تصدير PDF للطباعة 🖨️</button>
+  <button class="btn btn-primary" style="font-size: 13px;" onclick="window.print()"><i class="fa-solid fa-print"></i> طباعة كشف الحساب 🖨️</button>
   <button class="btn btn-secondary" style="font-size: 13px;" onclick="openShareModal('ledger')"><i class="fa-solid fa-share-nodes"></i> مشاركة الملخص 📲</button>
 </div>
 
@@ -487,7 +485,7 @@
         <div class="report-card">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
             <h4 style="color: var(--primary); margin:0;"><i class="fa-solid fa-chart-line"></i> قائمة الدخل (المعايير المحاسبية)</h4>
-            <button class="btn btn-primary" style="width:auto; padding:5px 10px; font-size:11px;" onclick="printReportA4('report')"><i class="fa-solid fa-print"></i> طباعة</button>
+            <button class="btn btn-primary" style="width:auto; padding:5px 10px; font-size:11px;" onclick="window.print()"><i class="fa-solid fa-print"></i> طباعة</button>
           </div>
           
           <div class="summary-row"><span>1. إيرادات المبيعات الرئيسية:</span> <strong><span id="rep-sales-rev">0.00</span> <span class="curr-symbol">ر.س</span></strong></div>
@@ -524,7 +522,7 @@
             <h4 style="color: var(--primary); margin:0;"><i class="fa-solid fa-scale-balanced"></i> قائمة المركز المالي (الميزانية)</h4>
             <div style="display:flex; gap:6px; align-items:center;">
               <span id="bs-balance-status" class="status-badge balanced">متوازنة ✓</span>
-              <button class="btn btn-primary" style="width:auto; padding:5px 10px; font-size:11px;" onclick="printReportA4('report')"><i class="fa-solid fa-print"></i> طباعة</button>
+              <button class="btn btn-primary" style="width:auto; padding:5px 10px; font-size:11px;" onclick="window.print()"><i class="fa-solid fa-print"></i> طباعة</button>
             </div>
           </div>
 
@@ -562,7 +560,7 @@
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
             <h4 style="color: var(--warning); margin:0;"><i class="fa-solid fa-landmark"></i> سجل الأصول الثابتة والتحليل الرقابي</h4>
             <div style="display:flex; gap:6px;">
-              <button class="btn btn-primary" style="width:auto; padding:6px 12px; font-size:11px;" onclick="printReportA4('report')"><i class="fa-solid fa-print"></i> طباعة السجل</button>
+              <button class="btn btn-primary" style="width:auto; padding:6px 12px; font-size:11px;" onclick="window.print()"><i class="fa-solid fa-print"></i> طباعة السجل</button>
               <button class="btn btn-success" style="width:auto; padding:6px 12px; font-size:11px;" onclick="openAddAccountModal('asset')">+ تسجيل أصل</button>
             </div>
           </div>
@@ -627,7 +625,7 @@
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
             <h4 style="color: var(--primary); margin:0;"><i class="fa-solid fa-boxes-stacked"></i> جرد المستودع وبطاقات الأصناف</h4>
             <div style="display:flex; gap:6px;">
-              <button class="btn btn-secondary" style="width:auto; padding:6px 10px; font-size:11px;" onclick="printReportA4('report')"><i class="fa-solid fa-print"></i> طباعة الجرد</button>
+              <button class="btn btn-secondary" style="width:auto; padding:6px 10px; font-size:11px;" onclick="window.print()"><i class="fa-solid fa-print"></i> طباعة الجرد</button>
               <button class="btn btn-primary" style="width:auto; padding:6px 12px; font-size:11px;" onclick="openItemCardModal()">+ إضافة صنف</button>
             </div>
           </div>
@@ -650,7 +648,7 @@
         <div class="report-card">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
             <h4 style="color: var(--primary); margin:0;"><i class="fa-solid fa-table-list"></i> ميزان المراجعة بالأرصدة</h4>
-            <button class="btn btn-primary" style="width:auto; padding:5px 10px; font-size:11px;" onclick="printReportA4('report')"><i class="fa-solid fa-print"></i> طباعة الميزان</button>
+            <button class="btn btn-primary" style="width:auto; padding:5px 10px; font-size:11px;" onclick="window.print()"><i class="fa-solid fa-print"></i> طباعة الميزان</button>
           </div>
           <table class="statement-table" id="main-trial-table">
             <thead>
@@ -1181,7 +1179,7 @@
     </div>
     <div id="digital-invoice-body"></div>
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px;">
-      <button class="btn btn-primary" onclick="printReportA4('invoice_current')"><i class="fa-solid fa-file-pdf"></i> تصدير PDF للطباعة</button>
+      <button class="btn btn-primary" onclick="window.print()"><i class="fa-solid fa-print"></i> معاينة وطباعة A4</button>
       <button class="btn btn-secondary" onclick="closeViewInvoiceModal()">إغلاق</button>
     </div>
   </div>
@@ -1998,9 +1996,8 @@
   // ==============================================================
   // محرك الطباعة والمشاركة النظيفة والشاملة للموبايل والحاسوب (A4 Engine)
   // ==============================================================
-  // ================= 1. دالة الطباعة المباشرة والنظيفة =================
   
-  // ================= 1. محرك الطباعة الجذري للـ APK (PDF Data URI) =================
+  // ================= 1. الحل الجذري للطباعة: الإطار المخفي (Hidden IFrame) =================
   function cleanTableHtmlForPrinting(tableElement) {
     if (!tableElement) return '';
     const clone = tableElement.cloneNode(true);
@@ -2008,15 +2005,16 @@
     return clone.outerHTML;
   }
 
-  async function printReportA4(reportType) {
-    // إغلاق أي نوافذ منبثقة
+  function printReportA4(reportType) {
+    // إغلاق أي نافذة مشاركة مفتوحة
     const shareModal = document.getElementById('modal-quick-share');
-    if (shareModal) shareModal.classList.remove('open');
+    if(shareModal) shareModal.classList.remove('open');
 
     let docTitle = "مستند المحاسب الذكي";
     let bodyHtml = "";
     const today = Utilities_getTodayStr();
 
+    // 1. تجميع المحتوى بناءً على نوع التقرير
     if (reportType === 'ledger') {
       const sel = document.getElementById('statement-account-selector');
       const accName = sel && sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text : "الحساب";
@@ -2057,6 +2055,7 @@
         ${invBodyEl ? invBodyEl.innerHTML : ''}
       `;
     } else {
+        // لباقي التقارير (الدخل، الميزانية، إلخ)
         const activeTab = document.querySelector('.tab-content.active');
         const reportCard = activeTab ? activeTab.querySelector('.report-card:not([style*="display: none"])') : null;
         if(reportCard) {
@@ -2066,90 +2065,53 @@
         }
     }
 
-    // تجهيز حاوية الـ PDF
-    const printContainer = document.createElement('div');
-    printContainer.style.width = '210mm'; 
-    printContainer.style.padding = '10mm';
-    printContainer.style.background = '#ffffff';
-    printContainer.style.color = '#000000';
-    printContainer.style.direction = 'rtl';
-    printContainer.style.fontFamily = "'Cairo', sans-serif";
-    printContainer.innerHTML = bodyHtml;
-    
-    // تنظيف الحاوية
-    printContainer.querySelectorAll('button, .btn, .btn-inv-tag, .btn-edit-tag, .header-actions').forEach(el => el.remove());
-    printContainer.querySelectorAll('table').forEach(tbl => {
-        tbl.style.width = '100%';
-        tbl.style.borderCollapse = 'collapse';
-        tbl.style.marginTop = '10px';
-    });
-    printContainer.querySelectorAll('th, td').forEach(cell => {
-        cell.style.border = '1px solid #334155';
-        cell.style.padding = '6px';
-        cell.style.fontSize = '12px';
-    });
-
-    // إخفاء الحاوية خارج الشاشة
-    printContainer.style.position = 'absolute';
-    printContainer.style.top = '-9999px';
-    document.body.appendChild(printContainer);
-
-    showToast('جاري استخراج ملف PDF... ⏳');
-
-    const opt = {
-      margin:       0,
-      filename:     `${docTitle}.pdf`,
-      image:        { type: 'jpeg', quality: 0.98 },
-      html2canvas:  { scale: 2, useCORS: true },
-      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    };
-
-    try {
-      // توليد الـ PDF كملف Blob
-      const pdfBlob = await html2pdf().set(opt).from(printContainer).output('blob');
-      
-      // تحويل Blob إلى Base64 Data URI ليعمل على كل المتصفحات والتطبيقات الصارمة
-      const reader = new FileReader();
-      reader.onloadend = function() {
-        const base64data = reader.result;
-        
-        // عرض الـ PDF داخل التطبيق نفسه كطبقة فوقية تمنع الـ APK من حظر الـ Popups
-        let viewer = document.getElementById('apk-pdf-viewer');
-        if (!viewer) {
-          viewer = document.createElement('div');
-          viewer.id = 'apk-pdf-viewer';
-          viewer.style.position = 'fixed';
-          viewer.style.top = '0';
-          viewer.style.left = '0';
-          viewer.style.width = '100vw';
-          viewer.style.height = '100vh';
-          viewer.style.backgroundColor = '#0f172a';
-          viewer.style.zIndex = '2147483647';
-          viewer.style.display = 'flex';
-          viewer.style.flexDirection = 'column';
-          document.body.appendChild(viewer);
-        }
-        
-        viewer.innerHTML = `
-          <div style="display:flex; justify-content:space-between; padding:15px; background:#1e293b; color:white; align-items:center;">
-             <span style="font-family:Cairo; font-weight:bold;">📄 ${docTitle}</span>
-             <button onclick="document.getElementById('apk-pdf-viewer').remove()" style="background:#ef4444; color:white; border:none; padding:8px 15px; border-radius:8px; font-weight:bold; cursor:pointer;">✖ إغلاق</button>
-          </div>
-          <iframe src="${base64data}" style="flex:1; width:100%; border:none;" title="PDF Viewer"></iframe>
-        `;
-        showToast('✅ تم عرض التقرير');
-      }
-      reader.readAsDataURL(pdfBlob);
-      
-    } catch (err) {
-      console.error(err);
-      showToast('حدث خطأ أثناء تصدير الـ PDF', true);
-    } finally {
-      document.body.removeChild(printContainer);
+    // 2. إنشاء إطار مخفي (IFrame) للطباعة
+    let printFrame = document.getElementById('smart-print-frame');
+    if (!printFrame) {
+      printFrame = document.createElement('iframe');
+      printFrame.id = 'smart-print-frame';
+      printFrame.style.position = 'absolute';
+      printFrame.style.top = '-9999px';
+      printFrame.style.left = '-9999px';
+      printFrame.style.width = '0px';
+      printFrame.style.height = '0px';
+      printFrame.style.border = 'none';
+      document.body.appendChild(printFrame);
     }
+
+    // 3. حقن كود الـ HTML النظيف والـ CSS داخل الإطار
+    const frameDoc = printFrame.contentWindow || printFrame.contentDocument.document || printFrame.contentDocument;
+    frameDoc.document.open();
+    frameDoc.document.write(`
+      <!DOCTYPE html>
+      <html lang="ar" dir="rtl">
+      <head>
+        <title>${docTitle}</title>
+        <style>
+          @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap');
+          body { font-family: 'Cairo', sans-serif; background: #fff; color: #000; padding: 20px; font-size: 13px; margin: 0; direction: rtl; text-align: right; }
+          table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+          th, td { border: 1px solid #334155; padding: 8px; text-align: right; font-size: 12px; }
+          th { background-color: #f1f5f9; font-weight: 800; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          button, .btn, .btn-inv-tag, .btn-edit-tag { display: none !important; }
+        </style>
+      </head>
+      <body>
+        ${bodyHtml}
+      </body>
+      </html>
+    `);
+    frameDoc.document.close();
+
+    // 4. إعطاء أمر الطباعة للإطار بعد جزء من الثانية لضمان تحميل الخطوط
+    showToast('جاري استدعاء الطباعة...');
+    setTimeout(() => {
+      printFrame.contentWindow.focus();
+      printFrame.contentWindow.print();
+    }, 500);
   }
 
-  // ================= 2. محرك المشاركة الاحترافي للموبايل (Intent & a-tag click) =================
+  // ================= 2. محرك المشاركة الاحترافي للموبايل =================
   let activeShareText = "";
 
   function openShareModal(reportType) {
@@ -2168,7 +2130,16 @@
 
     activeShareText = shareText;
     
-    // إظهار نافذة المشاركة المخصصة
+    // إذا كان الموبايل يدعم المشاركة الأصلية القوية، نظهرها مباشرة
+    if (navigator.share && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+      navigator.share({
+        title: 'مشاركة التقرير المالي',
+        text: activeShareText
+      }).catch((error) => console.log('تم إلغاء المشاركة'));
+      return; 
+    }
+
+    // النافذة البديلة في حال عدم دعم المشاركة الأصلية
     const previewEl = document.getElementById('share-summary-preview');
     if (previewEl) {
       previewEl.innerHTML = activeShareText.replace(/\n/g, '<br>');
@@ -2188,24 +2159,24 @@
     const encodedText = encodeURIComponent(activeShareText);
 
     if (channel === 'whatsapp') {
-      const a = document.createElement('a');
-      a.href = `whatsapp://send?text=${encodedText}`;
-      a.target = '_top';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      setTimeout(() => { window.location.href = `https://api.whatsapp.com/send?text=${encodedText}`; }, 1000);
-      
+      window.open(`https://api.whatsapp.com/send?text=${encodedText}`, '_blank');
     } else if (channel === 'telegram') {
-      // الحل الجذري للتليجرام في الـ APK:
-      const a = document.createElement('a');
-      a.href = `tg://msg?text=${encodedText}`;
-      a.target = '_top';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      setTimeout(() => { window.location.href = `https://t.me/share/url?url=${encodeURIComponent(' ')}&text=${encodedText}`; }, 1000);
-      
+      // الحل الجذري للتليجرام في الـ APK: استخدام intent الصريح
+      if (isMobile) {
+          const telegramIntent = `intent://send?text=${encodedText}#Intent;scheme=tg;package=org.telegram.messenger;end;`;
+          const a = document.createElement('a');
+          a.href = telegramIntent;
+          a.style.display = 'none';
+          document.body.appendChild(a);
+          try {
+            a.click();
+          } catch(e) {}
+          document.body.removeChild(a);
+          // Fallback
+          setTimeout(() => { window.location.href = `https://t.me/share/url?url=${encodeURIComponent(' ')}&text=${encodedText}`; }, 1000);
+      } else {
+          window.open(`https://t.me/share/url?url=${encodeURIComponent(' ')}&text=${encodedText}`, '_blank');
+      }
     } else if (channel === 'copy') {
       if (navigator.clipboard) {
         navigator.clipboard.writeText(activeShareText);
@@ -2216,8 +2187,7 @@
       }
     }
   }
-
-  function openAddMemberModal() {
+function openAddMemberModal() {
     document.getElementById('new-member-email').value = '';
     const m = document.getElementById('modal-add-member');
     if (m) m.classList.add('open');
@@ -3588,5 +3558,583 @@
     }
   });
 </script>
+<!-- =====================================================================
+     Smart Output Engine v1  |  محرك الطباعة والمشاركة المتوافق مع تطبيق APK
+     - يعالج: window.print() لا يعمل داخل WebView  +  مشاركة النص فقط لا يقبلها Instagram
+     - لا يغيّر أي منطق محاسبي أو أي ميزة؛ يعمل فقط على الهاتف، وسطح المكتب يبقى كما هو.
+     ===================================================================== -->
+<script>
+(function () {
+  'use strict';
+
+  var UA = navigator.userAgent || '';
+  var IS_MOBILE = /Android|iPhone|iPad|iPod|Mobile/i.test(UA) ||
+                  (navigator.maxTouchPoints > 1 && /Macintosh/i.test(UA));
+  var nativePrint = (typeof window.print === 'function') ? window.print.bind(window) : function () {};
+  var origShare = window.openShareModal;
+
+  // ---------- ثوابت الصفحة (A4) ----------
+  var CONTENT_W = 760;                         // عرض المحتوى بالبكسل
+  var PT_W = 595.28, PT_H = 841.89, PT_M = 28; // A4 بالنقاط + الهامش
+  var IMG_PT_W = PT_W - PT_M * 2;
+  var PX_TO_PT = IMG_PT_W / CONTENT_W;
+  var PAGE_PX_H = Math.floor((PT_H - PT_M * 2) / PX_TO_PT); // أقصى ارتفاع محتوى للصفحة بالبكسل
+  var SCALE = 2;                               // دقة الرسم
+  var FONT_STACK = "'Noto Naskh Arabic','Noto Sans Arabic','Droid Arabic Naskh','Segoe UI',Tahoma,Arial,sans-serif";
+
+  var busy = false;
+
+  function toast(msg, isErr) {
+    try { if (typeof showToast === 'function') showToast(msg, !!isErr); } catch (e) {}
+  }
+  function todayStr() {
+    try { return (typeof Utilities_getTodayStr === 'function') ? Utilities_getTodayStr() : new Date().toISOString().split('T')[0]; }
+    catch (e) { return new Date().toISOString().split('T')[0]; }
+  }
+  function currency() {
+    try { return (typeof baseCurrency !== 'undefined') ? baseCurrency : ''; } catch (e) { return ''; }
+  }
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+    });
+  }
+
+  // ---------- CSS خاص بالمحرك (يُحقن في الصفحة مرة واحدة للقياس، ويُدمج في الصورة للرسم) ----------
+  var ENGINE_CSS =
+    '.so-root{width:' + CONTENT_W + 'px;background:#fff;color:#000;direction:rtl;text-align:right;font-size:13px;box-sizing:border-box;line-height:1.5;display:block;position:static;}' +
+    '.so-root,.so-root *{font-family:' + FONT_STACK + ' !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;box-sizing:border-box;}' +
+    '.so-root table{width:100%;border-collapse:collapse;margin-top:8px;}' +
+    '.so-root th,.so-root td{border:1px solid #334155;padding:6px 8px;text-align:right;font-size:12px;color:#000;}' +
+    '.so-root th{background:#f1f5f9;font-weight:800;}' +
+    '.so-root .report-card,.so-root .invoice-card,.so-root .digital-invoice{border:1px solid #000;box-shadow:none;padding:12px;margin:0;background:#fff;}' +
+    '.so-root .tab-content{display:block;animation:none;}' +
+    '.so-head{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #0f172a;padding-bottom:8px;margin-bottom:12px;}';
+
+  function ensureEngineStyle() {
+    if (document.getElementById('so-engine-style')) return;
+    var s = document.createElement('style');
+    s.id = 'so-engine-style';
+    s.textContent = ENGINE_CSS;
+    document.head.appendChild(s);
+  }
+
+  function collectPageCss() {
+    var css = '';
+    var styles = document.querySelectorAll('style');
+    for (var i = 0; i < styles.length; i++) {
+      if (styles[i].id === 'so-engine-style') continue;
+      css += styles[i].textContent + '\n';
+    }
+    return css.replace(/]]>/g, ']] >') + '\n' + ENGINE_CSS;
+  }
+
+  // ---------- تحديد ما يجب طباعته حسب الشاشة الحالية ----------
+  var SUB_TITLES = {
+    'ledger': 'كشف حساب تفصيلي', 'income': 'قائمة الدخل', 'balance-sheet': 'قائمة المركز المالي (الميزانية)',
+    'depreciation': 'سجل الأصول الثابتة والإهلاك', 'kpis': 'المؤشرات المالية (KPIs)',
+    'inventory': 'جرد المستودع وبطاقات الأصناف', 'trial': 'ميزان المراجعة', 'tax': 'الإقرار الضريبي'
+  };
+
+  function pickTarget() {
+    var inv = document.getElementById('modal-view-invoice');
+    var invBody = document.getElementById('digital-invoice-body');
+    if (inv && inv.classList.contains('open') && invBody) {
+      return { node: invBody, title: 'فاتورة رسمية', sub: '', file: 'invoice' };
+    }
+    var tab = document.querySelector('.tab-content.active');
+    if (tab) {
+      var subs = tab.querySelectorAll('[id^="sub-report-"]');
+      for (var i = 0; i < subs.length; i++) {
+        if (window.getComputedStyle(subs[i]).display !== 'none') {
+          var key = subs[i].id.replace('sub-report-', '');
+          var t = SUB_TITLES[key] || 'تقرير مالي';
+          var sub = '';
+          if (key === 'ledger') {
+            var sel = document.getElementById('statement-account-selector');
+            if (sel && sel.options[sel.selectedIndex]) sub = 'الحساب: ' + sel.options[sel.selectedIndex].text;
+            var f = document.getElementById('date-from'), to = document.getElementById('date-to');
+            if (f && f.value) sub += (sub ? ' | ' : '') + 'من ' + f.value;
+            if (to && to.value) sub += (sub ? ' | ' : '') + 'إلى ' + to.value;
+          }
+          return { node: subs[i], title: t, sub: sub, file: 'report-' + key };
+        }
+      }
+      return { node: tab, title: 'تقرير', sub: '', file: 'report' };
+    }
+    return { node: document.querySelector('main') || document.body, title: 'تقرير', sub: '', file: 'report' };
+  }
+
+  // ---------- نسخة نظيفة من المحتوى (بدون أزرار/حقول/أيقونات) ----------
+  function cleanClone(node) {
+    var clone = node.cloneNode(true);
+    clone.removeAttribute('id');
+    var o = node.querySelectorAll('*'), c = clone.querySelectorAll('*');
+    var hide = [], i;
+    for (i = 0; i < o.length && i < c.length; i++) {
+      try { if (window.getComputedStyle(o[i]).display === 'none') hide.push(c[i]); } catch (e) {}
+    }
+    for (i = 0; i < hide.length; i++) if (hide[i].parentNode) hide[i].parentNode.removeChild(hide[i]);
+    var junk = clone.querySelectorAll(
+      'button,.btn,.btn-inv-tag,.btn-edit-tag,select,input,textarea,script,.form-group,.no-print,' +
+      'i[class*="fa-"],canvas,video,iframe');
+    for (i = 0; i < junk.length; i++) if (junk[i].parentNode) junk[i].parentNode.removeChild(junk[i]);
+    return clone;
+  }
+
+  function headerHtml(title, sub) {
+    return '<div class="so-head">' +
+      '<div><div style="font-size:16px;font-weight:800;color:#0f172a;">المحاسب الذكي | Smart Ledger</div>' +
+      '<div style="font-size:13px;font-weight:700;color:#2563eb;margin-top:2px;">' + esc(title) + '</div>' +
+      (sub ? '<div style="font-size:11px;color:#475569;margin-top:2px;">' + esc(sub) + '</div>' : '') + '</div>' +
+      '<div style="text-align:left;font-size:10px;color:#475569;">' +
+      '<div>التاريخ: <strong>' + esc(todayStr()) + '</strong></div>' +
+      '<div>العملة: <strong>' + esc(currency()) + '</strong></div></div></div>';
+  }
+
+  // ---------- القياس + تحديد مواضع قطع الصفحات ----------
+  function frame() { return new Promise(function (r) { requestAnimationFrame(function () { requestAnimationFrame(r); }); }); }
+
+  function prepareLayout(target) {
+    ensureEngineStyle();
+    var host = document.createElement('div');
+    host.style.cssText = 'position:fixed;left:-100000px;top:0;width:' + CONTENT_W + 'px;pointer-events:none;';
+    var root = document.createElement('div');
+    root.className = 'so-root';
+    root.innerHTML = headerHtml(target.title, target.sub);
+    root.appendChild(cleanClone(target.node));
+    host.appendChild(root);
+    document.body.appendChild(host);
+
+    return frame().then(function () {
+      var rTop = root.getBoundingClientRect().top;
+      var total = Math.ceil(root.getBoundingClientRect().height) + 4;
+      var cands = [];
+      var els = root.querySelectorAll('tr,.summary-row,h3,h4,h5,p,li,.report-card > *,.digital-invoice > *');
+      for (var i = 0; i < els.length; i++) {
+        var b = Math.round(els[i].getBoundingClientRect().bottom - rTop);
+        if (b > 0 && b <= total) cands.push(b);
+      }
+      cands.sort(function (a, b) { return a - b; });
+      var html = new XMLSerializer().serializeToString(root);
+      document.body.removeChild(host);
+      return { html: html, total: total, cands: cands };
+    }, function (e) { try { document.body.removeChild(host); } catch (x) {} throw e; });
+  }
+
+  function computePages(total, cands) {
+    var pages = [], start = 0;
+    while (start < total) {
+      var limit = start + PAGE_PX_H;
+      if (limit >= total) { pages.push([start, total]); break; }
+      var end = 0;
+      for (var i = cands.length - 1; i >= 0; i--) {
+        if (cands[i] <= limit && cands[i] > start) { end = cands[i]; break; }
+      }
+      if (!end || end < start + PAGE_PX_H * 0.5) end = limit;
+      pages.push([start, end]);
+      start = end;
+    }
+    return pages;
+  }
+
+  // ---------- رسم المحتوى إلى صور (SVG foreignObject -> Canvas) بدون أي مكتبة خارجية ----------
+  function loadImage(url) {
+    return new Promise(function (resolve, reject) {
+      var img = new Image();
+      img.onload = function () { resolve(img); };
+      img.onerror = function () { reject(new Error('render-failed')); };
+      img.src = url;
+    });
+  }
+
+  function renderSegment(layout, css, y0, y1) {
+    var h = y1 - y0;
+    var svg =
+      '<svg xmlns="http://www.w3.org/2000/svg" width="' + (CONTENT_W * SCALE) + '" height="' + (h * SCALE) +
+      '" viewBox="0 0 ' + CONTENT_W + ' ' + h + '">' +
+      '<rect width="100%" height="100%" fill="#ffffff"/>' +
+      '<foreignObject x="0" y="' + (-y0) + '" width="' + CONTENT_W + '" height="' + layout.total + '">' +
+      '<div xmlns="http://www.w3.org/1999/xhtml" style="width:' + CONTENT_W + 'px;">' +
+      '<style><![CDATA[' + css + ']]></style>' + layout.html + '</div></foreignObject></svg>';
+    // ملاحظة مهمة: يجب استخدام data: وليس blob: لأن blob يجعل الـ Canvas "ملوثاً" ويمنع التصدير
+    var url = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+    return loadImage(url).then(function (img) {
+      var cv = document.createElement('canvas');
+      cv.width = CONTENT_W * SCALE; cv.height = h * SCALE;
+      var ctx = cv.getContext('2d');
+      ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, cv.width, cv.height);
+      ctx.drawImage(img, 0, 0, cv.width, cv.height);
+      return cv;
+    });
+  }
+
+  function canvasToBlob(cv, type, q) {
+    return new Promise(function (resolve, reject) {
+      try { cv.toBlob(function (b) { b ? resolve(b) : reject(new Error('blob-failed')); }, type, q); }
+      catch (e) { reject(e); }
+    });
+  }
+  function blobToBytes(blob) {
+    return new Promise(function (resolve, reject) {
+      var r = new FileReader();
+      r.onload = function () { resolve(new Uint8Array(r.result)); };
+      r.onerror = function () { reject(r.error); };
+      r.readAsArrayBuffer(blob);
+    });
+  }
+  function blobToBase64(blob) {
+    return new Promise(function (resolve, reject) {
+      var r = new FileReader();
+      r.onload = function () { resolve(String(r.result).split(',')[1] || ''); };
+      r.onerror = function () { reject(r.error); };
+      r.readAsDataURL(blob);
+    });
+  }
+
+  // ---------- بناء ملف PDF حقيقي (صفحات A4 من صور JPEG) ----------
+  function utf16Hex(str) {
+    var hex = 'FEFF';
+    for (var i = 0; i < str.length; i++) hex += ('0000' + str.charCodeAt(i).toString(16)).slice(-4);
+    return '<' + hex.toUpperCase() + '>';
+  }
+
+  function buildPdf(pages, title) {
+    var enc = new TextEncoder();
+    var parts = [], offsets = [], pos = 0;
+    function push(x) { var b = (typeof x === 'string') ? enc.encode(x) : x; parts.push(b); pos += b.length; }
+    function begin(n) { offsets[n] = pos; push(n + ' 0 obj\n'); }
+    function end() { push('\nendobj\n'); }
+
+    var n = pages.length, total = 3 + n * 3;
+    push('%PDF-1.4\n');
+    push(new Uint8Array([0x25, 0xE2, 0xE3, 0xCF, 0xD3, 0x0A]));
+
+    begin(1); push('<< /Type /Catalog /Pages 2 0 R >>'); end();
+    var kids = [];
+    for (var i = 0; i < n; i++) kids.push((3 + i * 3) + ' 0 R');
+    begin(2); push('<< /Type /Pages /Count ' + n + ' /Kids [' + kids.join(' ') + '] >>'); end();
+
+    for (i = 0; i < n; i++) {
+      var pg = pages[i], pId = 3 + i * 3, cId = pId + 1, iId = pId + 2;
+      var w = IMG_PT_W, h = pg.hPx * PX_TO_PT;
+      var y = (PT_H - PT_M - h);
+      var content = 'q ' + w.toFixed(2) + ' 0 0 ' + h.toFixed(2) + ' ' + PT_M + ' ' + y.toFixed(2) + ' cm /Im0 Do Q';
+      begin(pId);
+      push('<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ' + PT_W + ' ' + PT_H + '] ' +
+           '/Resources << /XObject << /Im0 ' + iId + ' 0 R >> /ProcSet [/PDF /ImageC] >> /Contents ' + cId + ' 0 R >>');
+      end();
+      begin(cId); push('<< /Length ' + content.length + ' >>\nstream\n' + content + '\nendstream'); end();
+      begin(iId);
+      push('<< /Type /XObject /Subtype /Image /Width ' + pg.wPx + ' /Height ' + pg.hPxImg +
+           ' /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ' + pg.jpeg.length + ' >>\nstream\n');
+      push(pg.jpeg); push('\nendstream'); end();
+    }
+    var infoId = total;
+    begin(infoId); push('<< /Title ' + utf16Hex(title || 'Smart Ledger') + ' /Producer (Smart Ledger Pro) >>'); end();
+
+    var xrefPos = pos;
+    var xref = 'xref\n0 ' + (total + 1) + '\n0000000000 65535 f \n';
+    for (i = 1; i <= total; i++) xref += ('0000000000' + offsets[i]).slice(-10) + ' 00000 n \n';
+    push(xref);
+    push('trailer\n<< /Size ' + (total + 1) + ' /Root 1 0 R /Info ' + infoId + ' 0 R >>\nstartxref\n' + xrefPos + '\n%%EOF');
+    return new Blob(parts, { type: 'application/pdf' });
+  }
+
+  // ---------- التسليم: مشاركة ملف -> جسور أصلية -> تنزيل ----------
+  function isAbort(e) { return e && (e.name === 'AbortError' || /cancel|dismiss/i.test(String(e.message || e))); }
+
+  function shareFileViaWeb(file, title, text) {
+    if (!(navigator.share && navigator.canShare)) return Promise.resolve('unsupported');
+    try { if (!navigator.canShare({ files: [file] })) return Promise.resolve('unsupported'); }
+    catch (e) { return Promise.resolve('unsupported'); }
+    var data = { files: [file], title: title };
+    if (text) data.text = text;
+    return navigator.share(data).then(function () { return 'shared'; }, function (e) {
+      return isAbort(e) ? 'cancelled' : 'failed';
+    });
+  }
+
+  function shareFileViaBridge(blob, name, title, text) {
+    return blobToBase64(blob).then(function (b64) {
+      var cap = window.Capacitor;
+      var isNative = cap && (typeof cap.isNativePlatform === 'function' ? cap.isNativePlatform() : true);
+      if (isNative && cap.Plugins && cap.Plugins.Filesystem && cap.Plugins.Share) {
+        return cap.Plugins.Filesystem.writeFile({ path: name, data: b64, directory: 'CACHE' }).then(function (w) {
+          return cap.Plugins.Share.share({ title: title, text: text || '', url: w.uri, dialogTitle: title });
+        }).then(function () { return 'shared'; }, function (e) { return isAbort(e) ? 'cancelled' : 'unsupported'; });
+      }
+      var ss = window.plugins && window.plugins.socialsharing;
+      if (ss && typeof ss.shareWithOptions === 'function') {
+        return new Promise(function (resolve) {
+          ss.shareWithOptions({ message: text || '', subject: title, files: ['data:' + blob.type + ';base64,' + b64] },
+            function () { resolve('shared'); }, function () { resolve('unsupported'); });
+        });
+      }
+      return 'unsupported';
+    }).catch(function () { return 'unsupported'; });
+  }
+
+  function downloadBlob(blob, name) {
+    try {
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url; a.download = name; a.style.display = 'none';
+      document.body.appendChild(a); a.click();
+      setTimeout(function () { document.body.removeChild(a); URL.revokeObjectURL(url); }, 4000);
+      return true;
+    } catch (e) { return false; }
+  }
+
+  function deliverFile(blob, name, title, text) {
+    var file = null;
+    try { file = new File([blob], name, { type: blob.type }); } catch (e) {}
+    var p = file ? shareFileViaWeb(file, title, text) : Promise.resolve('unsupported');
+    return p.then(function (r) {
+      if (r === 'shared' || r === 'cancelled') return r;
+      return shareFileViaBridge(blob, name, title, text);
+    });
+  }
+
+  // ---------- شاشة المعاينة (بديل معاينة الطباعة على الهاتف) ----------
+  var viewerUrls = [];
+  function closeViewer() {
+    var v = document.getElementById('so-viewer');
+    if (v) v.parentNode.removeChild(v);
+    viewerUrls.forEach(function (u) { try { URL.revokeObjectURL(u); } catch (e) {} });
+    viewerUrls = [];
+    document.documentElement.style.overflow = '';
+  }
+
+  function btnCss(bg) {
+    return 'border:none;border-radius:10px;padding:11px 14px;font-size:13px;font-weight:800;color:#fff;background:' + bg +
+           ';font-family:inherit;cursor:pointer;flex:1;';
+  }
+
+  function showViewer(pageBlobs, pdfBlob, name, title) {
+    closeViewer();
+    var v = document.createElement('div');
+    v.id = 'so-viewer';
+    v.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:2147483646;background:#0b1220;display:flex;flex-direction:column;direction:rtl;font-family:Cairo,sans-serif;';
+    var bar = document.createElement('div');
+    bar.style.cssText = 'display:flex;gap:8px;padding:10px;background:#111827;align-items:center;';
+    var bPrint = document.createElement('button'); bPrint.style.cssText = btnCss('#2563eb'); bPrint.textContent = '🖨️ طباعة / مشاركة PDF';
+    var bSave = document.createElement('button'); bSave.style.cssText = btnCss('#10b981'); bSave.textContent = '💾 حفظ';
+    var bClose = document.createElement('button'); bClose.style.cssText = btnCss('#475569'); bClose.textContent = '✕ إغلاق';
+    bar.appendChild(bPrint); bar.appendChild(bSave); bar.appendChild(bClose);
+    var hint = document.createElement('div');
+    hint.style.cssText = 'padding:6px 12px;font-size:11px;color:#94a3b8;background:#111827;border-top:1px solid #1f2937;';
+    hint.textContent = 'اضغط «طباعة / مشاركة PDF» ثم اختر تطبيقاً من قائمة الهاتف (عارض PDF للطباعة، أو واتساب، أو الحفظ في الملفات).';
+    var list = document.createElement('div');
+    list.style.cssText = 'flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:10px;';
+    pageBlobs.forEach(function (b, i) {
+      var u = URL.createObjectURL(b); viewerUrls.push(u);
+      var img = document.createElement('img');
+      img.src = u; img.alt = 'page ' + (i + 1);
+      img.style.cssText = 'display:block;width:100%;max-width:820px;margin:0 auto 10px;background:#fff;border-radius:4px;';
+      list.appendChild(img);
+    });
+    v.appendChild(bar); v.appendChild(hint); v.appendChild(list);
+    document.body.appendChild(v);
+    document.documentElement.style.overflow = 'hidden';
+
+    bClose.onclick = closeViewer;
+    bSave.onclick = function () {
+      if (downloadBlob(pdfBlob, name)) toast('تم طلب حفظ الملف — إن لم يظهر، استخدم زر الطباعة / المشاركة');
+      else toast('تعذر الحفظ المباشر، استخدم زر الطباعة / المشاركة', true);
+    };
+    bPrint.onclick = function () {
+      deliverFile(pdfBlob, name, title, '').then(function (r) {
+        if (r === 'unsupported' || r === 'failed') {
+          toast('هذا التطبيق لا يدعم الطباعة المباشرة بعد — مطلوب تفعيل جسر الطباعة في الأندرويد', true);
+        }
+      });
+    };
+  }
+
+  // ---------- الطباعة المباشرة عبر جسر أندرويد الأصلي (إن وُجد) ----------
+  function getPrintBridge() {
+    var b = window.SmartPrintBridge;
+    return (b && typeof b.printHtml === 'function') ? b : null;
+  }
+  function bridgePrint(pageBlobs, title) {
+    var bridge = getPrintBridge();
+    if (!bridge) return Promise.resolve(false);
+    return Promise.all(pageBlobs.map(blobToBase64)).then(function (b64s) {
+      var html = '<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><style>' +
+                 '@page{size:A4;margin:0}body{margin:0}img{display:block;width:100%;page-break-after:always}' +
+                 'img:last-child{page-break-after:auto}</style></head><body>' +
+                 b64s.map(function (s) { return '<img src="data:image/jpeg;base64,' + s + '">'; }).join('') +
+                 '</body></html>';
+      bridge.printHtml(html, title || 'Smart Ledger');
+      return true;
+    }).catch(function () { return false; });
+  }
+
+  // ---------- نقطة الدخول: الطباعة ----------
+  function smartPrint() {
+    if (busy) return;
+    busy = true;
+    toast('جاري تجهيز التقرير للطباعة...');
+    var target = pickTarget();
+    var pdfName = 'SmartLedger-' + target.file + '-' + todayStr() + '.pdf';
+    var css = collectPageCss();
+
+    prepareLayout(target).then(function (layout) {
+      var pages = computePages(layout.total, layout.cands);
+      var segs = [], i;
+      for (i = 0; i < pages.length; i += 3) segs.push(pages.slice(i, i + 3));
+      var out = [], chain = Promise.resolve();
+      segs.forEach(function (seg) {
+        chain = chain.then(function () {
+          return renderSegment(layout, css, seg[0][0], seg[seg.length - 1][1]).then(function (cv) {
+            var p = Promise.resolve();
+            seg.forEach(function (pg) {
+              p = p.then(function () {
+                var hPx = pg[1] - pg[0];
+                var pc = document.createElement('canvas');
+                pc.width = CONTENT_W * SCALE; pc.height = hPx * SCALE;
+                var pctx = pc.getContext('2d');
+                pctx.fillStyle = '#fff'; pctx.fillRect(0, 0, pc.width, pc.height);
+                pctx.drawImage(cv, 0, (pg[0] - seg[0][0]) * SCALE, pc.width, pc.height, 0, 0, pc.width, pc.height);
+                return canvasToBlob(pc, 'image/jpeg', 0.92).then(function (blob) {
+                  return blobToBytes(blob).then(function (bytes) {
+                    out.push({ blob: blob, jpeg: bytes, wPx: pc.width, hPxImg: pc.height, hPx: hPx });
+                  });
+                });
+              });
+            });
+            return p;
+          });
+        });
+      });
+      return chain.then(function () { return out; });
+    }).then(function (pageData) {
+      var pdf = buildPdf(pageData, target.title);
+      var blobs = pageData.map(function (p) { return p.blob; });
+      return bridgePrint(blobs, target.title).then(function (printed) {
+        if (!printed) showViewer(blobs, pdf, pdfName, target.title);
+      });
+    }).catch(function (e) {
+      try { console.error('SmartOutput print error:', e); } catch (x) {}
+      toast('تعذر تجهيز التقرير للطباعة', true);
+    }).then(function () { busy = false; });
+  }
+
+  // ---------- بطاقة ملخص الحساب كصورة (Instagram يقبل الصور ولا يقبل النص وحده) ----------
+  function drawSummaryCard(accName, dateStr, balance, curr) {
+    var W = 1080, H = 760;
+    var cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+    var ctx = cv.getContext('2d');
+    var ff = "Cairo,'Noto Naskh Arabic','Noto Sans Arabic',Tahoma,Arial,sans-serif";
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, W, H);
+    var g = ctx.createLinearGradient(0, 0, W, 0); g.addColorStop(0, '#2563eb'); g.addColorStop(1, '#3b82f6');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, 170);
+    ctx.direction = 'rtl'; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#ffffff'; ctx.font = '800 52px ' + ff;
+    ctx.fillText('المحاسب الذكي | Smart Ledger Pro', W - 60, 70);
+    ctx.font = '700 34px ' + ff; ctx.fillStyle = '#dbeafe';
+    ctx.fillText('ملخص كشف حساب معتمد', W - 60, 125);
+
+    function row(label, value, y, big) {
+      ctx.fillStyle = '#64748b'; ctx.font = '700 32px ' + ff; ctx.textAlign = 'right';
+      ctx.fillText(label, W - 60, y);
+      ctx.fillStyle = '#0f172a'; ctx.font = (big ? '800 40px ' : '700 34px ') + ff; ctx.textAlign = 'left';
+      var v = String(value); if (v.length > 34) v = v.slice(0, 33) + '…';
+      ctx.fillText(v, 60, y);
+      ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(60, y + 42); ctx.lineTo(W - 60, y + 42); ctx.stroke();
+    }
+    row('الحساب', accName, 250);
+    row('التاريخ', dateStr, 340);
+    row('العملة', curr, 430);
+    ctx.fillStyle = '#eff6ff'; ctx.fillRect(40, 500, W - 80, 130);
+    ctx.fillStyle = '#1d4ed8'; ctx.font = '700 34px ' + ff; ctx.textAlign = 'right';
+    ctx.fillText('الرصيد الدفتري الحالي', W - 70, 565);
+    ctx.font = '800 54px ' + ff; ctx.textAlign = 'left';
+    ctx.fillText(balance + ' ' + curr, 70, 565);
+    ctx.fillStyle = '#94a3b8'; ctx.font = '600 26px ' + ff; ctx.textAlign = 'center';
+    ctx.fillText('صادر عبر نظام المحاسب الذكي Pro', W / 2, 705);
+    return cv;
+  }
+
+  function fontsReady() {
+    try {
+      if (document.fonts && document.fonts.load) {
+        return Promise.race([
+          Promise.all([document.fonts.load('700 32px Cairo'), document.fonts.load('800 52px Cairo')]),
+          new Promise(function (r) { setTimeout(r, 1500); })
+        ]).catch(function () {});
+      }
+    } catch (e) {}
+    return Promise.resolve();
+  }
+
+  function openQuickShareModal(text) {
+    try { activeShareText = text; } catch (e) {}
+    var previewEl = document.getElementById('share-summary-preview');
+    if (previewEl) previewEl.innerHTML = esc(text).replace(/\n/g, '<br>');
+    var modal = document.getElementById('modal-quick-share');
+    if (modal) modal.classList.add('open');
+  }
+
+  // ---------- نقطة الدخول: مشاركة الملخص ----------
+  function smartShare(reportType) {
+    var today = todayStr(), shareText = '', accName = 'الحساب', balance = '0.00';
+    if (reportType === 'ledger') {
+      var sel = document.getElementById('statement-account-selector');
+      accName = sel && sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text : 'الحساب';
+      var balEl = document.getElementById('final-balance');
+      balance = balEl ? balEl.innerText : '0.00';
+      shareText = '📄 *ملخص كشف حساب معتمد*\n🏢 *الحساب:* ' + accName + '\n📅 *التاريخ:* ' + today +
+                  '\n💰 *الرصيد الدفتري الحالي:* ' + balance + ' ' + currency() + '\n\n_صادر عبر نظام المحاسب الذكي Pro_';
+    } else {
+      shareText = '📄 ملخص مالي صادر من نظام المحاسب الذكي Pro بتاريخ: ' + today;
+    }
+    try { activeShareText = shareText; } catch (e) {}
+    var title = 'مشاركة التقرير المالي';
+
+    function textOnly() {
+      if (navigator.share) {
+        return navigator.share({ title: title, text: shareText }).then(function () { return 'shared'; }, function (e) {
+          return isAbort(e) ? 'cancelled' : 'failed';
+        });
+      }
+      return Promise.resolve('unsupported');
+    }
+
+    var imagePromise = (reportType === 'ledger')
+      ? fontsReady().then(function () {
+          var cv = drawSummaryCard(accName, today, balance, currency());
+          return canvasToBlob(cv, 'image/png');
+        }).catch(function () { return null; })
+      : Promise.resolve(null);
+
+    imagePromise.then(function (imgBlob) {
+      if (!imgBlob) return 'noimage';
+      var name = 'SmartLedger-summary-' + today + '.png';
+      return deliverFile(imgBlob, name, title, shareText);
+    }).then(function (r) {
+      if (r === 'shared' || r === 'cancelled') return r;
+      return textOnly();
+    }).then(function (r) {
+      if (r === 'shared' || r === 'cancelled') return;
+      openQuickShareModal(shareText);
+    });
+  }
+
+  // ---------- الربط: الهاتف فقط، وسطح المكتب يبقى كما هو ----------
+  window.smartPrint = smartPrint;
+  window.smartShare = smartShare;
+  if (IS_MOBILE) {
+    window.print = function () { smartPrint(); };
+    window.openShareModal = function (t) { smartShare(t); };
+  } else {
+    window.print = nativePrint;
+    if (origShare) window.openShareModal = origShare;
+  }
+})();
+</script>
+
 </body>
 </html>

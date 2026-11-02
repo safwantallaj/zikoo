@@ -197,6 +197,8 @@
       }
     }
   </style>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
 
@@ -466,7 +468,7 @@
         </div>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;">
-  <button class="btn btn-primary" style="font-size: 13px;" onclick="window.print()"><i class="fa-solid fa-print"></i> طباعة كشف الحساب 🖨️</button>
+  <button class="btn btn-primary" style="font-size: 13px;" onclick="printReportA4('ledger')"><i class="fa-solid fa-file-pdf"></i> تصدير PDF للطباعة 🖨️</button>
   <button class="btn btn-secondary" style="font-size: 13px;" onclick="openShareModal('ledger')"><i class="fa-solid fa-share-nodes"></i> مشاركة الملخص 📲</button>
 </div>
 
@@ -485,7 +487,7 @@
         <div class="report-card">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
             <h4 style="color: var(--primary); margin:0;"><i class="fa-solid fa-chart-line"></i> قائمة الدخل (المعايير المحاسبية)</h4>
-            <button class="btn btn-primary" style="width:auto; padding:5px 10px; font-size:11px;" onclick="window.print()"><i class="fa-solid fa-print"></i> طباعة</button>
+            <button class="btn btn-primary" style="width:auto; padding:5px 10px; font-size:11px;" onclick="printReportA4('report')"><i class="fa-solid fa-print"></i> طباعة</button>
           </div>
           
           <div class="summary-row"><span>1. إيرادات المبيعات الرئيسية:</span> <strong><span id="rep-sales-rev">0.00</span> <span class="curr-symbol">ر.س</span></strong></div>
@@ -522,7 +524,7 @@
             <h4 style="color: var(--primary); margin:0;"><i class="fa-solid fa-scale-balanced"></i> قائمة المركز المالي (الميزانية)</h4>
             <div style="display:flex; gap:6px; align-items:center;">
               <span id="bs-balance-status" class="status-badge balanced">متوازنة ✓</span>
-              <button class="btn btn-primary" style="width:auto; padding:5px 10px; font-size:11px;" onclick="window.print()"><i class="fa-solid fa-print"></i> طباعة</button>
+              <button class="btn btn-primary" style="width:auto; padding:5px 10px; font-size:11px;" onclick="printReportA4('report')"><i class="fa-solid fa-print"></i> طباعة</button>
             </div>
           </div>
 
@@ -560,7 +562,7 @@
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
             <h4 style="color: var(--warning); margin:0;"><i class="fa-solid fa-landmark"></i> سجل الأصول الثابتة والتحليل الرقابي</h4>
             <div style="display:flex; gap:6px;">
-              <button class="btn btn-primary" style="width:auto; padding:6px 12px; font-size:11px;" onclick="window.print()"><i class="fa-solid fa-print"></i> طباعة السجل</button>
+              <button class="btn btn-primary" style="width:auto; padding:6px 12px; font-size:11px;" onclick="printReportA4('report')"><i class="fa-solid fa-print"></i> طباعة السجل</button>
               <button class="btn btn-success" style="width:auto; padding:6px 12px; font-size:11px;" onclick="openAddAccountModal('asset')">+ تسجيل أصل</button>
             </div>
           </div>
@@ -625,7 +627,7 @@
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
             <h4 style="color: var(--primary); margin:0;"><i class="fa-solid fa-boxes-stacked"></i> جرد المستودع وبطاقات الأصناف</h4>
             <div style="display:flex; gap:6px;">
-              <button class="btn btn-secondary" style="width:auto; padding:6px 10px; font-size:11px;" onclick="window.print()"><i class="fa-solid fa-print"></i> طباعة الجرد</button>
+              <button class="btn btn-secondary" style="width:auto; padding:6px 10px; font-size:11px;" onclick="printReportA4('report')"><i class="fa-solid fa-print"></i> طباعة الجرد</button>
               <button class="btn btn-primary" style="width:auto; padding:6px 12px; font-size:11px;" onclick="openItemCardModal()">+ إضافة صنف</button>
             </div>
           </div>
@@ -648,7 +650,7 @@
         <div class="report-card">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
             <h4 style="color: var(--primary); margin:0;"><i class="fa-solid fa-table-list"></i> ميزان المراجعة بالأرصدة</h4>
-            <button class="btn btn-primary" style="width:auto; padding:5px 10px; font-size:11px;" onclick="window.print()"><i class="fa-solid fa-print"></i> طباعة الميزان</button>
+            <button class="btn btn-primary" style="width:auto; padding:5px 10px; font-size:11px;" onclick="printReportA4('report')"><i class="fa-solid fa-print"></i> طباعة الميزان</button>
           </div>
           <table class="statement-table" id="main-trial-table">
             <thead>
@@ -1179,7 +1181,7 @@
     </div>
     <div id="digital-invoice-body"></div>
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px;">
-      <button class="btn btn-primary" onclick="window.print()"><i class="fa-solid fa-print"></i> معاينة وطباعة A4</button>
+      <button class="btn btn-primary" onclick="printReportA4('invoice_current')"><i class="fa-solid fa-file-pdf"></i> تصدير PDF للطباعة</button>
       <button class="btn btn-secondary" onclick="closeViewInvoiceModal()">إغلاق</button>
     </div>
   </div>
@@ -1996,8 +1998,9 @@
   // ==============================================================
   // محرك الطباعة والمشاركة النظيفة والشاملة للموبايل والحاسوب (A4 Engine)
   // ==============================================================
+  // ================= 1. دالة الطباعة المباشرة والنظيفة =================
   
-  // ================= 1. الحل الجذري للطباعة: الإطار المخفي (Hidden IFrame) =================
+  // ================= 1. محرك الطباعة الجذري للـ APK (PDF Data URI) =================
   function cleanTableHtmlForPrinting(tableElement) {
     if (!tableElement) return '';
     const clone = tableElement.cloneNode(true);
@@ -2005,16 +2008,15 @@
     return clone.outerHTML;
   }
 
-  function printReportA4(reportType) {
-    // إغلاق أي نافذة مشاركة مفتوحة
+  async function printReportA4(reportType) {
+    // إغلاق أي نوافذ منبثقة
     const shareModal = document.getElementById('modal-quick-share');
-    if(shareModal) shareModal.classList.remove('open');
+    if (shareModal) shareModal.classList.remove('open');
 
     let docTitle = "مستند المحاسب الذكي";
     let bodyHtml = "";
     const today = Utilities_getTodayStr();
 
-    // 1. تجميع المحتوى بناءً على نوع التقرير
     if (reportType === 'ledger') {
       const sel = document.getElementById('statement-account-selector');
       const accName = sel && sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text : "الحساب";
@@ -2055,7 +2057,6 @@
         ${invBodyEl ? invBodyEl.innerHTML : ''}
       `;
     } else {
-        // لباقي التقارير (الدخل، الميزانية، إلخ)
         const activeTab = document.querySelector('.tab-content.active');
         const reportCard = activeTab ? activeTab.querySelector('.report-card:not([style*="display: none"])') : null;
         if(reportCard) {
@@ -2065,53 +2066,90 @@
         }
     }
 
-    // 2. إنشاء إطار مخفي (IFrame) للطباعة
-    let printFrame = document.getElementById('smart-print-frame');
-    if (!printFrame) {
-      printFrame = document.createElement('iframe');
-      printFrame.id = 'smart-print-frame';
-      printFrame.style.position = 'absolute';
-      printFrame.style.top = '-9999px';
-      printFrame.style.left = '-9999px';
-      printFrame.style.width = '0px';
-      printFrame.style.height = '0px';
-      printFrame.style.border = 'none';
-      document.body.appendChild(printFrame);
+    // تجهيز حاوية الـ PDF
+    const printContainer = document.createElement('div');
+    printContainer.style.width = '210mm'; 
+    printContainer.style.padding = '10mm';
+    printContainer.style.background = '#ffffff';
+    printContainer.style.color = '#000000';
+    printContainer.style.direction = 'rtl';
+    printContainer.style.fontFamily = "'Cairo', sans-serif";
+    printContainer.innerHTML = bodyHtml;
+    
+    // تنظيف الحاوية
+    printContainer.querySelectorAll('button, .btn, .btn-inv-tag, .btn-edit-tag, .header-actions').forEach(el => el.remove());
+    printContainer.querySelectorAll('table').forEach(tbl => {
+        tbl.style.width = '100%';
+        tbl.style.borderCollapse = 'collapse';
+        tbl.style.marginTop = '10px';
+    });
+    printContainer.querySelectorAll('th, td').forEach(cell => {
+        cell.style.border = '1px solid #334155';
+        cell.style.padding = '6px';
+        cell.style.fontSize = '12px';
+    });
+
+    // إخفاء الحاوية خارج الشاشة
+    printContainer.style.position = 'absolute';
+    printContainer.style.top = '-9999px';
+    document.body.appendChild(printContainer);
+
+    showToast('جاري استخراج ملف PDF... ⏳');
+
+    const opt = {
+      margin:       0,
+      filename:     `${docTitle}.pdf`,
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2, useCORS: true },
+      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    try {
+      // توليد الـ PDF كملف Blob
+      const pdfBlob = await html2pdf().set(opt).from(printContainer).output('blob');
+      
+      // تحويل Blob إلى Base64 Data URI ليعمل على كل المتصفحات والتطبيقات الصارمة
+      const reader = new FileReader();
+      reader.onloadend = function() {
+        const base64data = reader.result;
+        
+        // عرض الـ PDF داخل التطبيق نفسه كطبقة فوقية تمنع الـ APK من حظر الـ Popups
+        let viewer = document.getElementById('apk-pdf-viewer');
+        if (!viewer) {
+          viewer = document.createElement('div');
+          viewer.id = 'apk-pdf-viewer';
+          viewer.style.position = 'fixed';
+          viewer.style.top = '0';
+          viewer.style.left = '0';
+          viewer.style.width = '100vw';
+          viewer.style.height = '100vh';
+          viewer.style.backgroundColor = '#0f172a';
+          viewer.style.zIndex = '2147483647';
+          viewer.style.display = 'flex';
+          viewer.style.flexDirection = 'column';
+          document.body.appendChild(viewer);
+        }
+        
+        viewer.innerHTML = `
+          <div style="display:flex; justify-content:space-between; padding:15px; background:#1e293b; color:white; align-items:center;">
+             <span style="font-family:Cairo; font-weight:bold;">📄 ${docTitle}</span>
+             <button onclick="document.getElementById('apk-pdf-viewer').remove()" style="background:#ef4444; color:white; border:none; padding:8px 15px; border-radius:8px; font-weight:bold; cursor:pointer;">✖ إغلاق</button>
+          </div>
+          <iframe src="${base64data}" style="flex:1; width:100%; border:none;" title="PDF Viewer"></iframe>
+        `;
+        showToast('✅ تم عرض التقرير');
+      }
+      reader.readAsDataURL(pdfBlob);
+      
+    } catch (err) {
+      console.error(err);
+      showToast('حدث خطأ أثناء تصدير الـ PDF', true);
+    } finally {
+      document.body.removeChild(printContainer);
     }
-
-    // 3. حقن كود الـ HTML النظيف والـ CSS داخل الإطار
-    const frameDoc = printFrame.contentWindow || printFrame.contentDocument.document || printFrame.contentDocument;
-    frameDoc.document.open();
-    frameDoc.document.write(`
-      <!DOCTYPE html>
-      <html lang="ar" dir="rtl">
-      <head>
-        <title>${docTitle}</title>
-        <style>
-          @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap');
-          body { font-family: 'Cairo', sans-serif; background: #fff; color: #000; padding: 20px; font-size: 13px; margin: 0; direction: rtl; text-align: right; }
-          table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-          th, td { border: 1px solid #334155; padding: 8px; text-align: right; font-size: 12px; }
-          th { background-color: #f1f5f9; font-weight: 800; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-          button, .btn, .btn-inv-tag, .btn-edit-tag { display: none !important; }
-        </style>
-      </head>
-      <body>
-        ${bodyHtml}
-      </body>
-      </html>
-    `);
-    frameDoc.document.close();
-
-    // 4. إعطاء أمر الطباعة للإطار بعد جزء من الثانية لضمان تحميل الخطوط
-    showToast('جاري استدعاء الطباعة...');
-    setTimeout(() => {
-      printFrame.contentWindow.focus();
-      printFrame.contentWindow.print();
-    }, 500);
   }
 
-  // ================= 2. محرك المشاركة الاحترافي للموبايل =================
+  // ================= 2. محرك المشاركة الاحترافي للموبايل (Intent & a-tag click) =================
   let activeShareText = "";
 
   function openShareModal(reportType) {
@@ -2130,16 +2168,7 @@
 
     activeShareText = shareText;
     
-    // إذا كان الموبايل يدعم المشاركة الأصلية القوية، نظهرها مباشرة
-    if (navigator.share && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-      navigator.share({
-        title: 'مشاركة التقرير المالي',
-        text: activeShareText
-      }).catch((error) => console.log('تم إلغاء المشاركة'));
-      return; 
-    }
-
-    // النافذة البديلة في حال عدم دعم المشاركة الأصلية
+    // إظهار نافذة المشاركة المخصصة
     const previewEl = document.getElementById('share-summary-preview');
     if (previewEl) {
       previewEl.innerHTML = activeShareText.replace(/\n/g, '<br>');
@@ -2159,24 +2188,24 @@
     const encodedText = encodeURIComponent(activeShareText);
 
     if (channel === 'whatsapp') {
-      window.open(`https://api.whatsapp.com/send?text=${encodedText}`, '_blank');
+      const a = document.createElement('a');
+      a.href = `whatsapp://send?text=${encodedText}`;
+      a.target = '_top';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => { window.location.href = `https://api.whatsapp.com/send?text=${encodedText}`; }, 1000);
+      
     } else if (channel === 'telegram') {
-      // الحل الجذري للتليجرام في الـ APK: استخدام intent الصريح
-      if (isMobile) {
-          const telegramIntent = `intent://send?text=${encodedText}#Intent;scheme=tg;package=org.telegram.messenger;end;`;
-          const a = document.createElement('a');
-          a.href = telegramIntent;
-          a.style.display = 'none';
-          document.body.appendChild(a);
-          try {
-            a.click();
-          } catch(e) {}
-          document.body.removeChild(a);
-          // Fallback
-          setTimeout(() => { window.location.href = `https://t.me/share/url?url=${encodeURIComponent(' ')}&text=${encodedText}`; }, 1000);
-      } else {
-          window.open(`https://t.me/share/url?url=${encodeURIComponent(' ')}&text=${encodedText}`, '_blank');
-      }
+      // الحل الجذري للتليجرام في الـ APK:
+      const a = document.createElement('a');
+      a.href = `tg://msg?text=${encodedText}`;
+      a.target = '_top';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => { window.location.href = `https://t.me/share/url?url=${encodeURIComponent(' ')}&text=${encodedText}`; }, 1000);
+      
     } else if (channel === 'copy') {
       if (navigator.clipboard) {
         navigator.clipboard.writeText(activeShareText);
@@ -2187,7 +2216,8 @@
       }
     }
   }
-function openAddMemberModal() {
+
+  function function openAddMemberModal() {
     document.getElementById('new-member-email').value = '';
     const m = document.getElementById('modal-add-member');
     if (m) m.classList.add('open');

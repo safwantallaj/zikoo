@@ -200,7 +200,7 @@
       }
     }
   </style>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
 
@@ -2009,11 +2009,10 @@
     return clone.outerHTML;
   }
 
-  async function printReportA4(reportType) {
+  function printReportA4(reportType) {
     const shareModal = document.getElementById('modal-quick-share');
     if(shareModal) shareModal.classList.remove('open');
 
-    // إغلاق نافذة الفاتورة إذا كانت مفتوحة لتجنب التداخل
     if (reportType !== 'invoice_current') {
         const invModal = document.getElementById('modal-view-invoice');
         if (invModal) invModal.classList.remove('open');
@@ -2072,82 +2071,83 @@
         }
     }
 
-    showToast('جاري معالجة التقرير... ⏳');
+    showToast('جاري إنشاء صورة التقرير... ⏳');
 
-    // تجهيز حاوية مؤقتة للرسم
+    // إنشاء حاوية للرسم المباشر (خارج الشاشة لكن مرئية للـ canvas)
     const printContainer = document.createElement('div');
-    printContainer.style.width = '210mm';
-    printContainer.style.padding = '10mm';
+    printContainer.style.width = '800px'; 
+    printContainer.style.padding = '30px';
     printContainer.style.background = '#ffffff';
     printContainer.style.color = '#000000';
     printContainer.style.direction = 'rtl';
     printContainer.style.fontFamily = "'Cairo', sans-serif";
-    printContainer.innerHTML = bodyHtml;
-
-    // تنظيف الأزرار وتنسيق الجدول
-    printContainer.querySelectorAll('button, .btn, .btn-inv-tag, .btn-edit-tag').forEach(el => el.remove());
-    printContainer.querySelectorAll('table').forEach(tbl => {
-        tbl.style.width = '100%'; tbl.style.borderCollapse = 'collapse'; tbl.style.marginTop = '10px';
-    });
-    printContainer.querySelectorAll('th, td').forEach(cell => {
-        cell.style.border = '1px solid #334155'; cell.style.padding = '6px'; cell.style.fontSize = '12px'; cell.style.color = '#000';
-    });
-
-    // إخفاء الحاوية خارج الشاشة
     printContainer.style.position = 'absolute';
     printContainer.style.top = '-9999px';
+    printContainer.style.left = '0';
+    printContainer.style.zIndex = '-1';
+    
+    printContainer.innerHTML = bodyHtml;
+
+    // تنظيف الأزرار
+    printContainer.querySelectorAll('button, .btn, .btn-inv-tag, .btn-edit-tag').forEach(el => el.remove());
+    printContainer.querySelectorAll('table').forEach(tbl => {
+        tbl.style.width = '100%'; tbl.style.borderCollapse = 'collapse'; tbl.style.marginTop = '15px';
+    });
+    printContainer.querySelectorAll('th, td').forEach(cell => {
+        cell.style.border = '1px solid #334155'; cell.style.padding = '8px'; cell.style.fontSize = '14px'; cell.style.color = '#000';
+    });
+
     document.body.appendChild(printContainer);
 
-    try {
-      // الاعتماد على تحويل التقرير إلى صورة مباشرة بدلاً من ملف PDF
-      // هذا يتجاوز بشكل قاطع مشكلة صلاحيات التنزيل وانعدام الـ Print Spooler في الـ APK
-      const opt = {
-        margin:       0,
-        filename:     'report.pdf',
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true, logging: false },
-        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-      };
+    // استخدام html2canvas مباشرة لتحويل الـ div إلى صورة
+    setTimeout(() => {
+      html2canvas(printContainer, { 
+          scale: 2, 
+          useCORS: true, 
+          backgroundColor: '#ffffff' 
+      }).then(canvas => {
+          const imgData = canvas.toDataURL('image/png');
+          
+          let viewer = document.getElementById('apk-image-viewer');
+          if (!viewer) {
+            viewer = document.createElement('div');
+            viewer.id = 'apk-image-viewer';
+            viewer.style.position = 'fixed';
+            viewer.style.top = '0';
+            viewer.style.left = '0';
+            viewer.style.width = '100vw';
+            viewer.style.height = '100vh';
+            viewer.style.backgroundColor = '#0f172a';
+            viewer.style.zIndex = '2147483647';
+            viewer.style.display = 'flex';
+            viewer.style.flexDirection = 'column';
+            document.body.appendChild(viewer);
+          }
 
-      const canvasImg = await html2pdf().set(opt).from(printContainer).outputImg('img');
-
-      // إنشاء نافذة عرض داخل التطبيق
-      let viewer = document.getElementById('apk-image-viewer');
-      if (!viewer) {
-        viewer = document.createElement('div');
-        viewer.id = 'apk-image-viewer';
-        viewer.style.position = 'fixed';
-        viewer.style.top = '0';
-        viewer.style.left = '0';
-        viewer.style.width = '100vw';
-        viewer.style.height = '100vh';
-        viewer.style.backgroundColor = '#0f172a';
-        viewer.style.zIndex = '2147483647';
-        viewer.style.display = 'flex';
-        viewer.style.flexDirection = 'column';
-        document.body.appendChild(viewer);
-      }
-
-      viewer.innerHTML = `
-        <div style="display:flex; justify-content:space-between; padding:15px; background:#1e293b; color:white; align-items:center;">
-           <span style="font-size:14px; font-weight:bold; font-family:'Cairo';">📄 التقرير جاهز</span>
-           <button onclick="document.getElementById('apk-image-viewer').remove()" style="background:#ef4444; color:white; border:none; padding:8px 15px; border-radius:6px; font-weight:bold; cursor:pointer; font-family:'Cairo';">✖ إغلاق</button>
-        </div>
-        <div style="flex:1; overflow-y:auto; padding:15px; text-align:center; background:#cbd5e1;">
-           <div style="background:#fffbeb; color:#b45309; padding:10px; border-radius:8px; margin-bottom:15px; font-size:12px; font-weight:bold;">
-              💡 اضغط مطولاً على الصورة أدناه لحفظها في الهاتف أو مشاركتها مباشرة (Share Image).
-           </div>
-           <img src="${canvasImg.src}" style="width:100%; max-width:800px; background:#fff; border-radius:8px; box-shadow:0 4px 15px rgba(0,0,0,0.2);">
-        </div>
-      `;
-      showToast('✅ تم عرض التقرير بنجاح');
-
-    } catch (err) {
-      console.error(err);
-      showToast('حدث خطأ أثناء معالجة التقرير', true);
-    } finally {
-      document.body.removeChild(printContainer);
-    }
+          viewer.innerHTML = `
+            <div style="display:flex; justify-content:space-between; padding:15px; background:#1e293b; color:white; align-items:center;">
+               <span style="font-size:14px; font-weight:bold; font-family:'Cairo';">📄 ${docTitle}</span>
+               <div>
+                 <button onclick="window.print()" style="background:#2563eb; color:white; border:none; padding:8px 12px; border-radius:6px; font-weight:bold; cursor:pointer; font-family:'Cairo'; margin-left:5px;">🖨️ طباعة</button>
+                 <button onclick="document.getElementById('apk-image-viewer').remove()" style="background:#ef4444; color:white; border:none; padding:8px 12px; border-radius:6px; font-weight:bold; cursor:pointer; font-family:'Cairo';">✖ إغلاق</button>
+               </div>
+            </div>
+            <div style="flex:1; overflow-y:auto; padding:15px; text-align:center; background:#cbd5e1;">
+               <div style="background:#fffbeb; color:#b45309; padding:10px; border-radius:8px; margin-bottom:15px; font-size:12px; font-weight:bold; text-align:right;">
+                  💡 <strong>ملاحظة للموبايل:</strong> اضغط مطولاً على الصورة أدناه لحفظها أو مشاركتها مباشرة.
+               </div>
+               <img src="${imgData}" style="width:100%; max-width:800px; background:#fff; border-radius:8px; box-shadow:0 4px 15px rgba(0,0,0,0.2);">
+            </div>
+          `;
+          
+          document.body.removeChild(printContainer);
+          showToast('✅ تم استخراج التقرير كصورة');
+      }).catch(err => {
+          console.error(err);
+          document.body.removeChild(printContainer);
+          showToast('❌ تعذرت معالجة الصورة', true);
+      });
+    }, 500);
   }
 
   let activeShareText = "";

@@ -151,25 +151,55 @@
       @page { size: A4 portrait; margin: 12mm; }
       body { background: #fff !important; color: #000 !important; margin: 0 !important; padding: 0 !important; }
       
-      .app-container, .no-print, .modal-overlay, #appToast, #apk-image-viewer {
+      header, nav, #license-banner, .btn, button, .header-actions, .camera-controls, 
+      .form-group, #date-from, #date-to, #statement-account-selector,
+      #live-camera-modal, #ocr-loading-overlay, .btn-inv-tag, .btn-edit-tag {
         display: none !important;
       }
-
-      #smart-print-overlay {
-        position: static !important;
-        background: #fff !important;
-        display: block !important;
-        min-height: auto !important;
+      
+      .app-container, main {
+        max-width: 100% !important; width: 100% !important; box-shadow: none !important;
+        padding: 0 !important; margin: 0 !important; overflow: visible !important;
       }
 
-      #print-content-area {
-        width: 100% !important;
-        max-width: 100% !important;
+      /* إخفاء كل التبويبات وكل النوافذ بشكل افتراضي أثناء الطباعة */
+      .tab-content, .modal-overlay { display: none !important; }
+
+      /* إظهار التبويب النشط دائماً */
+      .tab-content.active { display: block !important; }
+      
+      /* في حال كانت هناك نافذة مفتوحة (مثل الفاتورة)، نجعلها تغطي الشاشة بالكامل */
+      .modal-overlay.open {
+        position: absolute !important; 
+        top: 0 !important; left: 0 !important; 
+        display: block !important; 
+        background: #fff !important; 
         padding: 0 !important;
-        box-shadow: none !important;
+        width: 100% !important;
+        min-height: 100vh !important;
+        z-index: 999999 !important;
+      }
+      
+      .modal-panel {
+        box-shadow: none !important; border: none !important; padding: 0 !important; 
+        max-width: 100% !important; max-height: none !important; overflow: visible !important;
+      }
+
+      .report-card, .invoice-card, .digital-invoice {
+        border: 1px solid #000 !important; box-shadow: none !important; padding: 15px !important; margin: 0 !important;
+      }
+      
+      .statement-table, .digital-inv-table {
+        width: 100% !important; border-collapse: collapse !important; margin-top: 10px !important;
+      }
+      .statement-table th, .statement-table td, .digital-inv-table th, .digital-inv-table td {
+        border: 1px solid #000 !important; padding: 6px 8px !important; font-size: 11pt !important; color: #000 !important;
+      }
+      .statement-table th, .digital-inv-table th {
+        background-color: #f1f5f9 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; font-weight: 800 !important;
       }
     }
-</style>
+  </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
@@ -440,7 +470,7 @@
         </div>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;">
-  <button class="btn btn-primary" style="font-size: 13px;" onclick="window.print()"><i class="fa-solid fa-print"></i> طباعة كشف الحساب 🖨️</button>
+  <button class="btn btn-primary" style="font-size: 13px;" onclick="window.print()"><i class="fa-solid fa-image"></i> عرض كصورة للطباعة / المشاركة</button>
   <button class="btn btn-secondary" style="font-size: 13px;" onclick="openShareModal('ledger')"><i class="fa-solid fa-share-nodes"></i> مشاركة الملخص 📲</button>
 </div>
 
@@ -1979,11 +2009,14 @@
     return clone.outerHTML;
   }
 
-  window.openPrintPreview = function(reportType) {
+  function printReportA4(reportType) {
     const shareModal = document.getElementById('modal-quick-share');
     if(shareModal) shareModal.classList.remove('open');
-    const invModal = document.getElementById('modal-view-invoice');
-    if (invModal) invModal.classList.remove('open');
+
+    if (reportType !== 'invoice_current') {
+        const invModal = document.getElementById('modal-view-invoice');
+        if (invModal) invModal.classList.remove('open');
+    }
 
     let docTitle = "مستند المحاسب الذكي";
     let bodyHtml = "";
@@ -2038,96 +2071,84 @@
         }
     }
 
-    // إخفاء التطبيق الرئيسي مؤقتاً
-    document.querySelector('.app-container').style.display = 'none';
+    showToast('جاري إنشاء صورة التقرير... ⏳');
 
-    // إنشاء شاشة المعاينة
-    const overlay = document.createElement('div');
-    overlay.id = 'smart-print-overlay';
-    overlay.style.cssText = 'position:absolute; top:0; left:0; width:100%; min-height:100vh; background:#cbd5e1; z-index:999999; display:flex; flex-direction:column; align-items:center;';
+    // إنشاء حاوية للرسم المباشر (خارج الشاشة لكن مرئية للـ canvas)
+    const printContainer = document.createElement('div');
+    printContainer.style.width = '800px'; 
+    printContainer.style.padding = '30px';
+    printContainer.style.background = '#ffffff';
+    printContainer.style.color = '#000000';
+    printContainer.style.direction = 'rtl';
+    printContainer.style.fontFamily = "'Cairo', sans-serif";
+    printContainer.style.position = 'absolute';
+    printContainer.style.top = '-9999px';
+    printContainer.style.left = '0';
+    printContainer.style.zIndex = '-1';
+    
+    printContainer.innerHTML = bodyHtml;
 
-    overlay.innerHTML = `
-      <div class="no-print" style="width:100%; max-width:800px; background:#1e293b; color:white; padding:15px; display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; z-index:10; box-shadow:0 4px 6px rgba(0,0,0,0.1);">
-        <span style="font-weight:bold; font-family:'Cairo';">معاينة المستند</span>
-        <div style="display:flex; gap:8px;">
-          <button onclick="window.print()" style="background:#2563eb; color:white; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; font-weight:bold; font-family:'Cairo';">🖨️ طباعة</button>
-          <button onclick="exportReportAsImage()" style="background:#10b981; color:white; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; font-weight:bold; font-family:'Cairo';">📷 استخراج صورة</button>
-          <button onclick="closePrintPreview()" style="background:#ef4444; color:white; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; font-weight:bold; font-family:'Cairo';">✖ إغلاق</button>
-        </div>
-      </div>
-      <div id="print-content-area" style="width:100%; max-width:800px; background:#fff; padding:25px; color:#000; font-family:'Cairo', sans-serif; min-height:100vh; box-shadow:0 0 20px rgba(0,0,0,0.05);">
-        ${bodyHtml}
-      </div>
-    `;
-
-    document.body.appendChild(overlay);
-    document.title = docTitle;
-
-    // تنظيف الأزرار من داخل التقرير
-    const contentArea = document.getElementById('print-content-area');
-    contentArea.querySelectorAll('button, .btn, .btn-inv-tag, .btn-edit-tag').forEach(el => el.remove());
-    contentArea.querySelectorAll('table').forEach(tbl => {
+    // تنظيف الأزرار
+    printContainer.querySelectorAll('button, .btn, .btn-inv-tag, .btn-edit-tag').forEach(el => el.remove());
+    printContainer.querySelectorAll('table').forEach(tbl => {
         tbl.style.width = '100%'; tbl.style.borderCollapse = 'collapse'; tbl.style.marginTop = '15px';
     });
-    contentArea.querySelectorAll('th, td').forEach(cell => {
-        cell.style.border = '1px solid #334155'; cell.style.padding = '8px'; cell.style.fontSize = '13px'; cell.style.color = '#000';
+    printContainer.querySelectorAll('th, td').forEach(cell => {
+        cell.style.border = '1px solid #334155'; cell.style.padding = '8px'; cell.style.fontSize = '14px'; cell.style.color = '#000';
     });
-    contentArea.querySelectorAll('th').forEach(cell => {
-        cell.style.backgroundColor = '#f1f5f9'; cell.style.fontWeight = 'bold';
-    });
-  };
 
-  window.closePrintPreview = function() {
-    const overlay = document.getElementById('smart-print-overlay');
-    if (overlay) overlay.remove();
-    document.querySelector('.app-container').style.display = 'flex';
-    document.title = "المحاسب الذكي | Smart Ledger Pro";
-  };
+    document.body.appendChild(printContainer);
 
-  window.exportReportAsImage = function() {
-    showToast('جاري معالجة الصورة بدقة عالية... ⏳');
-    const content = document.getElementById('print-content-area');
-    
-    html2canvas(content, { 
-        scale: 2, 
-        useCORS: true, 
-        backgroundColor: '#ffffff' 
-    }).then(canvas => {
-        const imgData = canvas.toDataURL('image/png');
-        
-        let viewer = document.getElementById('apk-image-viewer');
-        if (!viewer) {
-          viewer = document.createElement('div');
-          viewer.id = 'apk-image-viewer';
-          viewer.style.position = 'fixed';
-          viewer.style.top = '0';
-          viewer.style.left = '0';
-          viewer.style.width = '100vw';
-          viewer.style.height = '100vh';
-          viewer.style.backgroundColor = 'rgba(15, 23, 42, 0.95)';
-          viewer.style.zIndex = '9999999';
-          viewer.style.display = 'flex';
-          viewer.style.flexDirection = 'column';
-          document.body.appendChild(viewer);
-        }
-        
-        viewer.innerHTML = `
-          <div class="no-print" style="display:flex; justify-content:space-between; padding:15px; background:#1e293b; color:white; align-items:center;">
-             <span style="font-weight:bold; font-family:'Cairo';">✅ الصورة جاهزة</span>
-             <button onclick="document.getElementById('apk-image-viewer').remove()" style="background:#ef4444; color:white; border:none; padding:8px 15px; border-radius:6px; font-weight:bold; cursor:pointer; font-family:'Cairo';">✖ إغلاق الصورة</button>
-          </div>
-          <div style="flex:1; overflow-y:auto; padding:15px; text-align:center;">
-             <div style="background:#fffbeb; color:#b45309; padding:12px; border-radius:8px; margin-bottom:15px; font-size:13px; font-weight:bold; text-align:right;">
-                💡 <strong>تعليمات:</strong> اضغط مطولاً بأصبعك على الصورة بالأسفل لحفظها في الهاتف أو مشاركتها لتطبيق واتساب وغيره.
-             </div>
-             <img src="${imgData}" style="width:100%; max-width:800px; background:#fff; border-radius:8px; border: 1px solid #cbd5e1;">
-          </div>
-        `;
-    }).catch(err => {
-        console.error(err);
-        showToast('❌ تعذرت معالجة الصورة', true);
-    });
-  };
+    // استخدام html2canvas مباشرة لتحويل الـ div إلى صورة
+    setTimeout(() => {
+      html2canvas(printContainer, { 
+          scale: 2, 
+          useCORS: true, 
+          backgroundColor: '#ffffff' 
+      }).then(canvas => {
+          const imgData = canvas.toDataURL('image/png');
+          
+          let viewer = document.getElementById('apk-image-viewer');
+          if (!viewer) {
+            viewer = document.createElement('div');
+            viewer.id = 'apk-image-viewer';
+            viewer.style.position = 'fixed';
+            viewer.style.top = '0';
+            viewer.style.left = '0';
+            viewer.style.width = '100vw';
+            viewer.style.height = '100vh';
+            viewer.style.backgroundColor = '#0f172a';
+            viewer.style.zIndex = '2147483647';
+            viewer.style.display = 'flex';
+            viewer.style.flexDirection = 'column';
+            document.body.appendChild(viewer);
+          }
+
+          viewer.innerHTML = `
+            <div style="display:flex; justify-content:space-between; padding:15px; background:#1e293b; color:white; align-items:center;">
+               <span style="font-size:14px; font-weight:bold; font-family:'Cairo';">📄 ${docTitle}</span>
+               <div>
+                 <button onclick="window.print()" style="background:#2563eb; color:white; border:none; padding:8px 12px; border-radius:6px; font-weight:bold; cursor:pointer; font-family:'Cairo'; margin-left:5px;">🖨️ طباعة</button>
+                 <button onclick="document.getElementById('apk-image-viewer').remove()" style="background:#ef4444; color:white; border:none; padding:8px 12px; border-radius:6px; font-weight:bold; cursor:pointer; font-family:'Cairo';">✖ إغلاق</button>
+               </div>
+            </div>
+            <div style="flex:1; overflow-y:auto; padding:15px; text-align:center; background:#cbd5e1;">
+               <div style="background:#fffbeb; color:#b45309; padding:10px; border-radius:8px; margin-bottom:15px; font-size:12px; font-weight:bold; text-align:right;">
+                  💡 <strong>ملاحظة للموبايل:</strong> اضغط مطولاً على الصورة أدناه لحفظها أو مشاركتها مباشرة.
+               </div>
+               <img src="${imgData}" style="width:100%; max-width:800px; background:#fff; border-radius:8px; box-shadow:0 4px 15px rgba(0,0,0,0.2);">
+            </div>
+          `;
+          
+          document.body.removeChild(printContainer);
+          showToast('✅ تم استخراج التقرير كصورة');
+      }).catch(err => {
+          console.error(err);
+          document.body.removeChild(printContainer);
+          showToast('❌ تعذرت معالجة الصورة', true);
+      });
+    }, 500);
+  }
 
   let activeShareText = "";
 

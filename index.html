@@ -144,57 +144,6 @@
     #ocr-loading-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.85); z-index: 2147483649; align-items: center; justify-content: center; flex-direction: column; color: white; text-align: center; padding: 20px; backdrop-filter: blur(5px); }
     .backup-item-card { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
     
-      body { background: #fff !important; color: #000 !important; margin: 0 !important; padding: 0 !important; }
-      
-      header, nav, #license-banner, .btn, button, .header-actions, .camera-controls, 
-      .form-group, #date-from, #date-to, #statement-account-selector,
-      #live-camera-modal, #ocr-loading-overlay, .btn-inv-tag, .btn-edit-tag {
-        display: none !important;
-      }
-      
-      .app-container, main {
-        max-width: 100% !important; width: 100% !important; box-shadow: none !important;
-        padding: 0 !important; margin: 0 !important; overflow: visible !important;
-      }
-
-      /* إخفاء كل التبويبات وكل النوافذ بشكل افتراضي أثناء الطباعة */
-      .tab-content, .modal-overlay { display: none !important; }
-
-      /* إظهار التبويب النشط دائماً */
-      .tab-content.active { display: block !important; }
-      
-      /* في حال كانت هناك نافذة مفتوحة (مثل الفاتورة)، نجعلها تغطي الشاشة بالكامل */
-      .modal-overlay.open {
-        position: absolute !important; 
-        top: 0 !important; left: 0 !important; 
-        display: block !important; 
-        background: #fff !important; 
-        padding: 0 !important;
-        width: 100% !important;
-        min-height: 100vh !important;
-        z-index: 999999 !important;
-      }
-      
-      .modal-panel {
-        box-shadow: none !important; border: none !important; padding: 0 !important; 
-        max-width: 100% !important; max-height: none !important; overflow: visible !important;
-      }
-
-      .report-card, .invoice-card, .digital-invoice {
-        border: 1px solid #000 !important; box-shadow: none !important; padding: 15px !important; margin: 0 !important;
-      }
-      
-      .statement-table, .digital-inv-table {
-        width: 100% !important; border-collapse: collapse !important; margin-top: 10px !important;
-      }
-      .statement-table th, .statement-table td, .digital-inv-table th, .digital-inv-table td {
-        border: 1px solid #000 !important; padding: 6px 8px !important; font-size: 11pt !important; color: #000 !important;
-      }
-      .statement-table th, .digital-inv-table th {
-        background-color: #f1f5f9 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; font-weight: 800 !important;
-      }
-    }
-  
     /* ================= قواعد الطباعة الهيكلية المستقلة ================= */
     @media print {
       @page { size: A4 portrait; margin: 10mm; }
@@ -215,13 +164,13 @@
       body[data-print="ledger"] #sub-report-ledger { display: block !important; }
       body[data-print="ledger"] #sub-report-ledger > .form-group, 
       body[data-print="ledger"] #sub-report-ledger > div:nth-child(2),
-      body[data-print="ledger"] #sub-report-ledger > div:nth-child(3) { display: none !important; } /* إخفاء حقول الإدخال والأزرار */
+      body[data-print="ledger"] #sub-report-ledger > div:nth-child(3) { display: none !important; }
 
       /* 2. الفاتورة */
       body[data-print="invoice"] #modal-view-invoice { display: block !important; position: static !important; background: #fff !important; padding: 0 !important; min-height: auto !important; }
       body[data-print="invoice"] #modal-view-invoice .modal-panel { box-shadow: none !important; border: none !important; padding: 0 !important; max-width: 100% !important; max-height: none !important; overflow: visible !important; }
       body[data-print="invoice"] #modal-view-invoice .modal-panel > div:first-child,
-      body[data-print="invoice"] #modal-view-invoice .modal-panel > div:last-child { display: none !important; } /* إخفاء أزرار الإغلاق */
+      body[data-print="invoice"] #modal-view-invoice .modal-panel > div:last-child { display: none !important; }
 
       /* 3. قائمة الدخل */
       body[data-print="income"] #tab-statement { display: block !important; }
@@ -255,7 +204,7 @@
       body[data-print="trial"] #sub-report-trial { display: block !important; }
 
       /* تنسيقات عامة للتقارير المطبوعة */
-      .report-card { border: none !important; box-shadow: none !important; padding: 0 !important; }
+      .report-card, .invoice-card, .digital-invoice { border: none !important; box-shadow: none !important; padding: 0 !important; background: #fff !important; margin: 0 !important; }
       table, .statement-table, .digital-inv-table { width: 100% !important; border-collapse: collapse !important; margin-top: 15px !important; }
       th, td { border: 1px solid #000 !important; padding: 6px !important; font-size: 11pt !important; color: #000 !important; text-align: right !important; }
       th { background-color: #f1f5f9 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; font-weight: bold !important; }
@@ -551,7 +500,7 @@
         <div class="report-card">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
             <h4 style="color: var(--primary); margin:0;"><i class="fa-solid fa-chart-line"></i> قائمة الدخل (المعايير المحاسبية)</h4>
-            <button class="btn btn-primary" style="width:auto; padding:5px 10px; font-size:11px;" onclick="printReportA4('ledger')"><i class="fa-solid fa-print"></i> طباعة</button>
+            <button class="btn btn-primary" style="width:auto; padding:5px 10px; font-size:11px;" onclick="printReportA4('income')"><i class="fa-solid fa-print"></i> طباعة القائمة</button>
           </div>
           
           <div class="summary-row"><span>1. إيرادات المبيعات الرئيسية:</span> <strong><span id="rep-sales-rev">0.00</span> <span class="curr-symbol">ر.س</span></strong></div>
@@ -588,7 +537,7 @@
             <h4 style="color: var(--primary); margin:0;"><i class="fa-solid fa-scale-balanced"></i> قائمة المركز المالي (الميزانية)</h4>
             <div style="display:flex; gap:6px; align-items:center;">
               <span id="bs-balance-status" class="status-badge balanced">متوازنة ✓</span>
-              <button class="btn btn-primary" style="width:auto; padding:5px 10px; font-size:11px;" onclick="printReportA4('ledger')"><i class="fa-solid fa-print"></i> طباعة</button>
+              <button class="btn btn-primary" style="width:auto; padding:5px 10px; font-size:11px;" onclick="printReportA4('balance-sheet')"><i class="fa-solid fa-print"></i> طباعة الميزانية</button>
             </div>
           </div>
 
@@ -626,7 +575,7 @@
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
             <h4 style="color: var(--warning); margin:0;"><i class="fa-solid fa-landmark"></i> سجل الأصول الثابتة والتحليل الرقابي</h4>
             <div style="display:flex; gap:6px;">
-              <button class="btn btn-primary" style="width:auto; padding:6px 12px; font-size:11px;" onclick="printReportA4('ledger')"><i class="fa-solid fa-print"></i> طباعة السجل</button>
+              <button class="btn btn-primary" style="width:auto; padding:6px 12px; font-size:11px;" onclick="printReportA4('depreciation')"><i class="fa-solid fa-print"></i> طباعة السجل</button>
               <button class="btn btn-success" style="width:auto; padding:6px 12px; font-size:11px;" onclick="openAddAccountModal('asset')">+ تسجيل أصل</button>
             </div>
           </div>
@@ -691,7 +640,7 @@
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
             <h4 style="color: var(--primary); margin:0;"><i class="fa-solid fa-boxes-stacked"></i> جرد المستودع وبطاقات الأصناف</h4>
             <div style="display:flex; gap:6px;">
-              <button class="btn btn-secondary" style="width:auto; padding:6px 10px; font-size:11px;" onclick="printReportA4('ledger')"><i class="fa-solid fa-print"></i> طباعة الجرد</button>
+              <button class="btn btn-secondary" style="width:auto; padding:6px 10px; font-size:11px;" onclick="printReportA4('inventory')"><i class="fa-solid fa-print"></i> طباعة الجرد</button>
               <button class="btn btn-primary" style="width:auto; padding:6px 12px; font-size:11px;" onclick="openItemCardModal()">+ إضافة صنف</button>
             </div>
           </div>
@@ -714,7 +663,7 @@
         <div class="report-card">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
             <h4 style="color: var(--primary); margin:0;"><i class="fa-solid fa-table-list"></i> ميزان المراجعة بالأرصدة</h4>
-            <button class="btn btn-primary" style="width:auto; padding:5px 10px; font-size:11px;" onclick="printReportA4('ledger')"><i class="fa-solid fa-print"></i> طباعة الميزان</button>
+            <button class="btn btn-primary" style="width:auto; padding:5px 10px; font-size:11px;" onclick="printReportA4('trial')"><i class="fa-solid fa-print"></i> طباعة الميزان</button>
           </div>
           <table class="statement-table" id="main-trial-table">
             <thead>
@@ -1245,7 +1194,7 @@
     </div>
     <div id="digital-invoice-body"></div>
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px;">
-      <button class="btn btn-primary" onclick="printReportA4('ledger')"><i class="fa-solid fa-print"></i> معاينة وطباعة A4</button>
+      <button class="btn btn-primary" onclick="printReportA4('invoice')"><i class="fa-solid fa-print"></i> طباعة الفاتورة A4</button>
       <button class="btn btn-secondary" onclick="closeViewInvoiceModal()">إغلاق</button>
     </div>
   </div>
@@ -2094,6 +2043,7 @@
       document.body.removeAttribute('data-print');
   });
 
+  // ================= 2. محرك المشاركة الاحترافي (بدون Web Fallbacks) =================
   let activeShareText = "";
 
   function openShareModal(reportType) {
@@ -2157,7 +2107,7 @@
           // Fallback
           setTimeout(() => { window.location.href = `tg://msg?text=${encodeURIComponent(' ')}&text=${encodedText}`; }, 1000);
       } else {
-          window.open(`tg://msg?text=${encodeURIComponent(' ')}&text=${encodedText}`, '_blank');
+          window.location.href = `tg://msg?text=${encodedText}`, '_blank');
       }
     } else if (channel === 'copy') {
       if (navigator.clipboard) {

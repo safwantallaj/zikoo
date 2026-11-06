@@ -4,14 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>المحاسب الذكي | Smart Ledger Pro</title>
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#2563eb">
-  <link rel="icon" href="icon-192.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<style>
+  
+  <style>
     :root {
       --primary: #2563eb;
       --primary-dark: #1d4ed8;
@@ -145,21 +143,58 @@
 
     #ocr-loading-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.85); z-index: 2147483649; align-items: center; justify-content: center; flex-direction: column; color: white; text-align: center; padding: 20px; backdrop-filter: blur(5px); }
     .backup-item-card { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
-  <!-- تضمين مكتبات توليد PDF الرسمية (jspdf + html2canvas) -->
+    
+    
+
+
+    /* ================= قواعد الطباعة المستقلة لورقة A4 ================= */
+    @media print {
+      @page { size: A4 portrait; margin: 10mm; }
+      body { background: #fff !important; color: #000 !important; margin: 0 !important; padding: 0 !important; }
+      
+      /* إخفاء واجهة التطبيق بالكامل عند الطباعة لمنع الصفحة البيضاء أو التداخل */
+      .app-container, .modal-overlay, #appToast, #live-camera-modal, #ocr-loading-overlay, #a4-action-bar, #a4-mobile-hint {
+        display: none !important;
+      }
+      
+      /* إظهار ورقة الـ A4 المستقلة فقط بكامل الصفحة */
+      #smart-a4-sheet {
+        display: block !important;
+        position: static !important;
+        width: 100% !important;
+        height: auto !important;
+        background: #fff !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: visible !important;
+      }
+      
+      #smart-a4-paper {
+        box-shadow: none !important;
+        border: none !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+    }
+  </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
+
 <div class="app-container">
+
   <!-- شريط الترخيص الدائم -->
-<div id="license-banner">
+  <div id="license-banner">
     <div>
       <i class="fa-solid fa-crown" style="color:#10b981;"></i>
       <span id="banner-license-text">النسخة الدائمة (PRO) - وصول مفتوح</span>
     </div>
     <span id="banner-upgrade-btn" style="text-decoration: underline; cursor: pointer;" onclick="openOnboardingModal(true)">إعدادات الحساب</span>
   </div>
-<header>
+  
+  <header>
     <div class="brand">
       <div class="brand-icon"><i class="fa-solid fa-calculator"></i></div>
       <div class="brand-title">المحاسب الذكي</div>
@@ -175,7 +210,9 @@
       </div>
     </div>
   </header>
-<main>
+
+  <main>
+    
     <!-- Tab 1: Dashboard -->
     <div id="tab-home" class="tab-content active">
       <div class="hero-balance">
@@ -412,9 +449,10 @@
         </div>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;">
-<button class="btn btn-primary" style="font-size: 13px;" onclick="exportReportPDF('ledger')"><i class="fa-solid fa-file-pdf"> تنزيل تقرير PDF 📥</button>
-<button class="btn btn-secondary" style="font-size: 13px;" onclick="openShareModal('ledger')"><i class="fa-solid fa-share-nodes"> مشاركة الملخص 📲</button>
+  <button class="btn btn-primary" style="font-size: 13px;" onclick="printReportA4('ledger')"><i class="fa-solid fa-print"></i> معاينة وطباعة 🖨️</button>
+  <button class="btn btn-secondary" style="font-size: 13px;" onclick="openShareModal('ledger')"><i class="fa-solid fa-share-nodes"></i> مشاركة الملخص 📲</button>
 </div>
+
         <div style="background: var(--bg); padding: 10px 14px; border-radius: 8px; margin-bottom: 10px; font-size: 13px; display: flex; justify-content: space-between;">
           <span id="active-acc-label">الحساب: -</span>
           <span>الرصيد: <strong id="final-balance" style="color: var(--primary);">0.00</strong> <span class="curr-symbol">ر.س</span></span>
@@ -430,7 +468,7 @@
         <div class="report-card">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
             <h4 style="color: var(--primary); margin:0;"><i class="fa-solid fa-chart-line"></i> قائمة الدخل (المعايير المحاسبية)</h4>
-            <button class="btn btn-primary" style="width:auto; padding:5px 10px; font-size:11px;" onclick="exportReportPDF('income')"><i class="fa-solid fa-file-pdf"></i> تنزيل PDF</button>
+            <button class="btn btn-primary" style="width:auto; padding:5px 10px; font-size:11px;" onclick="printReportA4('income')"><i class="fa-solid fa-print"></i> معاينة وطباعة 🖨️</button>
           </div>
           
           <div class="summary-row"><span>1. إيرادات المبيعات الرئيسية:</span> <strong><span id="rep-sales-rev">0.00</span> <span class="curr-symbol">ر.س</span></strong></div>
@@ -467,7 +505,7 @@
             <h4 style="color: var(--primary); margin:0;"><i class="fa-solid fa-scale-balanced"></i> قائمة المركز المالي (الميزانية)</h4>
             <div style="display:flex; gap:6px; align-items:center;">
               <span id="bs-balance-status" class="status-badge balanced">متوازنة ✓</span>
-              <button class="btn btn-primary" style="width:auto; padding:5px 10px; font-size:11px;" onclick="exportReportPDF('balance-sheet')"><i class="fa-solid fa-file-pdf"></i> تنزيل PDF</button>
+              <button class="btn btn-primary" style="width:auto; padding:5px 10px; font-size:11px;" onclick="printReportA4('balance-sheet')"><i class="fa-solid fa-print"></i> معاينة وطباعة 🖨️</button>
             </div>
           </div>
 
@@ -505,7 +543,7 @@
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
             <h4 style="color: var(--warning); margin:0;"><i class="fa-solid fa-landmark"></i> سجل الأصول الثابتة والتحليل الرقابي</h4>
             <div style="display:flex; gap:6px;">
-              <button class="btn btn-primary" style="width:auto; padding:6px 12px; font-size:11px;" onclick="exportReportPDF('depreciation')"><i class="fa-solid fa-file-pdf"></i> تنزيل PDF</button>
+              <button class="btn btn-primary" style="width:auto; padding:6px 12px; font-size:11px;" onclick="printReportA4('depreciation')"><i class="fa-solid fa-print"></i> معاينة وطباعة 🖨️</button>
               <button class="btn btn-success" style="width:auto; padding:6px 12px; font-size:11px;" onclick="openAddAccountModal('asset')">+ تسجيل أصل</button>
             </div>
           </div>
@@ -570,7 +608,7 @@
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
             <h4 style="color: var(--primary); margin:0;"><i class="fa-solid fa-boxes-stacked"></i> جرد المستودع وبطاقات الأصناف</h4>
             <div style="display:flex; gap:6px;">
-              <button class="btn btn-secondary" style="width:auto; padding:6px 10px; font-size:11px;" onclick="exportReportPDF('inventory')"><i class="fa-solid fa-file-pdf"></i> تنزيل PDF</button>
+              <button class="btn btn-secondary" style="width:auto; padding:6px 10px; font-size:11px;" onclick="printReportA4('inventory')"><i class="fa-solid fa-print"></i> معاينة وطباعة 🖨️</button>
               <button class="btn btn-primary" style="width:auto; padding:6px 12px; font-size:11px;" onclick="openItemCardModal()">+ إضافة صنف</button>
             </div>
           </div>
@@ -593,7 +631,7 @@
         <div class="report-card">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
             <h4 style="color: var(--primary); margin:0;"><i class="fa-solid fa-table-list"></i> ميزان المراجعة بالأرصدة</h4>
-            <button class="btn btn-primary" style="width:auto; padding:5px 10px; font-size:11px;" onclick="exportReportPDF('trial')"><i class="fa-solid fa-file-pdf"></i> تنزيل PDF</button>
+            <button class="btn btn-primary" style="width:auto; padding:5px 10px; font-size:11px;" onclick="printReportA4('trial')"><i class="fa-solid fa-print"></i> معاينة وطباعة 🖨️</button>
           </div>
           <table class="statement-table" id="main-trial-table">
             <thead>
@@ -681,8 +719,9 @@
       </div>
     </div>
 
-</main>
-<nav>
+  </main>
+
+  <nav>
     <div class="nav-item active" onclick="switchTab('tab-home', this)">
       <i class="fa-solid fa-house"></i>
       <span>الرئيسية</span>
@@ -704,7 +743,9 @@
       <span>الإعدادات</span>
     </div>
   </nav>
+
 </div>
+
   <!-- Modal: نافذة المشاركة الشاملة متعددة القنوات -->
 <div class="modal-overlay" id="modal-share-sheet" style="z-index: 2147483647;">
   <div class="modal-panel" style="border-radius: 24px; padding: 20px;">
@@ -714,6 +755,7 @@
       </h3>
       <button style="border:none; background:none; font-size:24px; cursor:pointer; color:#64748b;" onclick="closeShareSheetModal()">×</button>
     </div>
+
     <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">اختر القناة أو التطبيق المطلوب لمشاركة التقرير:</p>
 
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
@@ -754,7 +796,7 @@
         <i class="fa-solid fa-file-arrow-down"></i> تنزيل التقرير كملف محفوظ (.html)
       </button>
     </div>
-</div>
+  </div>
 </div>
 <!-- Modal: نافذة المشاركة السريعة والمباشرة -->
 <div class="modal-overlay" id="modal-quick-share" style="z-index: 2147483647;">
@@ -765,6 +807,7 @@
       </h3>
       <button style="border:none; background:none; font-size:24px; cursor:pointer; color:#64748b;" onclick="closeDirectShareModal()">×</button>
     </div>
+
     <div style="background: var(--bg); padding: 12px; border-radius: 10px; border: 1px solid var(--border); font-size: 12px; margin-bottom: 14px;" id="share-summary-preview">
       جاري تجهيز الملخص...
     </div>
@@ -780,7 +823,7 @@
         <i class="fa-solid fa-copy"></i> نسخ نص الملخص للحافظة
       </button>
     </div>
-</div>
+  </div>
 </div>
 <!-- Modal: تسجيل سند صرف / مصروف -->
 <div class="modal-overlay" id="modal-quick-expense">
@@ -789,6 +832,7 @@
       <h3 style="font-size: 16px; color: var(--danger);"><i class="fa-solid fa-receipt"></i> تسجيل سند صرف / مصروف</h3>
       <button style="border:none; background:none; font-size:22px; cursor:pointer;" onclick="closeQuickExpenseModal()">×</button>
     </div>
+    
     <div class="form-group">
       <label>نوع المصروف والتبويب المحاسبي</label>
       <select id="quick-exp-category" onchange="filterExpenseAccountsByCategory()">
@@ -825,8 +869,9 @@
     <button class="btn btn-danger" onclick="submitQuickExpenseAction()">
       <i class="fa-solid fa-check"></i> حفظ وصرف المصروف فوراً
     </button>
+  </div>
 </div>
-</div>
+
 <!-- Modal: تسجيل إيرادات أخرى / سند قبض -->
 <div class="modal-overlay" id="modal-other-income">
   <div class="modal-panel">
@@ -855,6 +900,7 @@
     </button>
   </div>
 </div>
+
 <!-- Modal: إضافة عملة أجنبية جديدة -->
 <div class="modal-overlay" id="modal-add-currency">
   <div class="modal-panel">
@@ -883,6 +929,7 @@
     </button>
   </div>
 </div>
+
 <!-- Modal: تعديل بيانات الأصل الثابت -->
 <div class="modal-overlay" id="modal-edit-asset">
   <div class="modal-panel">
@@ -914,6 +961,7 @@
     </button>
   </div>
 </div>
+
 <!-- Modal: بطاقة صنف جديدة -->
 <div class="modal-overlay" id="modal-item-card">
   <div class="modal-panel">
@@ -954,6 +1002,7 @@
     </button>
   </div>
 </div>
+
 <!-- Modal: إضافة حساب جديد -->
 <div class="modal-overlay" id="modal-add-account">
   <div class="modal-panel">
@@ -966,7 +1015,7 @@
       <select id="new-acc-type" onchange="toggleOpeningBalanceField()">
         <option value="asset">أصل ثابت / مقتنيات (أجهزة، سيارات، ديكور...)</option>
         <option value="expense">مصروف تشغيلي وعمومي (OPEX)</option>
-        <option value="non_operating_expense">مصروف غير تشغيلي وأخرى (فوائد، غرامات...)</option>
+        <option value="non_operating_expense">مصروف غير تشغيلي وأخرى (تمويل، غرامات...)</option>
         <option value="cash">صندوق / خزينة / محفظة إلكترونية</option>
         <option value="bank">حساب بنكي</option>
         <option value="customer">عميل / زبون (ذمم مدينة)</option>
@@ -977,6 +1026,7 @@
       <label>اسم الحساب / البند</label>
       <input type="text" id="new-acc-name" placeholder="مثال: رسوم قروض بنكية، سيارة التوزيع...">
     </div>
+
     <div id="box-asset-depr-config" class="form-group" style="background:#fffbeb; padding:12px; border-radius:12px; border:1px solid #fde68a;">
       <label style="font-size:12px; color:#b45309; font-weight:700;"><i class="fa-solid fa-gear"></i> إعدادات إهلاك الأصل (IAS 16)</label>
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:6px;">
@@ -1006,8 +1056,9 @@
     </div>
 
     <button class="btn btn-primary" onclick="confirmAddAccount()">حفظ وإدراج الحساب</button>
+  </div>
 </div>
-</div>
+
 <!-- Modal: دعوة عضو جديد -->
 <div class="modal-overlay" id="modal-add-member">
   <div class="modal-panel">
@@ -1032,6 +1083,7 @@
     </button>
   </div>
 </div>
+
 <!-- Modal: نافذة الترخيص -->
 <div class="modal-overlay" id="modal-onboarding">
   <div class="modal-panel" style="text-align: center; position: relative;">
@@ -1043,6 +1095,7 @@
     <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 18px;">
       أدخل بريداً وكوداً آخرين لفتح واستنساخ شيت جديد مستقل.
     </p>
+
     <div class="form-group" style="text-align: right;">
       <label style="font-size: 12px;"><i class="fa-solid fa-envelope" style="color: var(--primary);"></i> بريد Gmail الجديد</label>
       <input type="email" id="onboard-email" placeholder="name@gmail.com">
@@ -1056,8 +1109,9 @@
     <button class="btn btn-primary" id="btn-activate-license" style="padding: 14px; font-size: 15px;" onclick="submitLicenseActivation()">
       <i class="fa-solid fa-rocket"></i> تفعيل مساحة العمل السحابية
     </button>
+  </div>
 </div>
-</div>
+
 <!-- Modal: الكاميرا الحية -->
 <div id="live-camera-modal">
   <video id="camera-video-stream" autoplay playsinline webkit-playsinline muted></video>
@@ -1071,6 +1125,7 @@
     </label>
   </div>
 </div>
+
 <!-- Modal: اختيار العملة الأساسية للمنشأة -->
 <div class="modal-overlay" id="modal-currency-setup">
   <div class="modal-panel">
@@ -1097,6 +1152,7 @@
     </div>
   </div>
 </div>
+
 <!-- Modal: عرض الفاتورة الرقمية -->
 <div class="modal-overlay" id="modal-view-invoice">
   <div class="modal-panel">
@@ -1106,11 +1162,12 @@
     </div>
     <div id="digital-invoice-body"></div>
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px;">
-      <button class="btn btn-primary" onclick="exportReportPDF('invoice')"><i class="fa-solid fa-file-pdf"></i> تنزيل فاتورة PDF 📥</button>
+      <button class="btn btn-primary" onclick="printReportA4('invoice')"><i class="fa-solid fa-print"></i> معاينة وطباعة A4 🖨️</button>
       <button class="btn btn-secondary" onclick="closeViewInvoiceModal()">إغلاق</button>
     </div>
   </div>
 </div>
+
 <!-- Modal: استرجاع النسخ الاحتياطية -->
 <div class="modal-overlay" id="modal-restore-backups">
   <div class="modal-panel">
@@ -1126,12 +1183,14 @@
     </div>
   </div>
 </div>
+
 <!-- شاشة انتظار الذكاء الاصطناعي -->
 <div id="ocr-loading-overlay">
   <i class="fa-solid fa-brain fa-fade" style="font-size: 45px; margin-bottom: 16px; color: #38bdf8;"></i>
   <h3 style="font-size: 18px; margin-bottom: 6px;">جارٍ معالجة البيانات عبر الذكاء الاصطناعي...</h3>
   <p id="ocr-progress-text" style="font-size: 13px; color: #94a3b8;">قراءة البنود والمبالغ وتصنيف العمليات بدقة</p>
 </div>
+
 <script>
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx4KelOxUEpf8grAQ_Ax0EuZQnIEwOV_do-EsfkORQ6R8lUWISqL8eU-NWiwTEPK-4O/exec";
 
@@ -1918,8 +1977,10 @@
   }
 
   // ==============================================================
-  // محرك توليد وتنزيل ملفات الـ PDF المباشر (Direct PDF Engine)
+  // محرك الطباعة والمشاركة النظيفة والشاملة للموبايل والحاسوب (A4 Engine)
   // ==============================================================
+  
+  // ================= 1. الحل الجذري للطباعة: الإطار المخفي (Hidden IFrame) =================
   function cleanTableHtmlForPrinting(tableElement) {
     if (!tableElement) return '';
     const clone = tableElement.cloneNode(true);
@@ -1927,7 +1988,34 @@
     return clone.outerHTML;
   }
 
-  async function exportReportPDF(reportType) {
+  let _readyReportFile = null;
+  let _readyReportDataUrl = null;
+
+  function prepareReportImageInBackground(docTitle) {
+    _readyReportFile = null;
+    _readyReportDataUrl = null;
+    const paper = document.getElementById('smart-a4-paper');
+    if (!paper || typeof html2canvas === 'undefined') return;
+
+    setTimeout(() => {
+      html2canvas(paper, { scale: 2, useCORS: true, backgroundColor: '#ffffff' }).then(canvas => {
+        _readyReportDataUrl = canvas.toDataURL('image/png');
+        canvas.toBlob(blob => {
+          if (blob) {
+            const safeName = `Smart_Ledger_${Utilities_getTodayStr()}.png`;
+            try {
+              _readyReportFile = new File([blob], safeName, { type: 'image/png' });
+            } catch (e) {
+              _readyReportFile = null;
+            }
+          }
+        }, 'image/png');
+      }).catch(err => console.warn('Background canvas prep:', err));
+    }, 250);
+  }
+
+  function printReportA4(reportType) {
+    // إغلاق نافذة المشاركة إن كانت مفتوحة
     const shareModal = document.getElementById('modal-quick-share');
     if (shareModal) shareModal.classList.remove('open');
 
@@ -1936,6 +2024,7 @@
     let bodyHtml = "";
     const today = Utilities_getTodayStr();
 
+    // 1. بناء محتوى مستقل تماماً لكل تقرير على حدة
     if (reportType === 'ledger') {
       const sel = document.getElementById('statement-account-selector');
       const accName = sel && sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text : "الحساب";
@@ -1983,111 +2072,155 @@
       if (invModal) invModal.classList.remove('open');
     } else {
       const activeCard = document.querySelector('.tab-content.active .report-card');
-      bodyHtml = activeCard ? activeCard.innerHTML : '<p>لا توجد بيانات</p>';
+      bodyHtml = activeCard ? activeCard.innerHTML : '<p>لا توجد بيانات للطباعة</p>';
     }
 
-    showToast('جاري تجهيز وتصدير ملف الـ PDF... 📄⏳');
+    // 2. إنشاء شاشة ورقة A4 المستقلة فوراً (استجابة لحظية 100% على الهاتف والكمبيوتر)
+    let sheet = document.getElementById('smart-a4-sheet');
+    if (sheet) sheet.remove();
 
-    // إنشاء حاوية مخفية لرسم التقرير
-    const pdfContainer = document.createElement('div');
-    pdfContainer.style.width = '794px'; // عرض A4 بالبكسل عند 96 DPI
-    pdfContainer.style.padding = '30px';
-    pdfContainer.style.background = '#ffffff';
-    pdfContainer.style.color = '#000000';
-    pdfContainer.style.direction = 'rtl';
-    pdfContainer.style.fontFamily = "'Cairo', sans-serif";
-    pdfContainer.style.position = 'absolute';
-    pdfContainer.style.top = '-9999px';
-    pdfContainer.style.left = '0';
-    pdfContainer.style.zIndex = '-1';
-    
-    pdfContainer.innerHTML = `
-      <div style="border-bottom:2px solid #0f172a; padding-bottom:10px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:flex-end;">
-        <div>
-          <div style="font-size:18px; font-weight:900; color:#0f172a;">المحاسب الذكي | Smart Ledger Pro</div>
-          <div style="font-size:14px; font-weight:700; color:#2563eb; margin-top:2px;">${subTitle}</div>
-        </div>
-        <div style="text-align:left; font-size:11px; color:#475569;">
-          <div>التاريخ: <strong>${today}</strong></div>
-          <div>العملة: <strong>${baseCurrency}</strong></div>
+    sheet = document.createElement('div');
+    sheet.id = 'smart-a4-sheet';
+    sheet.style.cssText = 'position:fixed; inset:0; background:#0f172a; z-index:2147483647; display:flex; flex-direction:column; direction:rtl; font-family:"Cairo",sans-serif; overflow-y:auto; -webkit-overflow-scrolling:touch; touch-action:pan-y;';
+
+    sheet.innerHTML = `
+      <div id="a4-action-bar" style="position:sticky; top:0; z-index:10; display:flex; justify-content:space-between; align-items:center; padding:12px 16px; background:#1e293b; color:#fff; border-bottom:1px solid #334155; gap:8px; flex-wrap:wrap;">
+        <span style="font-size:14px; font-weight:800;">📄 ${docTitle}</span>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button onclick="window.print()" style="background:#2563eb; color:#fff; border:none; padding:8px 14px; border-radius:8px; font-weight:700; font-size:12px; cursor:pointer; font-family:'Cairo';">🖨️ طباعة A4</button>
+          <button onclick="convertA4SheetToImage()" style="background:#10b981; color:#fff; border:none; padding:8px 14px; border-radius:8px; font-weight:700; font-size:12px; cursor:pointer; font-family:'Cairo';">📲 حفظ / مشاركة للهاتف</button>
+          <button onclick="toggleCleanScreenshotMode()" style="background:#f59e0b; color:#fff; border:none; padding:8px 14px; border-radius:8px; font-weight:700; font-size:12px; cursor:pointer; font-family:'Cairo';">📸 ملء الشاشة</button>
+          <button onclick="document.getElementById('smart-a4-sheet').remove()" style="background:#ef4444; color:#fff; border:none; padding:8px 14px; border-radius:8px; font-weight:700; font-size:12px; cursor:pointer; font-family:'Cairo';">✖ إغلاق</button>
         </div>
       </div>
-      <div id="pdf-inner-body">${bodyHtml}</div>
+
+      <div id="a4-mobile-hint" style="background:#fffbeb; color:#b45309; padding:10px 16px; font-size:12px; font-weight:700; text-align:center; border-bottom:1px solid #fde68a;">
+        💡 للكمبيوتر اضغط (🖨️ طباعة A4) — وللهاتف اضغط (📲 حفظ / مشاركة للهاتف) أو (📸 ملء الشاشة) لالتقاط التقرير بوضوح تام.
+      </div>
+
+      <div style="flex:1; padding:16px; display:flex; justify-content:center; align-items:flex-start;">
+        <div id="smart-a4-paper" style="width:100%; max-width:794px; background:#ffffff; color:#000000; padding:24px; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.35);">
+          <div style="border-bottom:2px solid #0f172a; padding-bottom:10px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:flex-end;">
+            <div>
+              <div style="font-size:18px; font-weight:900; color:#0f172a;">المحاسب الذكي | Smart Ledger Pro</div>
+              <div style="font-size:14px; font-weight:700; color:#2563eb; margin-top:2px;">${subTitle}</div>
+            </div>
+            <div style="text-align:left; font-size:11px; color:#475569;">
+              <div>التاريخ: <strong>${today}</strong></div>
+              <div>العملة: <strong>${baseCurrency}</strong></div>
+            </div>
+          </div>
+          <div id="smart-a4-body">${bodyHtml}</div>
+        </div>
+      </div>
     `;
 
-    document.body.appendChild(pdfContainer);
+    document.body.appendChild(sheet);
 
-    // تنظيف الأزرار وتنسيق الجداول للطباعة
-    pdfContainer.querySelectorAll('button, .btn, .btn-inv-tag, .btn-edit-tag').forEach(el => el.remove());
-    pdfContainer.querySelectorAll('table').forEach(tbl => {
+    // 3. تنظيف أي أزرار داخلية وتنسيق الجداول داخل ورقة الـ A4
+    const paperBody = document.getElementById('smart-a4-body');
+    paperBody.querySelectorAll('button, .btn, .btn-inv-tag, .btn-edit-tag').forEach(el => el.remove());
+    paperBody.querySelectorAll('table').forEach(tbl => {
       tbl.style.width = '100%';
       tbl.style.borderCollapse = 'collapse';
       tbl.style.marginTop = '10px';
     });
-    pdfContainer.querySelectorAll('th, td').forEach(cell => {
+    paperBody.querySelectorAll('th, td').forEach(cell => {
       cell.style.border = '1px solid #1e293b';
       cell.style.padding = '8px';
       cell.style.fontSize = '12px';
       cell.style.color = '#000';
       cell.style.textAlign = 'right';
     });
-    pdfContainer.querySelectorAll('th').forEach(th => {
+    paperBody.querySelectorAll('th').forEach(th => {
       th.style.backgroundColor = '#f1f5f9';
       th.style.fontWeight = '800';
     });
 
-    try {
-      const canvas = await html2canvas(pdfContainer, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
-      document.body.removeChild(pdfContainer);
+    // 4. تجهيز صورة التقرير في الخلفية فوراً لتكون جاهزة للمشاركة الفورية عند ضغط المستخدم
+    prepareReportImageInBackground(docTitle);
+  }
 
-      const imgData = canvas.toDataURL('image/png');
-      const { jsPDF } = window.jspdf;
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      
-      const imgWidth = pageWidth;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      
-      let heightLeft = imgHeight;
-      let position = 0;
+  // دالة إخفاء الشريط العلوي مؤقتاً لأخذ لقطة شاشة نظيفة (Screenshot) في حال منع الـ APK للحفظ
+  function toggleCleanScreenshotMode() {
+    const bar = document.getElementById('a4-action-bar');
+    const hint = document.getElementById('a4-mobile-hint');
+    const sheet = document.getElementById('smart-a4-sheet');
+    if (!bar || !sheet) return;
+    bar.style.display = 'none';
+    if (hint) hint.style.display = 'none';
+    sheet.style.background = '#ffffff';
+    showToast('📸 التقط الشاشة الآن (اضغط في أي مكان لإظهار الأزرار)');
+    setTimeout(() => {
+      const restore = () => {
+        bar.style.display = 'flex';
+        if (hint) hint.style.display = 'block';
+        sheet.style.background = '#0f172a';
+        sheet.removeEventListener('click', restore);
+      };
+      sheet.addEventListener('click', restore);
+    }, 300);
+  }
 
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
-
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
+  // دالة مشاركة وحفظ ورقة الـ A4 كصورة عالية الدقة على الهاتف
+  async function convertA4SheetToImage() {
+    // 1. إذا كانت الصورة جاهزة مسبقاً في الذاكرة، نفتح نافذة المشاركة الأصلية فوراً في نفس لحظة اللمس
+    if (_readyReportFile && navigator.canShare && navigator.canShare({ files: [_readyReportFile] })) {
+      try {
+        await navigator.share({
+          files: [_readyReportFile],
+          title: 'تقرير المحاسب الذكي',
+          text: 'مرفق صورة التقرير الرسمي من نظام المحاسب الذكي'
+        });
+        showToast('✅ تم فتح قائمة الحفظ والمشاركة بنجاح');
+        return;
+      } catch (err) {
+        console.warn('Direct share error or cancelled:', err);
       }
-
-      const fileName = `Smart_Ledger_${reportType}_${today}.pdf`;
-      
-      // محاولة التنزيل المباشر أو فتح الـ PDF
-      pdf.save(fileName);
-      showToast('✅ تم تنزيل ملف الـ PDF بنجاح');
-
-      // محاولة المشاركة الفورية إن أمكن عبر الأجهزة المحمولة
-      pdf.output('blob', async (blob) => {
-        try {
-          const file = new File([blob], fileName, { type: 'application/pdf' });
-          if (navigator.canShare && navigator.canShare({ files: [file] })) {
-            await navigator.share({
-              files: [file],
-              title: docTitle,
-              text: 'مرفق المستند المالي بصيغة PDF'
-            });
-          }
-        } catch (e) {}
-      });
-
-    } catch (err) {
-      console.error(err);
-      if (pdfContainer.parentNode) document.body.removeChild(pdfContainer);
-      showToast('❌ تعذر إنشاء ملف الـ PDF', true);
     }
+
+    const paper = document.getElementById('smart-a4-paper');
+    if (_readyReportDataUrl && paper) {
+      paper.outerHTML = `<img id="generated-a4-img" src="${_readyReportDataUrl}" style="width:100%; max-width:794px; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.35); background:#fff; display:block; touch-action:pan-y;" alt="Report A4">`;
+      const hint = document.getElementById('a4-mobile-hint');
+      if (hint) {
+        hint.style.background = '#dcfce7';
+        hint.style.color = '#166534';
+        hint.innerHTML = '✅ تم تحويل التقرير إلى صورة! اضغط مطولاً على الصورة لحفظها، أو اضغط زر (📸 ملء الشاشة) بالاعلى لالتقاطها كاملة.';
+      }
+      showToast('✅ التقرير معروض كصورة عالية الدقة أمامك');
+      return;
+    }
+
+    if (!paper) return;
+    if (typeof html2canvas === 'undefined') {
+      showToast('مكتبة الصور غير محملة، تأكد من اتصال الإنترنت', true);
+      return;
+    }
+
+    showToast('جاري تجهيز الصورة للحفظ والمشاركة... ⏳');
+    html2canvas(paper, { scale: 2, useCORS: true, backgroundColor: '#ffffff' }).then(canvas => {
+      const imgData = canvas.toDataURL('image/png');
+      _readyReportDataUrl = imgData;
+      paper.outerHTML = `<img id="generated-a4-img" src="${imgData}" style="width:100%; max-width:794px; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.35); background:#fff; display:block; touch-action:pan-y;" alt="Report A4">`;
+
+      canvas.toBlob(blob => {
+        if (blob) {
+          const safeName = `Smart_Ledger_${Utilities_getTodayStr()}.png`;
+          try { _readyReportFile = new File([blob], safeName, { type: 'image/png' }); } catch (e) {}
+        }
+        const hint = document.getElementById('a4-mobile-hint');
+        if (hint) {
+          hint.style.background = '#dcfce7';
+          hint.style.color = '#166534';
+          hint.innerHTML = '✅ الصورة جاهزة الآن! اضغط زر (📲 حفظ / مشاركة للهاتف) مرة أخرى لفتح قائمة المشاركة، أو اضغط (📸 ملء الشاشة) لالتقاطها.';
+        }
+        showToast('✅ جهزت الصورة! اضغط الزر الأخضر مرة أخرى للمشاركة');
+      }, 'image/png');
+    }).catch(err => {
+      console.error(err);
+      showToast('تعذر تحويل التقرير إلى صورة', true);
+    });
   }
 
   let activeShareText = "";
@@ -2108,6 +2241,7 @@
 
     activeShareText = shareText;
     
+    // إذا كان الموبايل يدعم المشاركة الأصلية القوية، نظهرها مباشرة
     if (navigator.share && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
       navigator.share({
         title: 'مشاركة التقرير المالي',
@@ -2116,6 +2250,7 @@
       return; 
     }
 
+    // النافذة البديلة في حال عدم دعم المشاركة الأصلية
     const previewEl = document.getElementById('share-summary-preview');
     if (previewEl) {
       previewEl.innerHTML = activeShareText.replace(/\n/g, '<br>');
@@ -2148,8 +2283,7 @@
       }
     }
   }
-
-  function openAddMemberModal() {
+function openAddMemberModal() {
     document.getElementById('new-member-email').value = '';
     const m = document.getElementById('modal-add-member');
     if (m) m.classList.add('open');
@@ -3515,9 +3649,13 @@
       renderInventoryReport();
       renderFixedAssetsDepreciationList();
       renderCurrenciesTable();
+
+
     } catch(err) {
       console.warn("Bootstrap safe init:", err);
     }
   });
+</script>
+
 </body>
 </html>

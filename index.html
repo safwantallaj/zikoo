@@ -2,8 +2,14 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>المحاسب الذكي | Smart Ledger Pro</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#2563eb">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="icon" href="icon-192.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
@@ -145,74 +151,64 @@
     .backup-item-card { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
     
     
-    /* ================= قواعد الطباعة الهيكلية المستقلة (V30) ================= */
+    /* ================= حماية الشاشة السفلية ومنع أي شريط أو رابط دعائي خارجي ================= */
+    html, body {
+      overscroll-behavior-y: none;
+      overflow-x: hidden;
+    }
+    nav {
+      bottom: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      margin: 0 auto !important;
+      z-index: 99999 !important;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+    }
+    /* إخفاء أي عنصر أو رابط دعائي يتم حقنه خارج حاويات النظام المعتمدة */
+    body > *:not(.app-container):not(.modal-overlay):not(#live-camera-modal):not(#ocr-loading-overlay):not(#appToast):not(#smart-a4-sheet):not(script):not(style):not(link) {
+      display: none !important;
+      visibility: hidden !important;
+      height: 0 !important;
+      max-height: 0 !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+      position: absolute !important;
+      z-index: -9999 !important;
+    }
+
+    /* ================= قواعد الطباعة المستقلة لورقة A4 ================= */
     @media print {
       @page { size: A4 portrait; margin: 10mm; }
       body { background: #fff !important; color: #000 !important; margin: 0 !important; padding: 0 !important; }
       
-      /* إخفاء العناصر غير المطلوبة بدقة بدون إخفاء الحاوية الأم */
-      header, nav, #license-banner, #appToast, .modal-overlay, #live-camera-modal, #ocr-loading-overlay, .hero-balance, .stat-row, .stat-card { 
-        display: none !important; 
+      /* إخفاء واجهة التطبيق بالكامل عند الطباعة لمنع الصفحة البيضاء أو التداخل */
+      .app-container, .modal-overlay, #appToast, #live-camera-modal, #ocr-loading-overlay, #a4-action-bar, #a4-mobile-hint {
+        display: none !important;
       }
       
-      .app-container, main { display: block !important; box-shadow: none !important; padding: 0 !important; max-width: 100% !important; overflow: visible !important; background: #fff !important; }
+      /* إظهار ورقة الـ A4 المستقلة فقط بكامل الصفحة */
+      #smart-a4-sheet {
+        display: block !important;
+        position: static !important;
+        width: 100% !important;
+        height: auto !important;
+        background: #fff !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: visible !important;
+      }
       
-      /* --- توجيه الطباعة المستقل بناءً على القسم النشط --- */
-      
-      /* 1. كشف الحساب */
-      body[data-print="ledger"] #tab-statement { display: block !important; }
-      body[data-print="ledger"] #tab-statement > * { display: none !important; }
-      body[data-print="ledger"] #sub-report-ledger { display: block !important; }
-      body[data-print="ledger"] #sub-report-ledger > .form-group, 
-      body[data-print="ledger"] #sub-report-ledger > div:nth-child(2),
-      body[data-print="ledger"] #sub-report-ledger > div:nth-child(3) { display: none !important; }
-
-      /* 2. الفاتورة */
-      body[data-print="invoice"] #modal-view-invoice { display: block !important; position: static !important; background: #fff !important; padding: 0 !important; min-height: auto !important; }
-      body[data-print="invoice"] #modal-view-invoice .modal-panel { box-shadow: none !important; border: none !important; padding: 0 !important; max-width: 100% !important; max-height: none !important; overflow: visible !important; }
-      body[data-print="invoice"] #modal-view-invoice .modal-panel > div:first-child,
-      body[data-print="invoice"] #modal-view-invoice .modal-panel > div:last-child { display: none !important; }
-
-      /* 3. قائمة الدخل */
-      body[data-print="income"] #tab-statement { display: block !important; }
-      body[data-print="income"] #tab-statement > * { display: none !important; }
-      body[data-print="income"] #sub-report-income { display: block !important; }
-      
-      /* 4. الميزانية */
-      body[data-print="balance-sheet"] #tab-statement { display: block !important; }
-      body[data-print="balance-sheet"] #tab-statement > * { display: none !important; }
-      body[data-print="balance-sheet"] #sub-report-balance-sheet { display: block !important; }
-
-      /* 5. سجل الأصول */
-      body[data-print="depreciation"] #tab-statement { display: block !important; }
-      body[data-print="depreciation"] #tab-statement > * { display: none !important; }
-      body[data-print="depreciation"] #sub-report-depreciation { display: block !important; }
-
-      /* 6. المؤشرات */
-      body[data-print="kpis"] #tab-statement { display: block !important; }
-      body[data-print="kpis"] #tab-statement > * { display: none !important; }
-      body[data-print="kpis"] #sub-report-kpis { display: block !important; }
-      body[data-print="kpis"] #sub-report-kpis .form-group { display: none !important; }
-
-      /* 7. الجرد */
-      body[data-print="inventory"] #tab-statement { display: block !important; }
-      body[data-print="inventory"] #tab-statement > * { display: none !important; }
-      body[data-print="inventory"] #sub-report-inventory { display: block !important; }
-
-      /* 8. ميزان المراجعة */
-      body[data-print="trial"] #tab-statement { display: block !important; }
-      body[data-print="trial"] #tab-statement > * { display: none !important; }
-      body[data-print="trial"] #sub-report-trial { display: block !important; }
-
-      /* تنسيقات عامة للتقارير المطبوعة */
-      .report-card, .invoice-card, .digital-invoice { border: none !important; box-shadow: none !important; padding: 0 !important; background: #fff !important; margin: 0 !important; }
-      table, .statement-table, .digital-inv-table { width: 100% !important; border-collapse: collapse !important; margin-top: 15px !important; }
-      th, td { border: 1px solid #000 !important; padding: 6px !important; font-size: 11pt !important; color: #000 !important; text-align: right !important; }
-      th { background-color: #f1f5f9 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; font-weight: bold !important; }
-      
-      button, .btn, .btn-inv-tag, .btn-edit-tag { display: none !important; }
+      #smart-a4-paper {
+        box-shadow: none !important;
+        border: none !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+      }
     }
-</style>
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
 
@@ -482,7 +478,7 @@
         </div>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;">
-  <button class="btn btn-primary" style="font-size: 13px;" onclick="printReportA4('ledger')"><i class="fa-solid fa-print"></i> طباعة كشف الحساب 🖨️</button>
+  <button class="btn btn-primary" style="font-size: 13px;" onclick="printReportA4('ledger')"><i class="fa-solid fa-print"></i> معاينة وطباعة 🖨️</button>
   <button class="btn btn-secondary" style="font-size: 13px;" onclick="openShareModal('ledger')"><i class="fa-solid fa-share-nodes"></i> مشاركة الملخص 📲</button>
 </div>
 
@@ -501,7 +497,7 @@
         <div class="report-card">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
             <h4 style="color: var(--primary); margin:0;"><i class="fa-solid fa-chart-line"></i> قائمة الدخل (المعايير المحاسبية)</h4>
-            <button class="btn btn-primary" style="width:auto; padding:5px 10px; font-size:11px;" onclick="printReportA4('income')"><i class="fa-solid fa-print"></i> طباعة القائمة</button>
+            <button class="btn btn-primary" style="width:auto; padding:5px 10px; font-size:11px;" onclick="printReportA4('income')"><i class="fa-solid fa-print"></i> معاينة وطباعة 🖨️</button>
           </div>
           
           <div class="summary-row"><span>1. إيرادات المبيعات الرئيسية:</span> <strong><span id="rep-sales-rev">0.00</span> <span class="curr-symbol">ر.س</span></strong></div>
@@ -538,7 +534,7 @@
             <h4 style="color: var(--primary); margin:0;"><i class="fa-solid fa-scale-balanced"></i> قائمة المركز المالي (الميزانية)</h4>
             <div style="display:flex; gap:6px; align-items:center;">
               <span id="bs-balance-status" class="status-badge balanced">متوازنة ✓</span>
-              <button class="btn btn-primary" style="width:auto; padding:5px 10px; font-size:11px;" onclick="printReportA4('balance-sheet')"><i class="fa-solid fa-print"></i> طباعة الميزانية</button>
+              <button class="btn btn-primary" style="width:auto; padding:5px 10px; font-size:11px;" onclick="printReportA4('balance-sheet')"><i class="fa-solid fa-print"></i> معاينة وطباعة 🖨️</button>
             </div>
           </div>
 
@@ -576,7 +572,7 @@
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
             <h4 style="color: var(--warning); margin:0;"><i class="fa-solid fa-landmark"></i> سجل الأصول الثابتة والتحليل الرقابي</h4>
             <div style="display:flex; gap:6px;">
-              <button class="btn btn-primary" style="width:auto; padding:6px 12px; font-size:11px;" onclick="printReportA4('depreciation')"><i class="fa-solid fa-print"></i> طباعة السجل</button>
+              <button class="btn btn-primary" style="width:auto; padding:6px 12px; font-size:11px;" onclick="printReportA4('depreciation')"><i class="fa-solid fa-print"></i> معاينة وطباعة 🖨️</button>
               <button class="btn btn-success" style="width:auto; padding:6px 12px; font-size:11px;" onclick="openAddAccountModal('asset')">+ تسجيل أصل</button>
             </div>
           </div>
@@ -641,7 +637,7 @@
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
             <h4 style="color: var(--primary); margin:0;"><i class="fa-solid fa-boxes-stacked"></i> جرد المستودع وبطاقات الأصناف</h4>
             <div style="display:flex; gap:6px;">
-              <button class="btn btn-secondary" style="width:auto; padding:6px 10px; font-size:11px;" onclick="printReportA4('inventory')"><i class="fa-solid fa-print"></i> طباعة الجرد</button>
+              <button class="btn btn-secondary" style="width:auto; padding:6px 10px; font-size:11px;" onclick="printReportA4('inventory')"><i class="fa-solid fa-print"></i> معاينة وطباعة 🖨️</button>
               <button class="btn btn-primary" style="width:auto; padding:6px 12px; font-size:11px;" onclick="openItemCardModal()">+ إضافة صنف</button>
             </div>
           </div>
@@ -664,7 +660,7 @@
         <div class="report-card">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
             <h4 style="color: var(--primary); margin:0;"><i class="fa-solid fa-table-list"></i> ميزان المراجعة بالأرصدة</h4>
-            <button class="btn btn-primary" style="width:auto; padding:5px 10px; font-size:11px;" onclick="printReportA4('trial')"><i class="fa-solid fa-print"></i> طباعة الميزان</button>
+            <button class="btn btn-primary" style="width:auto; padding:5px 10px; font-size:11px;" onclick="printReportA4('trial')"><i class="fa-solid fa-print"></i> معاينة وطباعة 🖨️</button>
           </div>
           <table class="statement-table" id="main-trial-table">
             <thead>
@@ -1195,7 +1191,7 @@
     </div>
     <div id="digital-invoice-body"></div>
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px;">
-      <button class="btn btn-primary" onclick="printReportA4('invoice')"><i class="fa-solid fa-print"></i> طباعة الفاتورة A4</button>
+      <button class="btn btn-primary" onclick="printReportA4('invoice')"><i class="fa-solid fa-print"></i> معاينة وطباعة A4 🖨️</button>
       <button class="btn btn-secondary" onclick="closeViewInvoiceModal()">إغلاق</button>
     </div>
   </div>
@@ -2022,20 +2018,152 @@
   }
 
   function printReportA4(reportType) {
+    // إغلاق نافذة المشاركة إن كانت مفتوحة
     const shareModal = document.getElementById('modal-quick-share');
-    if(shareModal) shareModal.classList.remove('open');
+    if (shareModal) shareModal.classList.remove('open');
 
-    // تفعيل الكلاس الخاص بالقسم المطلوب للطباعة
-    document.body.setAttribute('data-print', reportType);
+    let docTitle = "مستند المحاسب الذكي";
+    let subTitle = "تقرير مالي رسمي";
+    let bodyHtml = "";
+    const today = Utilities_getTodayStr();
 
-    // استدعاء الطباعة فوراً وبدون setTimeout لتتوافق مع قيود الأمان في الـ APK
-    window.print();
+    // 1. بناء محتوى مستقل تماماً لكل تقرير على حدة
+    if (reportType === 'ledger') {
+      const sel = document.getElementById('statement-account-selector');
+      const accName = sel && sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text : "الحساب";
+      const balEl = document.getElementById('final-balance');
+      const bal = balEl ? balEl.innerText : "0.00";
+      docTitle = `كشف حساب - ${accName}`;
+      subTitle = "كشف حساب تفصيلي رسمي";
+      const cleanedTable = cleanTableHtmlForPrinting(document.getElementById('main-statement-table'));
+      bodyHtml = `
+        <div style="background:#f8fafc; padding:10px 14px; border:1px solid #cbd5e1; border-radius:8px; margin-bottom:14px; display:flex; justify-content:space-between; font-size:13px;">
+          <span>الحساب المالي: <strong>${accName}</strong></span>
+          <span>الرصيد النهائي: <strong style="color:#2563eb;">${bal} ${baseCurrency}</strong></span>
+        </div>
+        ${cleanedTable}
+      `;
+    } else if (reportType === 'income') {
+      docTitle = `قائمة الدخل - ${today}`;
+      subTitle = "قائمة الدخل (الأرباح والخسائر) المعيارية";
+      const incCard = document.querySelector('#sub-report-income .report-card');
+      bodyHtml = incCard ? incCard.innerHTML : '';
+    } else if (reportType === 'balance-sheet' || reportType === 'balance_sheet') {
+      docTitle = `الميزانية العمومية - ${today}`;
+      subTitle = "قائمة المركز المالي (الميزانية العمومية)";
+      const bsCard = document.querySelector('#sub-report-balance-sheet .report-card');
+      bodyHtml = bsCard ? bsCard.innerHTML : '';
+    } else if (reportType === 'depreciation' || reportType === 'assets') {
+      docTitle = `سجل الأصول الثابتة - ${today}`;
+      subTitle = "سجل الأصول الثابتة والإهلاك الدوري (IAS 16)";
+      const depCard = document.querySelector('#sub-report-depreciation .report-card');
+      bodyHtml = depCard ? depCard.innerHTML : '';
+    } else if (reportType === 'inventory') {
+      docTitle = `جرد المستودع - ${today}`;
+      subTitle = "تقرير جرد وتقييم المستودع (WAC)";
+      bodyHtml = cleanTableHtmlForPrinting(document.getElementById('main-inventory-table'));
+    } else if (reportType === 'trial') {
+      docTitle = `ميزان المراجعة - ${today}`;
+      subTitle = "ميزان المراجعة بالأرصدة";
+      bodyHtml = cleanTableHtmlForPrinting(document.getElementById('main-trial-table'));
+    } else if (reportType === 'invoice' || reportType === 'invoice_current') {
+      docTitle = `فاتورة ضريبية - ${today}`;
+      subTitle = "فاتورة رسمية معتمدة";
+      const invBodyEl = document.getElementById('digital-invoice-body');
+      bodyHtml = invBodyEl ? invBodyEl.innerHTML : '';
+      const invModal = document.getElementById('modal-view-invoice');
+      if (invModal) invModal.classList.remove('open');
+    } else {
+      const activeCard = document.querySelector('.tab-content.active .report-card');
+      bodyHtml = activeCard ? activeCard.innerHTML : '<p>لا توجد بيانات للطباعة</p>';
+    }
+
+    // 2. إنشاء شاشة ورقة A4 المستقلة فوراً (استجابة لحظية 100% على الهاتف والكمبيوتر)
+    let sheet = document.getElementById('smart-a4-sheet');
+    if (sheet) sheet.remove();
+
+    sheet = document.createElement('div');
+    sheet.id = 'smart-a4-sheet';
+    sheet.style.cssText = 'position:fixed; inset:0; background:#0f172a; z-index:2147483647; display:flex; flex-direction:column; direction:rtl; font-family:"Cairo",sans-serif; overflow-y:auto;';
+
+    sheet.innerHTML = `
+      <div id="a4-action-bar" style="position:sticky; top:0; z-index:10; display:flex; justify-content:space-between; align-items:center; padding:12px 16px; background:#1e293b; color:#fff; border-bottom:1px solid #334155; gap:8px; flex-wrap:wrap;">
+        <span style="font-size:14px; font-weight:800;">📄 ${docTitle}</span>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button onclick="window.print()" style="background:#2563eb; color:#fff; border:none; padding:8px 14px; border-radius:8px; font-weight:700; font-size:12px; cursor:pointer; font-family:'Cairo';">🖨️ طباعة A4</button>
+          <button onclick="convertA4SheetToImage()" style="background:#10b981; color:#fff; border:none; padding:8px 14px; border-radius:8px; font-weight:700; font-size:12px; cursor:pointer; font-family:'Cairo';">🖼️ حفظ كصورة للموبايل</button>
+          <button onclick="document.getElementById('smart-a4-sheet').remove()" style="background:#ef4444; color:#fff; border:none; padding:8px 14px; border-radius:8px; font-weight:700; font-size:12px; cursor:pointer; font-family:'Cairo';">✖ إغلاق</button>
+        </div>
+      </div>
+
+      <div id="a4-mobile-hint" style="background:#fffbeb; color:#b45309; padding:10px 16px; font-size:12px; font-weight:700; text-align:center; border-bottom:1px solid #fde68a;">
+        💡 للكمبيوتر اضغط (🖨️ طباعة A4) — وللهاتف اضغط (🖼️ حفظ كصورة للموبايل) ثم اضغط مطولاً على الصورة لحفظها أو مشاركتها.
+      </div>
+
+      <div style="flex:1; padding:16px; display:flex; justify-content:center; align-items:flex-start;">
+        <div id="smart-a4-paper" style="width:100%; max-width:794px; background:#ffffff; color:#000000; padding:24px; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.35);">
+          <div style="border-bottom:2px solid #0f172a; padding-bottom:10px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:flex-end;">
+            <div>
+              <div style="font-size:18px; font-weight:900; color:#0f172a;">المحاسب الذكي | Smart Ledger Pro</div>
+              <div style="font-size:14px; font-weight:700; color:#2563eb; margin-top:2px;">${subTitle}</div>
+            </div>
+            <div style="text-align:left; font-size:11px; color:#475569;">
+              <div>التاريخ: <strong>${today}</strong></div>
+              <div>العملة: <strong>${baseCurrency}</strong></div>
+            </div>
+          </div>
+          <div id="smart-a4-body">${bodyHtml}</div>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(sheet);
+
+    // 3. تنظيف أي أزرار داخلية وتنسيق الجداول داخل ورقة الـ A4
+    const paperBody = document.getElementById('smart-a4-body');
+    paperBody.querySelectorAll('button, .btn, .btn-inv-tag, .btn-edit-tag').forEach(el => el.remove());
+    paperBody.querySelectorAll('table').forEach(tbl => {
+      tbl.style.width = '100%';
+      tbl.style.borderCollapse = 'collapse';
+      tbl.style.marginTop = '10px';
+    });
+    paperBody.querySelectorAll('th, td').forEach(cell => {
+      cell.style.border = '1px solid #1e293b';
+      cell.style.padding = '8px';
+      cell.style.fontSize = '12px';
+      cell.style.color = '#000';
+      cell.style.textAlign = 'right';
+    });
+    paperBody.querySelectorAll('th').forEach(th => {
+      th.style.backgroundColor = '#f1f5f9';
+      th.style.fontWeight = '800';
+    });
   }
 
-  // إزالة التوجيه فور انتهاء أو إلغاء الطباعة
-  window.addEventListener('afterprint', () => {
-      document.body.removeAttribute('data-print');
-  });
+  // دالة تحويل ورقة الـ A4 المعروضة إلى صورة داخل الـ APK
+  function convertA4SheetToImage() {
+    const paper = document.getElementById('smart-a4-paper');
+    if (!paper) return;
+    if (typeof html2canvas === 'undefined') {
+      showToast('مكتبة الصور غير محملة، تأكد من اتصال الإنترنت', true);
+      return;
+    }
+    showToast('جاري استخراج الصورة بدقة عالية... ⏳');
+    html2canvas(paper, { scale: 2, useCORS: true, backgroundColor: '#ffffff' }).then(canvas => {
+      const imgData = canvas.toDataURL('image/png');
+      const hint = document.getElementById('a4-mobile-hint');
+      if (hint) {
+        hint.style.background = '#dcfce7';
+        hint.style.color = '#166534';
+        hint.innerHTML = '✅ تم تحويل التقرير إلى صورة! اضغط مطولاً بأصبعك على التقرير أدناه واختر (حفظ الصورة) أو (مشاركة الصورة).';
+      }
+      paper.outerHTML = `<img src="${imgData}" style="width:100%; max-width:794px; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.35); background:#fff; display:block;" alt="Report A4">`;
+      showToast('✅ الصورة جاهزة للحفظ والمشاركة');
+    }).catch(err => {
+      console.error(err);
+      showToast('تعذر تحويل التقرير إلى صورة', true);
+    });
+  }
 
   let activeShareText = "";
 
@@ -3469,6 +3597,18 @@ function openAddMemberModal() {
       renderInventoryReport();
       renderFixedAssetsDepreciationList();
       renderCurrenciesTable();
+
+      // درع حماية تلقائي لحذف أي شريط أو رابط دعائي خارجي قد يُحقن أسفل الشاشة
+      const allowedIds = new Set(['live-camera-modal', 'ocr-loading-overlay', 'appToast', 'smart-a4-sheet']);
+      const cleanExternalBanners = () => {
+        Array.from(document.body.children).forEach(el => {
+          if (el.tagName === 'SCRIPT' || el.tagName === 'STYLE' || el.tagName === 'LINK') return;
+          if (el.classList.contains('app-container') || el.classList.contains('modal-overlay') || allowedIds.has(el.id)) return;
+          el.remove();
+        });
+      };
+      cleanExternalBanners();
+      new MutationObserver(cleanExternalBanners).observe(document.body, { childList: true });
     } catch(err) {
       console.warn("Bootstrap safe init:", err);
     }

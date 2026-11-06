@@ -2,14 +2,8 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>المحاسب الذكي | Smart Ledger Pro</title>
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#2563eb">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <link rel="icon" href="icon-192.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
@@ -151,30 +145,7 @@
     .backup-item-card { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
     
     
-    /* ================= حماية الشاشة السفلية ومنع أي شريط أو رابط دعائي خارجي ================= */
-    html, body {
-      overscroll-behavior-y: none;
-      overflow-x: hidden;
-    }
-    nav {
-      bottom: 0 !important;
-      left: 0 !important;
-      right: 0 !important;
-      margin: 0 auto !important;
-      z-index: 99999 !important;
-      box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
-    }
-    /* إخفاء أي عنصر أو رابط دعائي يتم حقنه خارج حاويات النظام المعتمدة */
-    body > *:not(.app-container):not(.modal-overlay):not(#live-camera-modal):not(#ocr-loading-overlay):not(#appToast):not(#smart-a4-sheet):not(script):not(style):not(link) {
-      display: none !important;
-      visibility: hidden !important;
-      height: 0 !important;
-      max-height: 0 !important;
-      opacity: 0 !important;
-      pointer-events: none !important;
-      position: absolute !important;
-      z-index: -9999 !important;
-    }
+
 
     /* ================= قواعد الطباعة المستقلة لورقة A4 ================= */
     @media print {
@@ -2017,6 +1988,32 @@
     return clone.outerHTML;
   }
 
+  let _readyReportFile = null;
+  let _readyReportDataUrl = null;
+
+  function prepareReportImageInBackground(docTitle) {
+    _readyReportFile = null;
+    _readyReportDataUrl = null;
+    const paper = document.getElementById('smart-a4-paper');
+    if (!paper || typeof html2canvas === 'undefined') return;
+
+    setTimeout(() => {
+      html2canvas(paper, { scale: 2, useCORS: true, backgroundColor: '#ffffff' }).then(canvas => {
+        _readyReportDataUrl = canvas.toDataURL('image/png');
+        canvas.toBlob(blob => {
+          if (blob) {
+            const safeName = `Smart_Ledger_${Utilities_getTodayStr()}.png`;
+            try {
+              _readyReportFile = new File([blob], safeName, { type: 'image/png' });
+            } catch (e) {
+              _readyReportFile = null;
+            }
+          }
+        }, 'image/png');
+      }).catch(err => console.warn('Background canvas prep:', err));
+    }, 250);
+  }
+
   function printReportA4(reportType) {
     // إغلاق نافذة المشاركة إن كانت مفتوحة
     const shareModal = document.getElementById('modal-quick-share');
@@ -2084,20 +2081,21 @@
 
     sheet = document.createElement('div');
     sheet.id = 'smart-a4-sheet';
-    sheet.style.cssText = 'position:fixed; inset:0; background:#0f172a; z-index:2147483647; display:flex; flex-direction:column; direction:rtl; font-family:"Cairo",sans-serif; overflow-y:auto;';
+    sheet.style.cssText = 'position:fixed; inset:0; background:#0f172a; z-index:2147483647; display:flex; flex-direction:column; direction:rtl; font-family:"Cairo",sans-serif; overflow-y:auto; -webkit-overflow-scrolling:touch; touch-action:pan-y;';
 
     sheet.innerHTML = `
       <div id="a4-action-bar" style="position:sticky; top:0; z-index:10; display:flex; justify-content:space-between; align-items:center; padding:12px 16px; background:#1e293b; color:#fff; border-bottom:1px solid #334155; gap:8px; flex-wrap:wrap;">
         <span style="font-size:14px; font-weight:800;">📄 ${docTitle}</span>
         <div style="display:flex; gap:8px; flex-wrap:wrap;">
           <button onclick="window.print()" style="background:#2563eb; color:#fff; border:none; padding:8px 14px; border-radius:8px; font-weight:700; font-size:12px; cursor:pointer; font-family:'Cairo';">🖨️ طباعة A4</button>
-          <button onclick="convertA4SheetToImage()" style="background:#10b981; color:#fff; border:none; padding:8px 14px; border-radius:8px; font-weight:700; font-size:12px; cursor:pointer; font-family:'Cairo';">🖼️ حفظ كصورة للموبايل</button>
+          <button onclick="convertA4SheetToImage()" style="background:#10b981; color:#fff; border:none; padding:8px 14px; border-radius:8px; font-weight:700; font-size:12px; cursor:pointer; font-family:'Cairo';">📲 حفظ / مشاركة للهاتف</button>
+          <button onclick="toggleCleanScreenshotMode()" style="background:#f59e0b; color:#fff; border:none; padding:8px 14px; border-radius:8px; font-weight:700; font-size:12px; cursor:pointer; font-family:'Cairo';">📸 ملء الشاشة</button>
           <button onclick="document.getElementById('smart-a4-sheet').remove()" style="background:#ef4444; color:#fff; border:none; padding:8px 14px; border-radius:8px; font-weight:700; font-size:12px; cursor:pointer; font-family:'Cairo';">✖ إغلاق</button>
         </div>
       </div>
 
       <div id="a4-mobile-hint" style="background:#fffbeb; color:#b45309; padding:10px 16px; font-size:12px; font-weight:700; text-align:center; border-bottom:1px solid #fde68a;">
-        💡 للكمبيوتر اضغط (🖨️ طباعة A4) — وللهاتف اضغط (🖼️ حفظ كصورة للموبايل) ثم اضغط مطولاً على الصورة لحفظها أو مشاركتها.
+        💡 للكمبيوتر اضغط (🖨️ طباعة A4) — وللهاتف اضغط (📲 حفظ / مشاركة للهاتف) أو (📸 ملء الشاشة) لالتقاط التقرير بوضوح تام.
       </div>
 
       <div style="flex:1; padding:16px; display:flex; justify-content:center; align-items:flex-start;">
@@ -2138,27 +2136,87 @@
       th.style.backgroundColor = '#f1f5f9';
       th.style.fontWeight = '800';
     });
+
+    // 4. تجهيز صورة التقرير في الخلفية فوراً لتكون جاهزة للمشاركة الفورية عند ضغط المستخدم
+    prepareReportImageInBackground(docTitle);
   }
 
-  // دالة تحويل ورقة الـ A4 المعروضة إلى صورة داخل الـ APK
-  function convertA4SheetToImage() {
+  // دالة إخفاء الشريط العلوي مؤقتاً لأخذ لقطة شاشة نظيفة (Screenshot) في حال منع الـ APK للحفظ
+  function toggleCleanScreenshotMode() {
+    const bar = document.getElementById('a4-action-bar');
+    const hint = document.getElementById('a4-mobile-hint');
+    const sheet = document.getElementById('smart-a4-sheet');
+    if (!bar || !sheet) return;
+    bar.style.display = 'none';
+    if (hint) hint.style.display = 'none';
+    sheet.style.background = '#ffffff';
+    showToast('📸 التقط الشاشة الآن (اضغط في أي مكان لإظهار الأزرار)');
+    setTimeout(() => {
+      const restore = () => {
+        bar.style.display = 'flex';
+        if (hint) hint.style.display = 'block';
+        sheet.style.background = '#0f172a';
+        sheet.removeEventListener('click', restore);
+      };
+      sheet.addEventListener('click', restore);
+    }, 300);
+  }
+
+  // دالة مشاركة وحفظ ورقة الـ A4 كصورة عالية الدقة على الهاتف
+  async function convertA4SheetToImage() {
+    // 1. إذا كانت الصورة جاهزة مسبقاً في الذاكرة، نفتح نافذة المشاركة الأصلية فوراً في نفس لحظة اللمس
+    if (_readyReportFile && navigator.canShare && navigator.canShare({ files: [_readyReportFile] })) {
+      try {
+        await navigator.share({
+          files: [_readyReportFile],
+          title: 'تقرير المحاسب الذكي',
+          text: 'مرفق صورة التقرير الرسمي من نظام المحاسب الذكي'
+        });
+        showToast('✅ تم فتح قائمة الحفظ والمشاركة بنجاح');
+        return;
+      } catch (err) {
+        console.warn('Direct share error or cancelled:', err);
+      }
+    }
+
     const paper = document.getElementById('smart-a4-paper');
+    if (_readyReportDataUrl && paper) {
+      paper.outerHTML = `<img id="generated-a4-img" src="${_readyReportDataUrl}" style="width:100%; max-width:794px; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.35); background:#fff; display:block; touch-action:pan-y;" alt="Report A4">`;
+      const hint = document.getElementById('a4-mobile-hint');
+      if (hint) {
+        hint.style.background = '#dcfce7';
+        hint.style.color = '#166534';
+        hint.innerHTML = '✅ تم تحويل التقرير إلى صورة! اضغط مطولاً على الصورة لحفظها، أو اضغط زر (📸 ملء الشاشة) بالاعلى لالتقاطها كاملة.';
+      }
+      showToast('✅ التقرير معروض كصورة عالية الدقة أمامك');
+      return;
+    }
+
     if (!paper) return;
     if (typeof html2canvas === 'undefined') {
       showToast('مكتبة الصور غير محملة، تأكد من اتصال الإنترنت', true);
       return;
     }
-    showToast('جاري استخراج الصورة بدقة عالية... ⏳');
+
+    showToast('جاري تجهيز الصورة للحفظ والمشاركة... ⏳');
     html2canvas(paper, { scale: 2, useCORS: true, backgroundColor: '#ffffff' }).then(canvas => {
       const imgData = canvas.toDataURL('image/png');
-      const hint = document.getElementById('a4-mobile-hint');
-      if (hint) {
-        hint.style.background = '#dcfce7';
-        hint.style.color = '#166534';
-        hint.innerHTML = '✅ تم تحويل التقرير إلى صورة! اضغط مطولاً بأصبعك على التقرير أدناه واختر (حفظ الصورة) أو (مشاركة الصورة).';
-      }
-      paper.outerHTML = `<img src="${imgData}" style="width:100%; max-width:794px; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.35); background:#fff; display:block;" alt="Report A4">`;
-      showToast('✅ الصورة جاهزة للحفظ والمشاركة');
+      _readyReportDataUrl = imgData;
+      paper.outerHTML = `<img id="generated-a4-img" src="${imgData}" style="width:100%; max-width:794px; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.35); background:#fff; display:block; touch-action:pan-y;" alt="Report A4">`;
+
+      canvas.toBlob(blob => {
+        if (blob) {
+          const safeName = `Smart_Ledger_${Utilities_getTodayStr()}.png`;
+          try { _readyReportFile = new File([blob], safeName, { type: 'image/png' }); } catch (e) {}
+        }
+        const hint = document.getElementById('a4-mobile-hint');
+        if (hint) {
+          hint.style.background = '#dcfce7';
+          hint.style.color = '#166534';
+          hint.innerHTML = '✅ الصورة جاهزة الآن! اضغط زر (📲 حفظ / مشاركة للهاتف) مرة أخرى لفتح قائمة المشاركة، أو اضغط (📸 ملء الشاشة) لالتقاطها.';
+        }
+        showToast('✅ جهزت الصورة! اضغط الزر الأخضر مرة أخرى للمشاركة');
+      }, 'image/png');
     }).catch(err => {
       console.error(err);
       showToast('تعذر تحويل التقرير إلى صورة', true);
@@ -2214,13 +2272,7 @@
     if (channel === 'whatsapp') {
       window.open(`https://api.whatsapp.com/send?text=${encodedText}`, '_blank');
     } else if (channel === 'telegram') {
-      if (isMobile) {
-          const telegramIntent = `intent://send?text=${encodedText}#Intent;scheme=tg;package=org.telegram.messenger;end;`;
-          window.location.href = telegramIntent;
-          setTimeout(() => { window.location.href = `tg://msg?text=${encodedText}`; }, 1000);
-      } else {
-          window.open(`https://t.me/share/url?url=${encodeURIComponent(' ')}&text=${encodedText}`, '_blank');
-      }
+      window.location.href = `tg://msg?text=${encodedText}`;
     } else if (channel === 'copy') {
       if (navigator.clipboard) {
         navigator.clipboard.writeText(activeShareText);
@@ -3598,17 +3650,7 @@ function openAddMemberModal() {
       renderFixedAssetsDepreciationList();
       renderCurrenciesTable();
 
-      // درع حماية تلقائي لحذف أي شريط أو رابط دعائي خارجي قد يُحقن أسفل الشاشة
-      const allowedIds = new Set(['live-camera-modal', 'ocr-loading-overlay', 'appToast', 'smart-a4-sheet']);
-      const cleanExternalBanners = () => {
-        Array.from(document.body.children).forEach(el => {
-          if (el.tagName === 'SCRIPT' || el.tagName === 'STYLE' || el.tagName === 'LINK') return;
-          if (el.classList.contains('app-container') || el.classList.contains('modal-overlay') || allowedIds.has(el.id)) return;
-          el.remove();
-        });
-      };
-      cleanExternalBanners();
-      new MutationObserver(cleanExternalBanners).observe(document.body, { childList: true });
+
     } catch(err) {
       console.warn("Bootstrap safe init:", err);
     }

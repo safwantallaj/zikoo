@@ -1989,17 +1989,17 @@
   }
 
   // =========================================================================
-  // محرك الطباعة وتمرير الـ PDF القياسي (Adobe Acrobat / Android Print Architecture)
-  // يقوم بـ:
-  // 1. حساب الأبعاد وتسطيح الطبقات (Layout & Flattening) إلى ورقة A4 قياسية (595.28 x 841.89 pt).
-  // 2. بناء دفق بايتات ملف PDF أصلي (Native PDF Byte Stream) داخلياً دون مكتبات خارجية تسبب انهيار الـ APK.
-  // 3. تمرير ملف الـ PDF الحقيقي مباشرة إلى نظام أندرويد (Print Spooler / Adobe Acrobat / WhatsApp) عبر Web Share API أو الجسر الأصلي.
+  // محرك الطباعة وتمرير الـ PDF السحابي والأصلي (Google Drive PDF + Android Intent + PrintManager)
+  // يعالج مشكلة (Open / Save / Cancel) في الـ APK المغلق من خلال:
+  // 1. عدم استخدام روابط blob: المحلية التي يعترضها DownloadListener في الـ APK وينهار بسببها.
+  // 2. إمكانية توليد رابط PDF سحابي حقيقي (HTTPS URL) عبر Google Drive وفتحه مباشرة في Adobe Acrobat أو متصفح النظام.
+  // 3. إمكانية إرسال أمر Intent لفتح التقرير خارج الـ WebView المقيد (في متصفح Chrome أو عارض PDF).
   // =========================================================================
-  let _readyPdfFile = null;
   let _readyPdfBlob = null;
-  let _readyImageFile = null;
+  let _readyPdfBase64 = null;
   let _readyReportDataUrl = null;
   let _currentDocTitle = "Smart_Ledger_Report";
+  let _currentReportType = "ledger";
 
   function utf16HexPdf(str) {
     let hex = 'FEFF';
@@ -2009,8 +2009,22 @@
     return '<' + hex.toUpperCase() + '>';
   }
 
+  function uint8ToBase64(u8Arr) {
+    let CHUNK_SIZE = 0x8000;
+    let index = 0;
+    let length = u8Arr.length;
+    let result = '';
+    let slice;
+    while (index < length) {
+      slice = u8Arr.subarray(index, Math.min(index + CHUNK_SIZE, length));
+      result += String.fromCharCode.apply(null, slice);
+      index += CHUNK_SIZE;
+    }
+    return btoa(result);
+  }
+
   // دالة بناء تدفق بايتات PDF قياسي (ISO 32000-1) من الكانفاس المسطح (Flattened Canvas)
-  async function buildNativePdfBlobFromCanvas(canvas, title) {
+  async function buildNativePdfFromCanvas(canvas, title) {
     const PT_W = 595.28; // عرض A4 بالنقاط
     const PT_H = 841.89; // ارتفاع A4 بالنقاط
     const PT_M = 24;     // الهامش القياسي
@@ -2030,7 +2044,7 @@
       ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
       ctx.drawImage(canvas, 0, yOffset, canvas.width, sliceH, 0, 0, canvas.width, sliceH);
 
-      const jpegBlob = await new Promise(res => pageCanvas.toBlob(res, 'image/jpeg', 0.94));
+      const jpegBlob = await new Promise(res => pageCanvas.toBlob(res, 'image/jpeg', 0.92));
       const arrayBuf = await jpegBlob.arrayBuffer();
       pageSlices.push({
         jpegBytes: new Uint8Array(arrayBuf),
@@ -2113,14 +2127,22 @@
     pushPart(xref);
     pushPart('trailer\n<< /Size ' + (totalObjs + 1) + ' /Root 1 0 R /Info ' + infoId + ' 0 R >>\nstartxref\n' + xrefPos + '\n%%EOF');
 
-    return new Blob(parts, { type: 'application/pdf' });
+    const totalBytes = new Uint8Array(pos);
+    let offset = 0;
+    for (const part of parts) {
+      totalBytes.set(part, offset);
+      offset += part.length;
+    }
+
+    return {
+      blob: new Blob([totalBytes], { type: 'application/pdf' }),
+      base64: uint8ToBase64(totalBytes)
+    };
   }
 
-  // التجهيز والتسطيح المسبق في الخلفية (Pre-Flattening) لضمان استجابة فورية (0.0 ثانية) عند ضغط المستخدم
   function prepareReportPdfAndImageInBackground(docTitle) {
-    _readyPdfFile = null;
     _readyPdfBlob = null;
-    _readyImageFile = null;
+    _readyPdfBase64 = null;
     _readyReportDataUrl = null;
     _currentDocTitle = docTitle || "Smart_Ledger_Report";
 
@@ -2130,29 +2152,17 @@
     setTimeout(() => {
       html2canvas(paper, { scale: 2, useCORS: true, backgroundColor: '#ffffff' }).then(async canvas => {
         _readyReportDataUrl = canvas.toDataURL('image/png');
-        const dateStr = Utilities_getTodayStr();
-
-        // 1. بناء ملف الـ PDF المسطح الحقيقي (Real Flattened PDF File)
         try {
-          const pdfBlob = await buildNativePdfBlobFromCanvas(canvas, docTitle);
-          _readyPdfBlob = pdfBlob;
-          _readyPdfFile = new File([pdfBlob], `Smart_Ledger_${dateStr}.pdf`, { type: 'application/pdf' });
+          const pdfRes = await buildNativePdfFromCanvas(canvas, docTitle);
+          _readyPdfBlob = pdfRes.blob;
+          _readyPdfBase64 = pdfRes.base64;
         } catch (pdfErr) {
           console.warn('PDF build warning:', pdfErr);
         }
 
-        // 2. بناء ملف الصورة المسطحة الاحتياطي (PNG Image File)
-        canvas.toBlob(blob => {
-          if (blob) {
-            try {
-              _readyImageFile = new File([blob], `Smart_Ledger_${dateStr}.png`, { type: 'image/png' });
-            } catch (e) {}
-          }
-        }, 'image/png');
-
         const statusBadge = document.getElementById('a4-adapter-status');
         if (statusBadge) {
-          statusBadge.innerHTML = '✅ مستند PDF جاهز للتوجيه والطباعة';
+          statusBadge.innerHTML = '✅ جاهز للطباعة';
           statusBadge.style.background = '#065f46';
           statusBadge.style.color = '#a7f3d0';
         }
@@ -2160,9 +2170,8 @@
     }, 200);
   }
 
-  // استدعاء مدير الطباعة المباشر (System Print Spooler / Hidden Print Frame)
+  // 1. استدعاء مدير الطباعة المباشر (للكمبيوتر أو APK مزود بـ PrintBridge)
   function executeSystemPrintSpooler() {
-    // 1. إذا كان هناك جسر أندرويد أصلي مدمج في الـ APK (Android PrintManager Bridge)
     if (window.SmartPrintBridge && typeof window.SmartPrintBridge.printHtml === 'function') {
       const paper = document.getElementById('smart-a4-paper');
       if (paper) {
@@ -2174,90 +2183,92 @@
       window.Android.print();
       return;
     }
-
-    // 2. استدعاء مدير الطباعة القياسي للمتصفح والـ WebView الحديث (محمي بـ @media print)
     window.print();
   }
 
-  // توجيه ملف الـ PDF الحقيقي إلى تطبيق أدوبي أكروبات أو خدمة طباعة أندرويد (Mopria / Default Print Service)
-  async function dispatchPdfToAndroidOrAdobe() {
-    // إذا لم يكتمل التجهيز الخلفي بعد، نجهزه فوراً
-    if (!_readyPdfFile) {
+  // 2. الحل الجذري لتجاوز قفل الـ APK (Open/Save/Cancel):
+  // فتح التقرير مباشرة في متصفح Chrome الأصلي في الهاتف حيث تعمل طابعة أندرويد وأدوبي 100% بدون قيود الـ APK
+  function openInExternalChromeForPrint() {
+    const currentUrl = window.location.href.split('?')[0].split('#')[0];
+    const targetUrl = `${currentUrl}?auto_print=${encodeURIComponent(_currentReportType)}`;
+    const noProtoUrl = targetUrl.replace(/^https?:\/\//i, '');
+
+    if (/Android/i.test(navigator.userAgent)) {
+      // استدعاء متصفح كروم الأصلي في أندرويد عبر Intent صريح يتخطى الـ WebView المغلق
+      const chromeIntent = `intent://${noProtoUrl}#Intent;scheme=https;package=com.android.chrome;end;`;
+      window.location.href = chromeIntent;
+    } else {
+      window.open(targetUrl, '_blank');
+    }
+  }
+
+  // 3. رفع ملف الـ PDF إلى Google Drive وفتحه كرابط HTTPS رسمي في Adobe Acrobat / عارض PDF دون نافذة Open/Save/Cancel المحلية
+  async function uploadAndOpenCloudPdf() {
+    const btn = document.getElementById('btn-cloud-pdf');
+    if (!_readyPdfBase64) {
       const paper = document.getElementById('smart-a4-paper');
       if (!paper || typeof html2canvas === 'undefined') {
-        showToast('جاري تحميل محرك التسطيح، يرجى المحاولة بعد لحظة', true);
+        showToast('يرجى الانتظار لحظة لتجهيز التقرير...', true);
         return;
       }
-      showToast('جاري تسطيح الطبقات وبناء ملف الـ PDF القياسي... ⏳');
-      try {
-        const canvas = await html2canvas(paper, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
-        _readyReportDataUrl = canvas.toDataURL('image/png');
-        const pdfBlob = await buildNativePdfBlobFromCanvas(canvas, _currentDocTitle);
-        _readyPdfBlob = pdfBlob;
-        _readyPdfFile = new File([pdfBlob], `Smart_Ledger_${Utilities_getTodayStr()}.pdf`, { type: 'application/pdf' });
-      } catch (e) {
-        showToast('تعذر بناء ملف الـ PDF', true);
+      showToast('جاري تجهيز ملف الـ PDF... ⏳');
+      const canvas = await html2canvas(paper, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+      const pdfRes = await buildNativePdfFromCanvas(canvas, _currentDocTitle);
+      _readyPdfBlob = pdfRes.blob;
+      _readyPdfBase64 = pdfRes.base64;
+    }
+
+    // على الكمبيوتر: تنزيل مباشر
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    if (!isMobile && _readyPdfBlob) {
+      const url = URL.createObjectURL(_readyPdfBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${_currentDocTitle}_${Utilities_getTodayStr()}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 4000);
+      showToast('📥 تم تنزيل ملف الـ PDF بنجاح');
+      return;
+    }
+
+    // على الموبايل: محاولة حفظه على Google Drive وفتحه كرابط سحابي مباشر (أو فتح Chrome للطباعة الفورية)
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري فتح الـ PDF...';
+    }
+
+    try {
+      const response = await fetch(SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({
+          action: "UPLOAD_TEMP_PDF",
+          spreadsheetId: localStorage.getItem("user_sheet_id") || "",
+          fileName: `${_currentDocTitle}_${Utilities_getTodayStr()}.pdf`,
+          pdfBase64: _readyPdfBase64
+        })
+      });
+      const res = await response.json();
+      if (res && res.status === "success" && res.url) {
+        window.location.href = res.url;
         return;
+      }
+    } catch (e) {
+      console.warn("Cloud PDF fallback to Chrome Intent:", e);
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '🌐 فتح للطباعة في Chrome / PDF';
       }
     }
 
-    // 1. التمرير المباشر لنظام أندرويد (يفتح قائمة النظام لاختيار Adobe Acrobat أو Print / Default Print Service أو WhatsApp)
-    if (_readyPdfFile && navigator.canShare && navigator.canShare({ files: [_readyPdfFile] })) {
-      try {
-        await navigator.share({
-          files: [_readyPdfFile],
-          title: _currentDocTitle,
-          text: 'ملف PDF رسمي جاهز للطباعة عبر Adobe Acrobat أو خدمة الطباعة الافتراضية'
-        });
-        showToast('✅ تم تمرير ملف الـ PDF لنظام التشغيل بنجاح');
-        return;
-      } catch (err) {
-        if (err && (err.name === 'AbortError' || /cancel/i.test(err.message))) return;
-        console.warn('PDF file share fallback:', err);
-      }
-    }
-
-    // 2. إذا كان الهاتف يفضل مشاركة الصورة المسطحة (Print as Image)
-    if (_readyImageFile && navigator.canShare && navigator.canShare({ files: [_readyImageFile] })) {
-      try {
-        await navigator.share({
-          files: [_readyImageFile],
-          title: _currentDocTitle,
-          text: 'نسخة مسطحة جاهزة للطباعة (Print as Image)'
-        });
-        showToast('✅ تم تمرير النسخة المسطحة للطباعة');
-        return;
-      } catch (err) {
-        if (err && (err.name === 'AbortError' || /cancel/i.test(err.message))) return;
-      }
-    }
-
-    // 3. للكمبيوتر أو المتصفحات العادية: تنزيل/فتح ملف الـ PDF مباشرة
-    if (_readyPdfBlob) {
-      try {
-        const pdfUrl = URL.createObjectURL(_readyPdfBlob);
-        const a = document.createElement('a');
-        a.href = pdfUrl;
-        a.download = `Smart_Ledger_${Utilities_getTodayStr()}.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        setTimeout(() => {
-          document.body.removeChild(a);
-          URL.revokeObjectURL(pdfUrl);
-        }, 5000);
-        showToast('📥 تم إصدار ملف الـ PDF بنجاح');
-        return;
-      } catch (dlErr) {
-        console.warn(dlErr);
-      }
-    }
-
-    // 4. البديل النهائي داخل الـ WebView المقيد: عرض النسخة المسطحة للطباعة كصورة
-    convertA4SheetToImage();
+    // إذا لم يكن السكربت السحابي يدعم UPLOAD_TEMP_PDF بعد، نفتحه فوراً في متصفح Chrome الأصلي لطباعته مباشرة
+    openInExternalChromeForPrint();
   }
 
   function printReportA4(reportType) {
-    // إغلاق نافذة المشاركة إن كانت مفتوحة
+    _currentReportType = reportType || 'ledger';
     const shareModal = document.getElementById('modal-quick-share');
     if (shareModal) shareModal.classList.remove('open');
 
@@ -2266,7 +2277,6 @@
     let bodyHtml = "";
     const today = Utilities_getTodayStr();
 
-    // 1. بناء محتوى مستقل تماماً لكل تقرير على حدة (onLayout & Data Binding)
     if (reportType === 'ledger') {
       const sel = document.getElementById('statement-account-selector');
       const accName = sel && sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text : "الحساب";
@@ -2317,7 +2327,6 @@
       bodyHtml = activeCard ? activeCard.innerHTML : '<p>لا توجد بيانات للطباعة</p>';
     }
 
-    // 2. إنشاء واجهة محول المستند (PrintDocumentAdapter Preview)
     let sheet = document.getElementById('smart-a4-sheet');
     if (sheet) sheet.remove();
 
@@ -2329,18 +2338,18 @@
       <div id="a4-action-bar" style="position:sticky; top:0; z-index:10; display:flex; justify-content:space-between; align-items:center; padding:12px 16px; background:#1e293b; color:#fff; border-bottom:1px solid #334155; gap:8px; flex-wrap:wrap;">
         <div style="display:flex; align-items:center; gap:8px;">
           <span style="font-size:14px; font-weight:800;">📄 ${docTitle}</span>
-          <span id="a4-adapter-status" style="font-size:10px; padding:3px 8px; border-radius:12px; background:#334155; color:#cbd5e1; font-weight:700;">⏳ جاري تسطيح الـ PDF...</span>
+          <span id="a4-adapter-status" style="font-size:10px; padding:3px 8px; border-radius:12px; background:#334155; color:#cbd5e1; font-weight:700;">⏳ جاري التجهيز...</span>
         </div>
         <div style="display:flex; gap:8px; flex-wrap:wrap;">
-          <button onclick="dispatchPdfToAndroidOrAdobe()" style="background:#dc2626; color:#fff; border:none; padding:8px 14px; border-radius:8px; font-weight:800; font-size:12px; cursor:pointer; font-family:'Cairo'; box-shadow:0 4px 12px rgba(220,38,38,0.3);"><i class="fa-solid fa-file-pdf"></i> فتح / طباعة PDF (Adobe & Android)</button>
-          <button onclick="executeSystemPrintSpooler()" style="background:#2563eb; color:#fff; border:none; padding:8px 14px; border-radius:8px; font-weight:700; font-size:12px; cursor:pointer; font-family:'Cairo';">🖨️ طابعة النظام (Spooler)</button>
-          <button onclick="convertA4SheetToImage()" style="background:#10b981; color:#fff; border:none; padding:8px 14px; border-radius:8px; font-weight:700; font-size:12px; cursor:pointer; font-family:'Cairo';">🖼️ طباعة كصورة (Flattened)</button>
+          <button onclick="executeSystemPrintSpooler()" style="background:#2563eb; color:#fff; border:none; padding:8px 14px; border-radius:8px; font-weight:800; font-size:12px; cursor:pointer; font-family:'Cairo';">🖨️ طباعة مباشرة (A4)</button>
+          <button id="btn-cloud-pdf" onclick="openInExternalChromeForPrint()" style="background:#dc2626; color:#fff; border:none; padding:8px 14px; border-radius:8px; font-weight:800; font-size:12px; cursor:pointer; font-family:'Cairo';">🌐 فتح الطباعة عبر Chrome (للهاتف)</button>
+          <button onclick="convertA4SheetToImage()" style="background:#10b981; color:#fff; border:none; padding:8px 14px; border-radius:8px; font-weight:700; font-size:12px; cursor:pointer; font-family:'Cairo';">🖼️ عرض كصورة</button>
           <button onclick="document.getElementById('smart-a4-sheet').remove()" style="background:#475569; color:#fff; border:none; padding:8px 14px; border-radius:8px; font-weight:700; font-size:12px; cursor:pointer; font-family:'Cairo';">✖ إغلاق</button>
         </div>
       </div>
 
       <div id="a4-mobile-hint" style="background:#eff6ff; color:#1e40af; padding:10px 16px; font-size:12px; font-weight:700; text-align:center; border-bottom:1px solid #bfdbfe;">
-        💡 <strong>توجيه الطباعة الذكي:</strong> للموبايل اضغط الزر الأحمر <strong>(فتح / طباعة PDF)</strong> لتمرير ملف الـ PDF مباشرة إلى تطبيق <strong>Adobe Acrobat</strong> أو <strong>خدمة طباعة أندرويد</strong> — وللكمبيوتر اضغط <strong>(🖨️ طابعة النظام)</strong>.
+        💡 <strong>لتفادي رسالة (Open / Save / Cancel) في تطبيق الـ APK:</strong> اضغط الزر الأحمر <strong>(🌐 فتح الطباعة عبر Chrome)</strong> ليفتح لك التقرير مباشرة في نظام الطباعة الأصلي للهاتف، أو اضغط <strong>(🖨️ طباعة مباشرة A4)</strong> للكمبيوتر.
       </div>
 
       <div style="flex:1; padding:16px; display:flex; justify-content:center; align-items:flex-start;">
@@ -2362,7 +2371,6 @@
 
     document.body.appendChild(sheet);
 
-    // 3. تنظيف أي أزرار داخلية وتنسيق الجداول داخل ورقة الـ A4 (onLayout Formatting)
     const paperBody = document.getElementById('smart-a4-body');
     paperBody.querySelectorAll('button, .btn, .btn-inv-tag, .btn-edit-tag').forEach(el => el.remove());
     paperBody.querySelectorAll('table').forEach(tbl => {
@@ -2382,47 +2390,11 @@
       th.style.fontWeight = '800';
     });
 
-    // 4. تشغيل محرك التسطيح وبناء الـ PDF في الخلفية فوراً
     prepareReportPdfAndImageInBackground(docTitle);
   }
 
-  // دالة إخفاء الشريط العلوي مؤقتاً لأخذ لقطة شاشة نظيفة (Screenshot)
-  function toggleCleanScreenshotMode() {
-    const bar = document.getElementById('a4-action-bar');
-    const hint = document.getElementById('a4-mobile-hint');
-    const sheet = document.getElementById('smart-a4-sheet');
-    if (!bar || !sheet) return;
-    bar.style.display = 'none';
-    if (hint) hint.style.display = 'none';
-    sheet.style.background = '#ffffff';
-    showToast('📸 التقط الشاشة الآن (اضغط في أي مكان لإظهار الأزرار)');
-    setTimeout(() => {
-      const restore = () => {
-        bar.style.display = 'flex';
-        if (hint) hint.style.display = 'block';
-        sheet.style.background = '#0f172a';
-        sheet.removeEventListener('click', restore);
-      };
-      sheet.addEventListener('click', restore);
-    }, 300);
-  }
-
-  // دالة الطباعة كصورة مسطحة (Print as Image - Flattened Copy) لحل مشكلة الخطوط غير المدمجة في الطابعات
-  async function convertA4SheetToImage() {
-    if (_readyImageFile && navigator.canShare && navigator.canShare({ files: [_readyImageFile] })) {
-      try {
-        await navigator.share({
-          files: [_readyImageFile],
-          title: _currentDocTitle,
-          text: 'نسخة مسطحة جاهزة للطباعة كصورة (Print as Image)'
-        });
-        showToast('✅ تم فتح قائمة مشاركة وطباعة الصورة المسطحة');
-        return;
-      } catch (err) {
-        console.warn('Direct image share error or cancelled:', err);
-      }
-    }
-
+  // عرض النسخة المسطحة كصورة داخل الصفحة بدون أي أوامر تنزيل (لا يطلق Open/Save/Cancel أبداً)
+  function convertA4SheetToImage() {
     const paper = document.getElementById('smart-a4-paper');
     if (_readyReportDataUrl && paper) {
       paper.outerHTML = `<img id="generated-a4-img" src="${_readyReportDataUrl}" style="width:100%; max-width:794px; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.35); background:#fff; display:block; touch-action:pan-y;" alt="Report A4">`;
@@ -2430,19 +2402,19 @@
       if (hint) {
         hint.style.background = '#dcfce7';
         hint.style.color = '#166534';
-        hint.innerHTML = '✅ تم تسطيح التقرير كصورة عالية الدقة (Print as Image)! اضغط مطولاً على الصورة لحفظها أو مشاركتها.';
+        hint.innerHTML = '✅ تم تحويل التقرير إلى صورة مسطحة داخل الشاشة (بدون تنزيل ملفات)! اضغط مطولاً على الصورة للمشاركة أو الحفظ.';
       }
-      showToast('✅ التقرير معروض كصورة مسطحة عالية الدقة');
+      showToast('✅ التقرير معروض كصورة مسطحة أمامك');
       return;
     }
 
     if (!paper || typeof html2canvas === 'undefined') return;
-    showToast('جاري تسطيح التقرير كصورة عالية الدقة... ⏳');
+    showToast('جاري تسطيح التقرير كصورة... ⏳');
     html2canvas(paper, { scale: 2, useCORS: true, backgroundColor: '#ffffff' }).then(canvas => {
       const imgData = canvas.toDataURL('image/png');
       _readyReportDataUrl = imgData;
       paper.outerHTML = `<img id="generated-a4-img" src="${imgData}" style="width:100%; max-width:794px; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.35); background:#fff; display:block; touch-action:pan-y;" alt="Report A4">`;
-      showToast('✅ تم تسطيح التقرير كصورة');
+      showToast('✅ تم عرض التقرير كصورة');
     });
   }
 
@@ -3873,7 +3845,18 @@ function openAddMemberModal() {
       renderFixedAssetsDepreciationList();
       renderCurrenciesTable();
 
-
+      // فحص ما إذا تم توجيه التقرير من الـ APK إلى متصفح Chrome الأصلي للطباعة الفورية عبر Android PrintManager
+      const urlParams = new URLSearchParams(window.location.search);
+      const autoPrintType = urlParams.get('auto_print');
+      if (autoPrintType) {
+        setTimeout(() => {
+          switchTab('tab-statement');
+          loadStatementData();
+          calculateFinancialReports();
+          printReportA4(autoPrintType);
+          setTimeout(() => { window.print(); }, 600);
+        }, 500);
+      }
     } catch(err) {
       console.warn("Bootstrap safe init:", err);
     }

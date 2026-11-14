@@ -1543,6 +1543,35 @@
     return new Date().toISOString().split('T')[0];
   }
 
+  async function postCloudWriteAction(payload, onRevertCallback) {
+    const sheetId = localStorage.getItem("user_sheet_id");
+    if (!sheetId) return true;
+    try {
+      const response = await fetch(SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(payload)
+      });
+      const res = await response.json();
+      if (res.license) saveLicenseState(res.license);
+      if (res.status === "license_expired" || (res.message && String(res.message).includes("⛔"))) {
+        if (typeof onRevertCallback === "function") onRevertCallback();
+        const msg = res.message || "⛔ انتهت صلاحية النسخة التجريبية أو تجاوزت حد القيود المسموح به.";
+        currentLicense.isExpired = true;
+        currentLicense.status = "منتهي";
+        currentLicense.expireReason = msg;
+        saveLicenseState(currentLicense);
+        showLicenseLockScreen(msg);
+        showToast(msg, true);
+        return false;
+      }
+      return true;
+    } catch (err) {
+      console.warn("Cloud write sync warning:", err);
+      return true;
+    }
+  }
+
   function filterExpenseAccountsByCategory() {
     const catEl = document.getElementById('quick-exp-category');
     const expSel = document.getElementById('quick-exp-acc');
@@ -1557,12 +1586,7 @@
     }
 
     expSel.innerHTML = filteredAccounts.map(a => `<option value="${a.code}">${a.code} - ${a.name}</option>`).join('');
-    
   }
-  if (res.license) saveLicenseState(res.license);
-        if (res.status === "license_expired" || (res.license && res.license.isExpired)) {
-          showLicenseLockScreen(res.message || (res.license && res.license.expireReason) || "انتهت صلاحية النسخة التجريبية");
-        }
 
   function openQuickExpenseModal() {
     const catSel = document.getElementById('quick-exp-category');
@@ -1627,11 +1651,14 @@
 
     const sheetId = localStorage.getItem("user_sheet_id");
     if (sheetId) {
-      fetch(SCRIPT_URL, {
-        method: "POST",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({ action: "NEW_ENTRY", spreadsheetId: sheetId, entryDate: date, lines: lines })
-      });
+      postCloudWriteAction(
+        { action: "NEW_ENTRY", spreadsheetId: sheetId, entryDate: date, lines: lines },
+        () => {
+          ledgerEntries = ledgerEntries.filter(e => e.entryNo !== genNo);
+          persistData();
+          calculateFinancialReports();
+        }
+      );
     }
   }
 
@@ -1682,10 +1709,8 @@
 
     const sheetId = localStorage.getItem("user_sheet_id");
     if (sheetId) {
-      fetch(SCRIPT_URL, {
-        method: "POST",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({
+      postCloudWriteAction(
+        {
           action: "NEW_ENTRY",
           spreadsheetId: sheetId,
           entryDate: date,
@@ -1693,8 +1718,13 @@
             { accountCode: targetCode, accountName: targetAcc.name, description: fullMemo, debit: amount, credit: 0 },
             { accountCode: "4201", accountName: "إيرادات أخرى ومتنوعة", description: fullMemo, debit: 0, credit: amount }
           ]
-        })
-      });
+        },
+        () => {
+          ledgerEntries = ledgerEntries.filter(e => e.entryNo !== genNo);
+          persistData();
+          calculateFinancialReports();
+        }
+      );
     }
   }
 
@@ -2010,6 +2040,7 @@
   }
 
   function runPeriodicDepreciationAction() {
+    if (!verifyLicenseAndTrialStatus(true)) return;
     const todayStr = Utilities_getTodayStr();
     const today = new Date();
     let totalDeprCalculated = 0;
@@ -2102,6 +2133,7 @@
   }
 
   async function saveItemCardAction() {
+    if (!verifyLicenseAndTrialStatus(false)) return;
     const code = document.getElementById('item-card-code').value.trim() || ('SKU-' + Date.now().toString().slice(-4));
     const name = document.getElementById('item-card-name').value.trim();
     const cost = parseFloat(document.getElementById('item-card-cost').value) || 0;
@@ -2893,23 +2925,30 @@ function openAddMemberModal() {
       });
 
       const res = await response.json();
-      if (res.status === "success" && res.license) {
+      if ((res.status === "success" || res.status === "license_expired") && res.license) {
+        const prevSheetId = localStorage.getItem('user_sheet_id');
         saveLicenseState(res.license);
         localStorage.setItem('user_owner_email', currentLicense.email);
         localStorage.setItem('user_sheet_id', currentLicense.sheetId);
         
-        localStorage.removeItem('smart_entries');
-        localStorage.removeItem('smart_invoices');
-        localStorage.removeItem('smart_inventory_items');
-        localStorage.removeItem('smart_fixed_assets');
-        ledgerEntries = [];
-        smartInvoices = [];
-        inventoryItems = [];
-        fixedAssetsList = [];
+        if (prevSheetId !== currentLicense.sheetId) {
+          localStorage.removeItem('smart_entries');
+          localStorage.removeItem('smart_invoices');
+          localStorage.removeItem('smart_inventory_items');
+          localStorage.removeItem('smart_fixed_assets');
+          ledgerEntries = [];
+          smartInvoices = [];
+          inventoryItems = [];
+          fixedAssetsList = [];
+        }
 
         closeOnboardingModal();
         updateLicenseUI();
-        showToast('تم تجهيز وربط مساحة العمل المستقلة الجديدة بنجاح 🎉');
+        if (res.status === "license_expired" || currentLicense.isExpired) {
+          showLicenseLockScreen(res.message || currentLicense.expireReason);
+        } else {
+          showToast('تم تجهيز وربط مساحة العمل المستقلة الجديدة بنجاح 🎉');
+        }
         triggerCloudSync();
       } else {
         throw new Error(res.message || "فشل التحقق من الكود");
@@ -2968,6 +3007,7 @@ function openAddMemberModal() {
   }
 
   async function confirmAddAccount() {
+    if (!verifyLicenseAndTrialStatus(false)) return;
     const name = document.getElementById('new-acc-name').value.trim();
     const type = document.getElementById('new-acc-type').value;
     const openingBal = parseFloat(document.getElementById('new-acc-opening-bal').value) || 0;
@@ -3029,7 +3069,7 @@ function openAddMemberModal() {
       });
 
       const res = await response.json();
-      if (res.status === "success") {
+      if (res.status === "success" || res.status === "license_expired") {
         if (res.entries && Array.isArray(res.entries)) ledgerEntries = res.entries;
         if (res.items && Array.isArray(res.items)) inventoryItems = res.items;
 
@@ -3047,10 +3087,18 @@ function openAddMemberModal() {
           chartOfAccounts = mergedAccounts;
         }
 
+        if (res.license) saveLicenseState(res.license);
+
         persistData();
         populateAccountSelects();
         populateItemSelectors();
-        showToast('اكتملت المزامنة بنجاح ✅');
+
+        if (res.status === "license_expired" || (res.license && res.license.isExpired)) {
+          showLicenseLockScreen(res.message || (res.license && res.license.expireReason) || "انتهت صلاحية النسخة التجريبية");
+        } else {
+          verifyLicenseAndTrialStatus(false);
+          showToast('اكتملت المزامنة بنجاح ✅');
+        }
       } else {
         throw new Error(res.message || 'فشلت المزامنة');
       }
@@ -3815,17 +3863,20 @@ function openAddMemberModal() {
     populateItemSelectors();
     showToast(isEditMode ? 'تم حفظ التعديل وتحديث المخزون ✅' : 'تم ترحيل الفاتورة وتحديث المخزون بنجاح ✅');
     
-    fetch(SCRIPT_URL, {
-      method: "POST",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify({
+    postCloudWriteAction(
+      {
         action: isEditMode ? "EDIT_INVOICE" : "CREATE_INVOICE",
         spreadsheetId: localStorage.getItem("user_sheet_id"),
         invoiceId: invId, invoiceType: invType, partyAccountCode: partyCode,
         partyAccountName: partyName, paymentMethod: payMethod, applyTax: taxRate > 0,
         taxRate: taxRate, invoiceDate: date, items: items
-      })
-    });
+      },
+      () => {
+        smartInvoices = smartInvoices.filter(x => x.id !== invId);
+        ledgerEntries = ledgerEntries.filter(e => e.invoiceId !== invId);
+        persistData();
+      }
+    );
 
     cancelEditInvoiceMode();
     const stmtSel = document.getElementById('statement-account-selector');
@@ -4105,11 +4156,13 @@ function openAddMemberModal() {
       document.querySelectorAll('.input-credit').forEach(i => i.value = 0);
       calculateBalance();
 
-      fetch(SCRIPT_URL, {
-        method: "POST",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({ action: "NEW_ENTRY", spreadsheetId: localStorage.getItem("user_sheet_id"), entryDate: date, lines })
-      });
+      postCloudWriteAction(
+        { action: "NEW_ENTRY", spreadsheetId: localStorage.getItem("user_sheet_id"), entryDate: date, lines },
+        () => {
+          ledgerEntries = ledgerEntries.filter(e => e.entryNo !== generatedEntryNo);
+          persistData();
+        }
+      );
     }
   }
 

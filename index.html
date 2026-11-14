@@ -1192,7 +1192,7 @@
 </div>
 
 <script>
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbztwB5mQBr6y-KZ-_VrqdVdMNzpltYQ-qAQODVMy8NyT5B5KyPh_gXWXUCK4oF3c3Ye/exec";
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyRpVdBgk1abILGZbVnk_HesiUUI_M1j0POOLJbWf8TycF_ZjoUzKdZizhuZ0F92lEy/exec";
 
   function showToast(message, isError = false) {
     let toast = document.getElementById("appToast");
@@ -1234,13 +1234,207 @@
   ];
 
   let currentLicense = {
-    key: "PRO-2026",
-    type: "PRO",
-    status: "نشط",
+    key: localStorage.getItem('smart_lic_key') || "",
+    type: localStorage.getItem('smart_lic_type') || "TRIAL",
+    startDate: localStorage.getItem('smart_lic_start') || "",
+    endDate: localStorage.getItem('smart_lic_end') || "",
+    limitEntries: Number(localStorage.getItem('smart_lic_limit')) || 50,
+    usedEntries: Number(localStorage.getItem('smart_lic_used')) || 0,
+    status: localStorage.getItem('smart_lic_status') || "نشط",
+    isExpired: localStorage.getItem('smart_lic_expired') === "true",
+    expireReason: localStorage.getItem('smart_lic_reason') || "",
     email: localStorage.getItem('user_owner_email') || "",
     sheetId: localStorage.getItem('user_sheet_id') || ""
   };
+  try {
+    const savedLicObj = localStorage.getItem('smart_license_obj');
+    if (savedLicObj) currentLicense = Object.assign({}, currentLicense, JSON.parse(savedLicObj));
+  } catch (e) { console.warn(e); }
 
+  function saveLicenseState(licObj) {
+    if (!licObj) return;
+    currentLicense = Object.assign({}, currentLicense, licObj);
+    const rawType = String(currentLicense.type || "TRIAL").trim().toUpperCase();
+    currentLicense.type = (rawType === "TRIAL" || rawType.indexOf("تجريب") !== -1) ? "TRIAL" : "PRO";
+    localStorage.setItem('smart_license_obj', JSON.stringify(currentLicense));
+    localStorage.setItem('smart_lic_key', currentLicense.key || "");
+    localStorage.setItem('smart_lic_type', currentLicense.type);
+    localStorage.setItem('smart_lic_start', currentLicense.startDate || "");
+    localStorage.setItem('smart_lic_end', currentLicense.endDate || "");
+    localStorage.setItem('smart_lic_limit', String(currentLicense.limitEntries || 50));
+    localStorage.setItem('smart_lic_used', String(currentLicense.usedEntries || 0));
+    localStorage.setItem('smart_lic_status', currentLicense.status || "نشط");
+    localStorage.setItem('smart_lic_expired', currentLicense.isExpired ? "true" : "false");
+    localStorage.setItem('smart_lic_reason', currentLicense.expireReason || "");
+    if (currentLicense.email) localStorage.setItem('user_owner_email', currentLicense.email);
+    if (currentLicense.sheetId) localStorage.setItem('user_sheet_id', currentLicense.sheetId);
+    updateLicenseUI();
+    verifyLicenseAndTrialStatus(false);
+  }
+
+  function countLocalUniqueEntries() {
+    const uniqueSet = new Set();
+    ledgerEntries.forEach((e, idx) => uniqueSet.add(String(e.entryNo || e.invoiceId || idx)));
+    return Math.max(uniqueSet.size, Number(currentLicense.usedEntries) || 0);
+  }
+
+  function verifyLicenseAndTrialStatus(isBeforeAddAction = false) {
+    const licType = String(currentLicense.type || "TRIAL").toUpperCase();
+    const statusVal = String(currentLicense.status || "نشط").trim();
+
+    if (currentLicense.isExpired || statusVal === "منتهي" || statusVal === "موقوف" || statusVal === "ملغى") {
+      const msg = currentLicense.expireReason || ("⛔ عذراً، صلاحية الترخيص (" + statusVal + "). يرجى التواصل مع الإدارة لتفعيل النسخة الكاملة (PRO).");
+      showLicenseLockScreen(msg);
+      return false;
+    }
+
+    if (licType === "TRIAL") {
+      const todayStr = Utilities_getTodayStr();
+      const endDateStr = String(currentLicense.endDate || "").trim();
+      const limitEntries = Number(currentLicense.limitEntries) || 50;
+      const usedCount = countLocalUniqueEntries();
+
+      if (endDateStr && endDateStr !== "غير محدود" && /^\d{4}-\d{2}-\d{2}/.test(endDateStr)) {
+        const expClean = endDateStr.substring(0, 10);
+        if (todayStr > expClean) {
+          const msg = `⛔ انتهت فترة التجربة المجانية (Trial) الخاصة بك بتاريخ (${expClean}). يرجى التواصل مع الإدارة للترقية إلى النسخة الدائمة (PRO).`;
+          currentLicense.isExpired = true;
+          currentLicense.status = "منتهي";
+          currentLicense.expireReason = msg;
+          localStorage.setItem('smart_license_obj', JSON.stringify(currentLicense));
+          showLicenseLockScreen(msg);
+          return false;
+        }
+      }
+
+      if (limitEntries > 0) {
+        if ((isBeforeAddAction && usedCount >= limitEntries) || (!isBeforeAddAction && usedCount > limitEntries)) {
+          const msg = `⛔ لقد وصلت إلى الحد الأقصى المسموح به من القيود في النسخة التجريبية (${limitEntries} قيد). يرجى الترقية إلى النسخة الدائمة (PRO) لمتابعة العمل.`;
+          currentLicense.isExpired = true;
+          currentLicense.status = "منتهي";
+          currentLicense.expireReason = msg;
+          localStorage.setItem('smart_license_obj', JSON.stringify(currentLicense));
+          showLicenseLockScreen(msg);
+          return false;
+        }
+      }
+    }
+
+    hideLicenseLockScreen();
+    return true;
+  }
+
+  function showLicenseLockScreen(reasonMessage) {
+    let lockModal = document.getElementById('license-lock-screen');
+    if (!lockModal) {
+      lockModal = document.createElement('div');
+      lockModal.id = 'license-lock-screen';
+      lockModal.style.cssText = 'position:fixed; inset:0; background:rgba(15,23,42,0.97); z-index:2147483646; display:flex; align-items:center; justify-content:center; padding:20px; direction:rtl; font-family:"Cairo",sans-serif; backdrop-filter:blur(8px);';
+      document.body.appendChild(lockModal);
+    }
+
+    const savedEmail = localStorage.getItem('user_owner_email') || currentLicense.email || '';
+    lockModal.innerHTML = `
+      <div style="background:#ffffff; color:#0f172a; width:100%; max-width:430px; border-radius:24px; padding:26px 22px; text-align:center; box-shadow:0 20px 50px rgba(0,0,0,0.5); border:2px solid #ef4444;">
+        <div style="width:68px; height:68px; background:#fef2f2; color:#ef4444; border:2px solid #fecaca; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:30px; margin-bottom:14px;">
+          <i class="fa-solid fa-lock"></i>
+        </div>
+        <h3 style="font-size:20px; font-weight:900; color:#b91c1c; margin-bottom:8px;">توقف النظام — انتهت صلاحية النسخة التجريبية</h3>
+        <div style="background:#fff1f2; border:1px solid #fecdd3; color:#9f1239; padding:12px; border-radius:12px; font-size:13px; font-weight:700; line-height:1.6; margin-bottom:18px;">
+          ${reasonMessage}
+        </div>
+        <div style="text-align:right; background:#f8fafc; padding:14px; border-radius:14px; border:1px solid #e2e8f0; margin-bottom:14px;">
+          <div style="font-size:12px; font-weight:800; color:#1e293b; margin-bottom:10px;"><i class="fa-solid fa-crown" style="color:#f59e0b;"></i> أدخل كود التفعيل الدائم (PRO) لفتح حسابك فوراً:</div>
+          <div style="margin-bottom:10px;">
+            <label style="font-size:11px;">البريد الإلكتروني (Gmail)</label>
+            <input type="email" id="lock-upgrade-email" value="${savedEmail}" placeholder="name@gmail.com">
+          </div>
+          <div>
+            <label style="font-size:11px;">كود التفعيل الجديد (PRO License Key)</label>
+            <input type="text" id="lock-upgrade-key" placeholder="أدخل كود PRO هنا..." style="text-transform:uppercase; font-weight:800; letter-spacing:1px;">
+          </div>
+        </div>
+        <button class="btn btn-primary" id="btn-unlock-pro" onclick="unlockAppWithProKey()" style="padding:14px; font-size:14px; margin-bottom:8px;">
+          <i class="fa-solid fa-unlock-keyhole"></i> تفعيل كود PRO وفتح النظام الآن
+        </button>
+        <button class="btn btn-outline" onclick="checkCloudLicenseHeartbeat(true)" style="margin-bottom:0; padding:10px; font-size:12px;">
+          <i class="fa-solid fa-rotate"></i> قمت بالتجديد لدى الإدارة؟ اضغط لإعادة الفحص السحابي
+        </button>
+      </div>
+    `;
+  }
+
+  function hideLicenseLockScreen() {
+    const lockModal = document.getElementById('license-lock-screen');
+    if (lockModal) lockModal.remove();
+  }
+
+  async function unlockAppWithProKey() {
+    const emailEl = document.getElementById('lock-upgrade-email');
+    const keyEl = document.getElementById('lock-upgrade-key');
+    const btn = document.getElementById('btn-unlock-pro');
+    const email = emailEl ? emailEl.value.trim().toLowerCase() : '';
+    const key = keyEl ? keyEl.value.trim().toUpperCase() : '';
+
+    if (!email || !key) return showToast('يرجى إدخال البريد الإلكتروني وكود التفعيل الجديد', true);
+
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري التحقق من الكود مع الإدارة...';
+    }
+
+    try {
+      const response = await fetch(SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({
+          action: "VERIFY_OR_ACTIVATE_LICENSE",
+          email: email,
+          licenseKey: key,
+          existingSheetId: localStorage.getItem('user_sheet_id') || ''
+        })
+      });
+      const res = await response.json();
+      if (res.status === "success" && res.license && !res.license.isExpired) {
+        saveLicenseState(res.license);
+        hideLicenseLockScreen();
+        showToast('🎉 تم تفعيل النسخة بنجاح وفتح النظام!');
+        triggerCloudSync();
+      } else {
+        showToast(res.message || 'الكود غير صالح أو منتهي الصلاحية', true);
+      }
+    } catch (e) {
+      showToast('خطأ في الاتصال بالسيرفر: ' + e.message, true);
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-unlock-keyhole"></i> تفعيل كود PRO وفتح النظام الآن';
+      }
+    }
+  }
+
+  async function checkCloudLicenseHeartbeat(showFeedback = false) {
+    const sheetId = localStorage.getItem('user_sheet_id');
+    if (!sheetId) return;
+    if (showFeedback) showToast('جاري التحقق من حالة الترخيص السحابي... ⏳');
+    try {
+      const response = await fetch(SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action: "CHECK_LICENSE_STATUS", spreadsheetId: sheetId })
+      });
+      const res = await response.json();
+      if (res.license) saveLicenseState(res.license);
+      if (res.status === "license_expired") {
+        showLicenseLockScreen(res.message || (res.license && res.license.expireReason) || "انتهت صلاحية النسخة التجريبية");
+      } else if (res.status === "success" && res.license && !res.license.isExpired) {
+        hideLicenseLockScreen();
+        if (showFeedback) showToast('✅ الترخيص نشط وصالح للعمل');
+      }
+    } catch (e) {
+      console.warn("License heartbeat check warning:", e);
+    }
+  }
   let baseCurrency = localStorage.getItem('smart_base_currency') || 'ر.س';
   let currentCurrency = baseCurrency;
 
@@ -1301,11 +1495,34 @@
   function updateLicenseUI() {
     const own = document.getElementById('set-owner-email');
     const sht = document.getElementById('set-sheet-id');
-    const savedEmail = localStorage.getItem('user_owner_email') || '';
-    const savedSheet = localStorage.getItem('user_sheet_id') || '';
+    const savedEmail = localStorage.getItem('user_owner_email') || currentLicense.email || '';
+    const savedSheet = localStorage.getItem('user_sheet_id') || currentLicense.sheetId || '';
 
     if (own) own.value = savedEmail;
     if (sht) sht.value = savedSheet;
+
+    const banner = document.getElementById('license-banner');
+    const bannerTxt = document.getElementById('banner-license-text');
+    const settingsTag = document.getElementById('settings-license-tag');
+
+    const isTrial = String(currentLicense.type || "TRIAL").toUpperCase() === "TRIAL";
+    const usedCount = countLocalUniqueEntries();
+    const limitEntries = Number(currentLicense.limitEntries) || 50;
+    const endDateStr = (currentLicense.endDate && currentLicense.endDate !== "غير محدود") ? String(currentLicense.endDate).substring(0, 10) : "محدود";
+
+    if (currentLicense.isExpired || currentLicense.status === "منتهي") {
+      if (banner) { banner.style.background = "#fef2f2"; banner.style.borderColor = "#fecaca"; banner.style.color = "#991b1b"; }
+      if (bannerTxt) bannerTxt.innerHTML = `⛔ الرخصة منتهية (${isTrial ? 'TRIAL' : 'PRO'}) — يرجى الترقية`;
+      if (settingsTag) { settingsTag.className = "role-badge"; settingsTag.style.background = "#fee2e2"; settingsTag.style.color = "#b91c1c"; settingsTag.innerText = "منتهي ⛔"; }
+    } else if (isTrial) {
+      if (banner) { banner.style.background = "#fffbeb"; banner.style.borderColor = "#fde68a"; banner.style.color = "#92400e"; }
+      if (bannerTxt) bannerTxt.innerHTML = `⏳ نسخة تجريبية (TRIAL) | تنتهي: ${endDateStr} | القيود: ${usedCount}/${limitEntries}`;
+      if (settingsTag) { settingsTag.className = "role-badge admin"; settingsTag.style.background = "#fef3c7"; settingsTag.style.color = "#b45309"; settingsTag.innerText = `تجريبي TRIAL (${usedCount}/${limitEntries})`; }
+    } else {
+      if (banner) { banner.style.background = "var(--success-light)"; banner.style.borderColor = "#a7f3d0"; banner.style.color = "#065f46"; }
+      if (bannerTxt) bannerTxt.innerHTML = `النسخة الدائمة (PRO) - وصول مفتوح ✓`;
+      if (settingsTag) { settingsTag.className = "role-badge admin"; settingsTag.style.background = "#dcfce7"; settingsTag.style.color = "#15803d"; settingsTag.innerText = "نشط PRO ✓"; }
+    }
   }
 
   function saveSheetIdManually() {
@@ -1340,7 +1557,12 @@
     }
 
     expSel.innerHTML = filteredAccounts.map(a => `<option value="${a.code}">${a.code} - ${a.name}</option>`).join('');
+    
   }
+  if (res.license) saveLicenseState(res.license);
+        if (res.status === "license_expired" || (res.license && res.license.isExpired)) {
+          showLicenseLockScreen(res.message || (res.license && res.license.expireReason) || "انتهت صلاحية النسخة التجريبية");
+        }
 
   function openQuickExpenseModal() {
     const catSel = document.getElementById('quick-exp-category');
@@ -1370,6 +1592,7 @@
   }
 
   async function submitQuickExpenseAction() {
+    if (!verifyLicenseAndTrialStatus(true)) return;
     const expCode = document.getElementById('quick-exp-acc').value;
     const expAcc = chartOfAccounts.find(a => a.code === expCode);
     const srcCode = document.getElementById('quick-exp-source').value;
@@ -1436,6 +1659,7 @@
   }
 
   async function submitOtherIncomeAction() {
+    if (!verifyLicenseAndTrialStatus(true)) return;
     const amount = parseFloat(document.getElementById('other-inc-amount').value) || 0;
     const targetCode = document.getElementById('other-inc-target').value;
     const targetAcc = chartOfAccounts.find(a => a.code === targetCode);
@@ -2670,7 +2894,7 @@ function openAddMemberModal() {
 
       const res = await response.json();
       if (res.status === "success" && res.license) {
-        currentLicense = res.license;
+        saveLicenseState(res.license);
         localStorage.setItem('user_owner_email', currentLicense.email);
         localStorage.setItem('user_sheet_id', currentLicense.sheetId);
         
@@ -3269,6 +3493,7 @@ function openAddMemberModal() {
   }
 
   function switchTab(tabId, el) {
+    verifyLicenseAndTrialStatus(false);
     document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
     const target = document.getElementById(tabId);
     if (target) target.classList.add('active');
@@ -3467,6 +3692,7 @@ function openAddMemberModal() {
   }
 
   async function submitInvoiceAction() {
+    if (!verifyLicenseAndTrialStatus(true)) return;
     const invType = document.getElementById('inv-type').value;
     const items = [];
     let hasNegativeStockError = false;
@@ -3823,6 +4049,7 @@ function openAddMemberModal() {
   }
 
   function saveEntryAction() {
+    if (!verifyLicenseAndTrialStatus(true)) return;
     const date = document.getElementById('entry-date').value;
     const memo = document.getElementById('entry-memo').value || 'قيد يومية';
     const editingNo = document.getElementById('editing-entry-no').value;
@@ -3998,6 +4225,12 @@ function openAddMemberModal() {
     } catch(err) {
       console.warn("Bootstrap safe init:", err);
     }
+    verifyLicenseAndTrialStatus(false);
+      checkCloudLicenseHeartbeat(false);
+      setInterval(() => {
+        verifyLicenseAndTrialStatus(false);
+        checkCloudLicenseHeartbeat(false);
+      }, 60000);
   });
 </script>
 

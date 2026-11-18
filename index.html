@@ -1161,9 +1161,10 @@
       <button style="border:none; background:none; font-size:24px; cursor:pointer; color:#64748b;" onclick="closeViewInvoiceModal()">×</button>
     </div>
     <div id="digital-invoice-body"></div>
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px;">
-      <button class="btn btn-primary" onclick="printReportA4('invoice')"><i class="fa-solid fa-print"></i> معاينة وطباعة A4 🖨️</button>
-      <button class="btn btn-secondary" onclick="closeViewInvoiceModal()">إغلاق</button>
+    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 16px;">
+      <button class="btn btn-primary" style="font-size:12px; padding:10px;" onclick="printReportA4('invoice')"><i class="fa-solid fa-print"></i> طباعة A4 🖨️</button>
+      <button class="btn btn-warning" style="font-size:12px; padding:10px;" onclick="startEditInvoiceFromPopup()"><i class="fa-solid fa-pen-to-square"></i> تعديل الفاتورة ✏️</button>
+      <button class="btn btn-secondary" style="font-size:12px; padding:10px;" onclick="closeViewInvoiceModal()">إغلاق</button>
     </div>
   </div>
 </div>
@@ -1192,7 +1193,7 @@
 </div>
 
 <script>
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyRpVdBgk1abILGZbVnk_HesiUUI_M1j0POOLJbWf8TycF_ZjoUzKdZizhuZ0F92lEy/exec";
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx7dKQs0quiy9Owe9pPMuda2ziSjOp0QDS0KuKYh8cZ55nJibioRxJ7kOdhlR_BMjbm/exec";
 
   function showToast(message, isError = false) {
     let toast = document.getElementById("appToast");
@@ -1214,6 +1215,7 @@
     { code: "1113", name: "الحساب البنكي الجاري", cat: "النقدية والبنوك", base: "bank", nature: "مدين" },
     { code: "1121", name: "عميل تجاري عام", cat: "العملاء والمدينون", base: "customer", nature: "مدين" },
     { code: "1131", name: "مخزون بضاعة المستودع الرئيسي", cat: "المخزون والأصول", base: "asset", nature: "مدين" },
+    { code: "1141", name: "ضريبة القيمة المضافة (مدخلات مشتريات)", cat: "الأصول المتداولة", base: "asset", nature: "مدين" },
     { code: "1201", name: "الأصول الثابتة والمعدات", cat: "الأصول والممتلكات", base: "asset", nature: "مدين" },
     { code: "1209", name: "مجمع إهلاك الأصول الثابتة", cat: "الأصول والممتلكات", base: "contra_asset", nature: "دائن" },
     { code: "2101", name: "مورد تجاري عام", cat: "الموردون والالتزامات", base: "vendor", nature: "دائن" },
@@ -2800,6 +2802,34 @@
     if (modal) modal.classList.remove('open');
   }
 
+  function closeShareSheetModal() {
+    const modal = document.getElementById('modal-share-sheet');
+    if (modal) modal.classList.remove('open');
+  }
+
+  function shareViaChannel(channel) {
+    if (!activeShareText) openShareModal(_currentReportType || 'ledger');
+    const encodedText = encodeURIComponent(activeShareText || '');
+    if (channel === 'whatsapp') {
+      window.open(`https://api.whatsapp.com/send?text=${encodedText}`, '_blank');
+    } else if (channel === 'telegram') {
+      window.location.href = `tg://msg?text=${encodedText}`;
+    } else if (channel === 'email') {
+      window.location.href = `mailto:?subject=${encodeURIComponent('تقرير المحاسب الذكي')}&body=${encodedText}`;
+    } else if (channel === 'sms') {
+      window.location.href = `sms:?body=${encodedText}`;
+    } else if (channel === 'native' && navigator.share) {
+      navigator.share({ title: 'تقرير المحاسب الذكي', text: activeShareText }).catch(() => {});
+    } else if (channel === 'copy' && navigator.clipboard) {
+      navigator.clipboard.writeText(activeShareText);
+      showToast('تم نسخ نص التقرير بالكامل للحافظة 📋');
+      closeShareSheetModal();
+    } else if (channel === 'download') {
+      printReportA4(_currentReportType || 'ledger');
+      closeShareSheetModal();
+    }
+  }
+
   function sendShareChannel(channel) {
     if (!activeShareText) return;
     const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
@@ -3043,17 +3073,46 @@ function openAddMemberModal() {
       });
     }
 
+    const genNo = Date.now();
     if (openingBal > 0) {
       const date = Utilities_getTodayStr();
-      const genNo = Date.now();
-      ledgerEntries.push({ entryNo: genNo, date: date, accountCode: code, accountName: name, desc: "قيمة تأسيسية / رصيد سابق: " + name, debit: openingBal, credit: 0 });
-      ledgerEntries.push({ entryNo: genNo, date: date, accountCode: "3101", accountName: "رأس المال / الأرصدة الافتتاحية", desc: "تسوية رأس مال: " + name, debit: 0, credit: openingBal });
+      const isDebitType = (nature === "مدين" || type === "asset" || type === "customer" || type === "cash" || type === "bank");
+      if (isDebitType) {
+        ledgerEntries.push({ entryNo: genNo, date: date, accountCode: code, accountName: name, desc: "قيمة تأسيسية / رصيد سابق: " + name, debit: openingBal, credit: 0 });
+        ledgerEntries.push({ entryNo: genNo, date: date, accountCode: "3101", accountName: "رأس المال / الأرصدة الافتتاحية", desc: "تسوية رأس مال: " + name, debit: 0, credit: openingBal });
+      } else {
+        ledgerEntries.push({ entryNo: genNo, date: date, accountCode: "3101", accountName: "رأس المال / الأرصدة الافتتاحية", desc: "تسوية رصيد سابق للحساب: " + name, debit: openingBal, credit: 0 });
+        ledgerEntries.push({ entryNo: genNo, date: date, accountCode: code, accountName: name, desc: "رصيد افتتاحي دائن سابق: " + name, debit: 0, credit: openingBal });
+      }
     }
 
     persistData();
     populateAccountSelects();
     closeAddAccountModal();
-    showToast(`تمت إضافة ${name} برقم ${code} بنجاح ✅`);
+
+    const sheetId = localStorage.getItem("user_sheet_id");
+    if (sheetId) {
+      postCloudWriteAction(
+        {
+          action: "ADD_ACCOUNT",
+          spreadsheetId: sheetId,
+          code: code,
+          name: name,
+          cat: cat,
+          type: type,
+          nature: nature,
+          openingBalance: openingBal
+        },
+        () => {
+          chartOfAccounts = chartOfAccounts.filter(a => a.code !== code);
+          fixedAssetsList = fixedAssetsList.filter(a => a.code !== code);
+          if (openingBal > 0) ledgerEntries = ledgerEntries.filter(e => e.entryNo !== genNo);
+          persistData();
+          populateAccountSelects();
+        }
+      );
+    }
+    showToast(`تمت إضافة ${name} برقم ${code} وحفظه سحابياً بنجاح ✅`);
   }
 
   async function triggerCloudSync() {
@@ -3072,6 +3131,9 @@ function openAddMemberModal() {
       if (res.status === "success" || res.status === "license_expired") {
         if (res.entries && Array.isArray(res.entries)) ledgerEntries = res.entries;
         if (res.items && Array.isArray(res.items)) inventoryItems = res.items;
+        if (res.invoices && Array.isArray(res.invoices) && res.invoices.length > 0) {
+          smartInvoices = res.invoices;
+        }
 
         if (res.accounts && Array.isArray(res.accounts)) {
           const mergedAccounts = [...defaultAccounts];
@@ -3328,24 +3390,43 @@ function openAddMemberModal() {
     let accountBalances = {};
     chartOfAccounts.forEach(a => { accountBalances[a.code] = { name: a.name, debit: 0, credit: 0, cat: a.cat, base: a.base }; });
 
+    const dateFromEl = document.getElementById('date-from');
+    const dateToEl = document.getElementById('date-to');
+    const filterFrom = dateFromEl ? dateFromEl.value : '';
+    const filterTo = dateToEl ? dateToEl.value : '';
+
     ledgerEntries.forEach(e => {
+      const entryDate = String(e.date || '');
+      if (filterTo && entryDate > filterTo) return;
+
       let d = Number(e.debit) || 0;
       let c = Number(e.credit) || 0;
+      const codeStr = String(e.accountCode || "").trim();
 
-      if (!accountBalances[e.accountCode]) {
-        accountBalances[e.accountCode] = { name: e.accountName || e.accountCode, debit: 0, credit: 0, cat: "", base: "other" };
+      if (!accountBalances[codeStr]) {
+        accountBalances[codeStr] = { name: e.accountName || codeStr, debit: 0, credit: 0, cat: "", base: "other" };
       }
-      accountBalances[e.accountCode].debit += d;
-      accountBalances[e.accountCode].credit += c;
+      accountBalances[codeStr].debit += d;
+      accountBalances[codeStr].credit += c;
 
-      if (e.accountCode === "4101") salesRev += (c - d);
-      if (e.accountCode === "4201") otherRev += (c - d);
-      if (e.accountCode === "5101") cogs += (d - c);
-      if (e.accountCode === "5206") deprExpense += (d - c);
+      const inPeriod = (!filterFrom || entryDate >= filterFrom);
+      if (inPeriod) {
+        if (codeStr === "4101") salesRev += (c - d);
+        if (codeStr === "4201") otherRev += (c - d);
+        if (codeStr === "5101") cogs += (d - c);
+        if (codeStr === "5206") deprExpense += (d - c);
 
-      if (e.accountCode.startsWith("52") && e.accountCode !== "5206") operatingExp += (d - c);
-      if (e.accountCode.startsWith("53")) nonOperatingExp += (d - c);
-      if (e.accountCode === "2103") { taxOut += c; taxIn += d; }
+        if (codeStr.startsWith("52") && codeStr !== "5206") operatingExp += (d - c);
+        if (codeStr.startsWith("53")) nonOperatingExp += (d - c);
+
+        if (codeStr === "2103") {
+          taxOut += c;
+          if (e.desc && (e.desc.includes("مشتريات") || e.desc.includes("مدخلات"))) taxIn += d;
+        }
+        if (codeStr === "1141") {
+          taxIn += d - c;
+        }
+      }
     });
 
     const grossProfit = salesRev - cogs;
@@ -3376,11 +3457,12 @@ function openAddMemberModal() {
 
     let currentAssets = 0, fixedAssetsCost = 0, accumDepr = 0, liabilities = 0, capital = 0;
 
+    let cumulativeNetProfit = 0;
     for (let code in accountBalances) {
       let item = accountBalances[code];
       let netBal = item.debit - item.credit;
 
-      if (code.startsWith("111") || code.startsWith("112") || code.startsWith("113")) {
+      if (code.startsWith("111") || code.startsWith("112") || code.startsWith("113") || code.startsWith("114")) {
         currentAssets += netBal;
       } else if (code.startsWith("120") && code !== "1209") {
         fixedAssetsCost += netBal;
@@ -3390,12 +3472,16 @@ function openAddMemberModal() {
         liabilities += (item.credit - item.debit);
       } else if (code.startsWith("310")) {
         capital += (item.credit - item.debit);
+      } else if (code.startsWith("4")) {
+        cumulativeNetProfit += (item.credit - item.debit);
+      } else if (code.startsWith("5")) {
+        cumulativeNetProfit -= (item.debit - item.credit);
       }
     }
 
     const netFixedAssets = fixedAssetsCost - accumDepr;
     const totalAssets = currentAssets + netFixedAssets;
-    const totalLiabAndEquity = liabilities + capital + netProfit;
+    const totalLiabAndEquity = liabilities + capital + cumulativeNetProfit;
 
     const bsCurEl = document.getElementById('bs-current-assets');
     if (bsCurEl) {
@@ -3407,7 +3493,7 @@ function openAddMemberModal() {
 
       document.getElementById('bs-liabilities').innerText = liabilities.toLocaleString(undefined, {minimumFractionDigits: 2});
       document.getElementById('bs-capital').innerText = capital.toLocaleString(undefined, {minimumFractionDigits: 2});
-      document.getElementById('bs-period-profit').innerText = netProfit.toLocaleString(undefined, {minimumFractionDigits: 2});
+      document.getElementById('bs-period-profit').innerText = cumulativeNetProfit.toLocaleString(undefined, {minimumFractionDigits: 2});
       document.getElementById('bs-total-liab-equity').innerText = totalLiabAndEquity.toLocaleString(undefined, {minimumFractionDigits: 2});
 
       const bsStatus = document.getElementById('bs-balance-status');
@@ -3687,8 +3773,20 @@ function openAddMemberModal() {
     const it = inventoryItems.find(x => x.code === code);
     if (!it) { if (warnEl) warnEl.innerHTML = ''; return; }
 
+    const editingId = document.getElementById('editing-invoice-id') ? document.getElementById('editing-invoice-id').value : '';
+    let oldQtyInInvoice = 0;
+    if (editingId) {
+      const oldInv = smartInvoices.find(x => x.id === editingId);
+      if (oldInv && oldInv.type === 'sales' && Array.isArray(oldInv.items)) {
+        oldInv.items.forEach(oi => {
+          if ((oi.itemCode && oi.itemCode === code) || oi.itemName === it.name) oldQtyInInvoice += Number(oi.qty || 0);
+        });
+      }
+    }
+    const effectiveAvail = Number(it.qty || 0) + oldQtyInInvoice;
+
     if (invType === 'sales') {
-      if (qty > it.qty) {
+      if (qty > effectiveAvail) {
         inputEl.style.borderColor = 'var(--danger)';
         if (warnEl) {
           warnEl.style.color = 'var(--danger)';
@@ -3790,6 +3888,23 @@ function openAddMemberModal() {
     const isEditMode = !!editingId;
     const invId = isEditMode ? editingId : ("INV-" + (invType === 'sales' ? 'SAL-' : 'PUR-') + Math.floor(100 + Math.random() * 900));
 
+    // في وضع التعديل: إرجاع حركة المخزون القديمة أولاً لمنع ازدواج الخصم أو الإضافة محلياً
+    if (isEditMode) {
+      const oldInv = smartInvoices.find(x => x.id === invId);
+      if (oldInv && Array.isArray(oldInv.items)) {
+        oldInv.items.forEach(oldIt => {
+          const tItem = inventoryItems.find(x => (oldIt.itemCode && x.code === oldIt.itemCode) || x.name === oldIt.itemName);
+          if (tItem) {
+            if (oldInv.type === 'sales') {
+              tItem.qty = Number(tItem.qty || 0) + Number(oldIt.qty || 0);
+            } else {
+              tItem.qty = Math.max(0, Number(tItem.qty || 0) - Number(oldIt.qty || 0));
+            }
+          }
+        });
+      }
+    }
+
     let subtotal = 0;
     let totalCogsVal = 0;
 
@@ -3843,20 +3958,21 @@ function openAddMemberModal() {
 
     const currTag = invCurrency !== 'BASE' ? ` (${invCurrency} ${grandTotal.toFixed(2)})` : '';
     const memo = (invType === 'sales' ? 'فاتورة مبيعات ' : 'فاتورة مشتريات ') + (payMethod === 'credit' ? '(آجل)' : '(نقدي)') + ' #' + invId + currTag;
+    const genEntryNo = Date.now();
 
     if (invType === 'sales') {
-      ledgerEntries.push({ date, accountCode: partyCode, desc: memo, debit: grandTotalLocal, credit: 0, invoiceId: invId });
-      ledgerEntries.push({ date, accountCode: "4101", desc: memo, debit: 0, credit: subtotalLocal, invoiceId: invId });
-      if (taxAmountLocal > 0) ledgerEntries.push({ date, accountCode: "2103", desc: "ضريبة القيمة المضافة", debit: 0, credit: taxAmountLocal, invoiceId: invId });
+      ledgerEntries.push({ entryNo: genEntryNo, date, accountCode: partyCode, accountName: partyName, desc: memo, debit: grandTotalLocal, credit: 0, invoiceId: invId });
+      ledgerEntries.push({ entryNo: genEntryNo, date, accountCode: "4101", accountName: "إيراد مبيعات المنتجات", desc: memo, debit: 0, credit: subtotalLocal, invoiceId: invId });
+      if (taxAmountLocal > 0) ledgerEntries.push({ entryNo: genEntryNo, date, accountCode: "2103", accountName: "ضريبة القيمة المضافة المستحقة", desc: "ضريبة مخرجات مبيعات #" + invId, debit: 0, credit: taxAmountLocal, invoiceId: invId });
 
       if (totalCogsVal > 0) {
-        ledgerEntries.push({ date, accountCode: "5101", desc: `تكلفة بضاعة مباعة بالفاتورة #${invId}`, debit: totalCogsVal, credit: 0, invoiceId: invId });
-        ledgerEntries.push({ date, accountCode: "1131", desc: `إخراج مخزني بالفاتورة #${invId}`, debit: 0, credit: totalCogsVal, invoiceId: invId });
+        ledgerEntries.push({ entryNo: genEntryNo + 1, date, accountCode: "5101", accountName: "تكلفة المبيعات / المشتريات", desc: `تكلفة بضاعة مباعة بالفاتورة #${invId}`, debit: totalCogsVal, credit: 0, invoiceId: invId });
+        ledgerEntries.push({ entryNo: genEntryNo + 1, date, accountCode: "1131", accountName: "مخزون بضاعة المستودع الرئيسي", desc: `إخراج مخزني بالفاتورة #${invId}`, debit: 0, credit: totalCogsVal, invoiceId: invId });
       }
     } else {
-      ledgerEntries.push({ date, accountCode: "1131", desc: memo, debit: subtotalLocal, credit: 0, invoiceId: invId });
-      if (taxAmountLocal > 0) ledgerEntries.push({ date, accountCode: "2103", desc: "ضريبة مدخلات مشتريات", debit: taxAmountLocal, credit: 0, invoiceId: invId });
-      ledgerEntries.push({ date, accountCode: partyCode, desc: memo, debit: 0, credit: grandTotalLocal, invoiceId: invId });
+      ledgerEntries.push({ entryNo: genEntryNo, date, accountCode: "1131", accountName: "مخزون بضاعة المستودع الرئيسي", desc: memo, debit: subtotalLocal, credit: 0, invoiceId: invId });
+      if (taxAmountLocal > 0) ledgerEntries.push({ entryNo: genEntryNo, date, accountCode: "1141", accountName: "ضريبة القيمة المضافة (مدخلات مشتريات)", desc: "ضريبة مدخلات مشتريات #" + invId, debit: taxAmountLocal, credit: 0, invoiceId: invId });
+      ledgerEntries.push({ entryNo: genEntryNo, date, accountCode: partyCode, accountName: partyName, desc: memo, debit: 0, credit: grandTotalLocal, invoiceId: invId });
     }
 
     persistData();
@@ -3894,8 +4010,41 @@ function openAddMemberModal() {
 
   window.openInvoicePopup = function(invId, entryIndex) {
     let inv = smartInvoices.find(x => x.id === invId);
+    if (!inv && entryIndex !== undefined && ledgerEntries[entryIndex]) {
+      const targetEntry = ledgerEntries[entryIndex];
+      const related = ledgerEntries.filter(e => (invId && invId !== 'INV-PREV' && e.invoiceId === invId) || (targetEntry.entryNo && e.entryNo === targetEntry.entryNo));
+      const isSal = related.some(e => String(e.accountCode) === "4101") || (targetEntry.desc && targetEntry.desc.includes("مبيعات"));
+      let sub = 0, tax = 0, grand = 0, pCode = targetEntry.accountCode, pName = targetEntry.accountName || targetEntry.accountCode;
+      related.forEach(r => {
+        if (String(r.accountCode) === "4101") sub += Number(r.credit || 0);
+        else if (String(r.accountCode) === "1131" && !isSal) sub += Number(r.debit || 0);
+        else if (String(r.accountCode) === "2103" || String(r.accountCode) === "1141") tax += Number(r.credit || r.debit || 0);
+        else if (String(r.accountCode) !== "5101" && String(r.accountCode) !== "1131") {
+          pCode = r.accountCode;
+          pName = r.accountName || r.accountCode;
+          grand = Math.max(grand, Number(r.debit || r.credit || 0));
+        }
+      });
+      if (sub === 0) sub = grand - tax;
+      if (grand === 0) grand = sub + tax;
+      inv = {
+        id: invId !== 'INV-PREV' ? invId : ('INV-' + (targetEntry.entryNo || entryIndex)),
+        date: targetEntry.date,
+        type: isSal ? 'sales' : 'purchase',
+        partyCode: pCode,
+        partyName: pName,
+        payMethod: (targetEntry.desc && targetEntry.desc.includes('نقد')) ? 'cash' : 'credit',
+        taxRate: tax > 0 ? 15 : 0,
+        subtotal: sub,
+        taxAmount: tax,
+        grandTotal: grand,
+        currency: 'BASE',
+        exchangeRate: 1,
+        items: [{ itemName: targetEntry.desc || 'بضاعة فاتورة', qty: 1, unitPrice: sub, costPrice: sub * 0.7 }]
+      };
+    }
     if (!inv) return showToast('لا توجد تفاصيل لهذه الفاتورة', true);
-    _activeInvoiceIdForPrint = invId;
+    _activeInvoiceIdForPrint = inv.id;
 
     let currSym = baseCurrency;
     if (inv.currency && inv.currency !== 'BASE') {
@@ -3935,6 +4084,41 @@ function openAddMemberModal() {
   window.closeViewInvoiceModal = function() {
     const m = document.getElementById('modal-view-invoice');
     if (m) m.classList.remove('open');
+  };
+
+  window.startEditInvoiceFromPopup = function() {
+    const inv = smartInvoices.find(x => x.id === _activeInvoiceIdForPrint);
+    if (!inv) return showToast('لتعديل هذه الفاتورة يرجى المزامنة أولاً أو تعديلها من شاشة القيود', true);
+    closeViewInvoiceModal();
+
+    document.getElementById('editing-invoice-id').value = inv.id;
+    document.getElementById('invoice-form-title').innerText = 'تعديل الفاتورة #' + inv.id;
+    document.getElementById('btn-cancel-edit-inv').style.display = 'inline-block';
+
+    const typeEl = document.getElementById('inv-type');
+    if (typeEl) typeEl.value = inv.type || 'sales';
+    const payEl = document.getElementById('inv-payment-method');
+    if (payEl) payEl.value = inv.payMethod || 'credit';
+    handleInvoiceTypeChange();
+
+    const partySel = document.getElementById('inv-party-select');
+    if (partySel && inv.partyCode) partySel.value = inv.partyCode;
+    const dateEl = document.getElementById('inv-date');
+    if (dateEl && inv.date) dateEl.value = inv.date;
+    const taxEl = document.getElementById('inv-tax-mode');
+    if (taxEl) taxEl.value = (inv.taxRate && Number(inv.taxRate) > 0) ? '15' : '0';
+
+    const list = document.getElementById('invoice-items-list');
+    if (list) {
+      list.innerHTML = '';
+      if (Array.isArray(inv.items) && inv.items.length > 0) {
+        inv.items.forEach(it => addInvoiceItemRow(it.itemName, it.qty, it.unitPrice, it.costPrice || 0, it.itemCode || ''));
+      } else {
+        addInvoiceItemRow();
+      }
+    }
+    calculateInvoiceTotals();
+    switchTab('tab-invoice');
   };
 
   function loadStatementData() {

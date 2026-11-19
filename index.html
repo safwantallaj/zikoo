@@ -185,11 +185,11 @@
 
 <div class="app-container">
 
-  <!-- شريط الترخيص الدائم -->
-  <div id="license-banner">
+  <!-- شريط حالة الترخيص والاشتراك -->
+  <div id="license-banner" style="background:#fffbeb; border-bottom:1px solid #fde68a; color:#92400e;">
     <div>
-      <i class="fa-solid fa-crown" style="color:#10b981;"></i>
-      <span id="banner-license-text">النسخة الدائمة (PRO) - وصول مفتوح</span>
+      <i class="fa-solid fa-shield-halved" style="color:#f59e0b;"></i>
+      <span id="banner-license-text">⏳ جاري التحقق من حالة الترخيص...</span>
     </div>
     <span id="banner-upgrade-btn" style="text-decoration: underline; cursor: pointer;" onclick="openOnboardingModal(true)">إعدادات الحساب</span>
   </div>
@@ -1103,7 +1103,7 @@
 
     <div class="form-group" style="text-align: right;">
       <label style="font-size: 12px;"><i class="fa-solid fa-key" style="color: var(--warning);"></i> كود التفعيل (License Key)</label>
-      <input type="text" id="onboard-key" placeholder="PRO-2026" value="PRO-2026" style="text-transform: uppercase; font-weight: 700; letter-spacing: 1px;">
+      <input type="text" id="onboard-key" placeholder="أدخل كود التفعيل (TRIAL أو PRO)" value="" style="text-transform: uppercase; font-weight: 700; letter-spacing: 1px;">
     </div>
 
     <button class="btn btn-primary" id="btn-activate-license" style="padding: 14px; font-size: 15px;" onclick="submitLicenseActivation()">
@@ -1193,7 +1193,7 @@
 </div>
 
 <script>
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx7dKQs0quiy9Owe9pPMuda2ziSjOp0QDS0KuKYh8cZ55nJibioRxJ7kOdhlR_BMjbm/exec";
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx5yWKKzvOAOodwuzeZRAf6Bnj0s86oS2-rEk3Bhtu4RcB1rX90nQTje9VkEvzgcLNm/exec";
 
   function showToast(message, isError = false) {
     let toast = document.getElementById("appToast");
@@ -1270,6 +1270,10 @@
     localStorage.setItem('smart_lic_reason', currentLicense.expireReason || "");
     if (currentLicense.email) localStorage.setItem('user_owner_email', currentLicense.email);
     if (currentLicense.sheetId) localStorage.setItem('user_sheet_id', currentLicense.sheetId);
+    if (currentLicense.serverDate) {
+      const prevMax = localStorage.getItem('smart_last_server_date') || '';
+      if (currentLicense.serverDate > prevMax) localStorage.setItem('smart_last_server_date', currentLicense.serverDate);
+    }
     updateLicenseUI();
     verifyLicenseAndTrialStatus(false);
   }
@@ -1280,33 +1284,76 @@
     return Math.max(uniqueSet.size, Number(currentLicense.usedEntries) || 0);
   }
 
+  function parseFlexibleDate(dStr) {
+    if (!dStr || dStr === "غير محدود" || dStr === "محدود") return null;
+    const str = String(dStr).trim();
+    const isoMatch = str.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+    if (isoMatch) {
+      return `${isoMatch[1]}-${isoMatch[2].padStart(2, '0')}-${isoMatch[3].padStart(2, '0')}`;
+    }
+    const dmyMatch = str.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
+    if (dmyMatch) {
+      return `${dmyMatch[3]}-${dmyMatch[2].padStart(2, '0')}-${dmyMatch[1].padStart(2, '0')}`;
+    }
+    const parsed = new Date(str);
+    if (!isNaN(parsed.getTime())) {
+      return parsed.toISOString().split('T')[0];
+    }
+    return null;
+  }
+
+  function getEffectiveCurrentDateStr() {
+    const deviceToday = Utilities_getTodayStr();
+    const lastServerToday = parseFlexibleDate(localStorage.getItem('smart_last_server_date') || currentLicense.serverDate || '');
+    if (lastServerToday && lastServerToday > deviceToday) {
+      return lastServerToday; // منع التحايل عبر تأخير ساعة الهاتف للخلف
+    }
+    if (deviceToday > (lastServerToday || '')) {
+      localStorage.setItem('smart_last_server_date', deviceToday);
+    }
+    return deviceToday;
+  }
+
   function verifyLicenseAndTrialStatus(isBeforeAddAction = false) {
     const licType = String(currentLicense.type || "TRIAL").toUpperCase();
     const statusVal = String(currentLicense.status || "نشط").trim();
+    const sheetId = localStorage.getItem('user_sheet_id') || currentLicense.sheetId || '';
 
-    if (currentLicense.isExpired || statusVal === "منتهي" || statusVal === "موقوف" || statusVal === "ملغى") {
+    if (currentLicense.isExpired || statusVal === "منتهي" || statusVal === "موقوف" || statusVal === "ملغى" || statusVal === "غير_مسجل") {
       const msg = currentLicense.expireReason || ("⛔ عذراً، صلاحية الترخيص (" + statusVal + "). يرجى التواصل مع الإدارة لتفعيل النسخة الكاملة (PRO).");
       showLicenseLockScreen(msg);
       return false;
     }
 
+    // منع العمل بدون ربط كود تفعيل وشيت معتمد عند محاولة الإدخال
+    if (!sheetId && isBeforeAddAction) {
+      showLicenseLockScreen("⛔ يرجى إدخال كود التفعيل (TRIAL أو PRO) وبريدك الإلكتروني لتفعيل مساحة العمل السحابية قبل إدخال أي بيانات.");
+      return false;
+    }
+
     if (licType === "TRIAL") {
-      const todayStr = Utilities_getTodayStr();
-      const endDateStr = String(currentLicense.endDate || "").trim();
+      const todayStr = getEffectiveCurrentDateStr();
+      const expClean = parseFlexibleDate(currentLicense.endDate);
       const limitEntries = Number(currentLicense.limitEntries) || 50;
       const usedCount = countLocalUniqueEntries();
 
-      if (endDateStr && endDateStr !== "غير محدود" && /^\d{4}-\d{2}-\d{2}/.test(endDateStr)) {
-        const expClean = endDateStr.substring(0, 10);
-        if (todayStr > expClean) {
-          const msg = `⛔ انتهت فترة التجربة المجانية (Trial) الخاصة بك بتاريخ (${expClean}). يرجى التواصل مع الإدارة للترقية إلى النسخة الدائمة (PRO).`;
-          currentLicense.isExpired = true;
-          currentLicense.status = "منتهي";
-          currentLicense.expireReason = msg;
-          localStorage.setItem('smart_license_obj', JSON.stringify(currentLicense));
-          showLicenseLockScreen(msg);
+      if (!expClean && isBeforeAddAction) {
+        if (sheetId) {
+          showToast('⏳ جاري التحقق من تاريخ انتهاء النسخة التجريبية من السيرفر...', true);
+          checkCloudLicenseHeartbeat(false);
           return false;
         }
+      }
+
+      if (expClean && todayStr > expClean) {
+        const msg = `⛔ انتهت فترة التجربة المجانية (Trial) الخاصة بك بتاريخ (${expClean}). يرجى التواصل مع الإدارة للترقية إلى النسخة الدائمة (PRO).`;
+        currentLicense.isExpired = true;
+        currentLicense.status = "منتهي";
+        currentLicense.expireReason = msg;
+        localStorage.setItem('smart_license_obj', JSON.stringify(currentLicense));
+        localStorage.setItem('smart_lic_expired', "true");
+        showLicenseLockScreen(msg);
+        return false;
       }
 
       if (limitEntries > 0) {
@@ -1316,6 +1363,7 @@
           currentLicense.status = "منتهي";
           currentLicense.expireReason = msg;
           localStorage.setItem('smart_license_obj', JSON.stringify(currentLicense));
+          localStorage.setItem('smart_lic_expired', "true");
           showLicenseLockScreen(msg);
           return false;
         }
@@ -1510,7 +1558,8 @@
     const isTrial = String(currentLicense.type || "TRIAL").toUpperCase() === "TRIAL";
     const usedCount = countLocalUniqueEntries();
     const limitEntries = Number(currentLicense.limitEntries) || 50;
-    const endDateStr = (currentLicense.endDate && currentLicense.endDate !== "غير محدود") ? String(currentLicense.endDate).substring(0, 10) : "محدود";
+    const parsedEnd = parseFlexibleDate(currentLicense.endDate);
+    const endDateStr = parsedEnd ? parsedEnd : "جاري التحقق...";
 
     if (currentLicense.isExpired || currentLicense.status === "منتهي") {
       if (banner) { banner.style.background = "#fef2f2"; banner.style.borderColor = "#fecaca"; banner.style.color = "#991b1b"; }
@@ -1591,6 +1640,7 @@
   }
 
   function openQuickExpenseModal() {
+    if (!verifyLicenseAndTrialStatus(true)) return;
     const catSel = document.getElementById('quick-exp-category');
     if (catSel) catSel.value = 'operating';
     filterExpenseAccountsByCategory();
@@ -1665,6 +1715,7 @@
   }
 
   function openOtherIncomeModal() {
+    if (!verifyLicenseAndTrialStatus(true)) return;
     const srcSel = document.getElementById('other-inc-target');
     if (srcSel) {
       const sourceAccounts = chartOfAccounts.filter(a => a.base === 'cash' || a.base === 'bank');
@@ -1855,6 +1906,7 @@
   }
 
   function executeCurrencyRevaluation() {
+    if (!verifyLicenseAndTrialStatus(true)) return;
     const todayStr = Utilities_getTodayStr();
     let totalGain = 0;
     let totalLoss = 0;
@@ -2012,6 +2064,7 @@
   }
 
   function saveEditedAssetAction() {
+    if (!verifyLicenseAndTrialStatus(false)) return;
     const code = document.getElementById('edit-asset-code').value;
     const ast = fixedAssetsList.find(x => x.code === code);
     if (!ast) return;
@@ -2105,6 +2158,7 @@
   }
 
   function openItemCardModal(itemCode = "") {
+    if (!verifyLicenseAndTrialStatus(false)) return;
     if (itemCode) {
       const it = inventoryItems.find(x => x.code === itemCode);
       if (it) {
@@ -2939,10 +2993,11 @@ function openAddMemberModal() {
 
   async function submitLicenseActivation() {
     const email = document.getElementById('onboard-email').value.trim().toLowerCase();
-    const key = document.getElementById('onboard-key').value.trim().toUpperCase() || 'PRO-2026';
+    const key = document.getElementById('onboard-key').value.trim().toUpperCase();
     const btn = document.getElementById('btn-activate-license');
 
     if (!email || !email.includes('@')) return showToast('يرجى إدخال بريد Gmail صحيح', true);
+    if (!key) return showToast('يرجى إدخال كود التفعيل أولاً', true);
 
     btn.disabled = true;
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري ربط واستنساخ الشيت الجديد...';
@@ -2992,6 +3047,7 @@ function openAddMemberModal() {
   }
 
   function openAddAccountModal(presetType) {
+    if (!verifyLicenseAndTrialStatus(false)) return;
     const m = document.getElementById('modal-add-account');
     if (m) m.classList.add('open');
     if (presetType) {
@@ -3627,7 +3683,8 @@ function openAddMemberModal() {
   }
 
   function switchTab(tabId, el) {
-    verifyLicenseAndTrialStatus(false);
+    const isEntryTab = (tabId === 'tab-invoice' || tabId === 'tab-entry');
+    if (!verifyLicenseAndTrialStatus(isEntryTab)) return;
     document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
     const target = document.getElementById(tabId);
     if (target) target.classList.add('active');
@@ -4087,6 +4144,7 @@ function openAddMemberModal() {
   };
 
   window.startEditInvoiceFromPopup = function() {
+    if (!verifyLicenseAndTrialStatus(false)) return;
     const inv = smartInvoices.find(x => x.id === _activeInvoiceIdForPrint);
     if (!inv) return showToast('لتعديل هذه الفاتورة يرجى المزامنة أولاً أو تعديلها من شاشة القيود', true);
     closeViewInvoiceModal();
@@ -4181,6 +4239,7 @@ function openAddMemberModal() {
   }
 
   function startEditEntry(entryIndex) {
+    if (!verifyLicenseAndTrialStatus(false)) return;
     const target = ledgerEntries[entryIndex];
     if (!target) return;
 
@@ -4463,11 +4522,11 @@ function openAddMemberModal() {
       console.warn("Bootstrap safe init:", err);
     }
     verifyLicenseAndTrialStatus(false);
+    checkCloudLicenseHeartbeat(false);
+    setInterval(() => {
+      verifyLicenseAndTrialStatus(false);
       checkCloudLicenseHeartbeat(false);
-      setInterval(() => {
-        verifyLicenseAndTrialStatus(false);
-        checkCloudLicenseHeartbeat(false);
-      }, 60000);
+    }, 45000);
   });
 </script>
 
